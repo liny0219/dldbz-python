@@ -1,0 +1,54 @@
+{
+    "debug"   : false,
+    "adb_port": "127.0.0.1:16384",
+    "controller":{
+        "rand_press_px"     : 5,
+        "press_duration"    : 500,
+        "swipe_duration"    : 50,
+        "operate_latency"   : 500, 
+        "screenshot_path"   : "./temp/screenshot.png"
+    },
+    "move":{
+        "interval"    : 1500,
+        "left"        : [336, 297],
+        "right"       : [624, 297],
+        "top"         : [480, 216],
+        "bottom"      : [480, 378]
+    },
+    "battle":{
+        "role_coords_y"   : [60, 162, 270, 378],
+        "role_coord_x"    : 816,
+        "switch_coord"    : [816, 476],
+
+        "skill_coords_y"  :[151, 232, 313, 394, 475],
+        "skill_coord_x"   : 720,
+
+        "boost_coords_x"  : [710, 787, 854, 921],
+        
+        "fallback_coord"  : [394, 486],
+        "support_coord"   : [480, 486],
+        "all_switch_coord": [566, 486],
+        "all_boost_coord" : [653, 486],
+        "battle_coord"    : [826, 486],
+
+        "confirm_coord"   : [50, 100]
+    },
+    "comparator":{
+        "pic_match_similarity" : 0.8,
+        "check_battle_ui": {
+            "coord_lt": [26, 33],
+            "coord_rb": [73, 65],
+            "refs":"./refs/battle_ui.png"
+        },
+        "check_round_ui" : {
+            "coord_lt": [782, 467],
+            "coord_rb": [860, 504],
+            "refs":"./refs/round_ui.png"
+        },
+        "check_skill_ui" : {
+            "coord_lt": [510, 122],
+            "coord_rb": [553, 167],
+            "refs": "./refs/skill_ui.png"
+        }
+    }
+  }
