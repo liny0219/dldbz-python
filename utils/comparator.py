@@ -110,6 +110,7 @@ def get_pixel_color(img, coordinate):
 
 
 def my_BGR2GRAY(img):
+    #用squeeze的原因是有时候convert后的图片是(y,x,1)的shape, 然而match_template需要(y,x) 2d array
     return np.squeeze(cv2.cvtColor(img, cv2.COLOR_BGR2GRAY))
 
 
