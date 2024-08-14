@@ -4,7 +4,7 @@ import cv2
 save = False
 # save = True
 
-
+#test
 device = u2.connect("127.0.0.1:16384")
 
 info = device.info
