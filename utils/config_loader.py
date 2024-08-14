@@ -20,9 +20,6 @@ class ConfigLoader:
             return default
 
 
-# 创建一个全局的 ConfigLoader 实例，以便其他模块可以导入
-file_name = 'D:\\Python_stuff\\game_script\\dldbz-python_ver\\python-dldbz\\config.json'
-config_loader = ConfigLoader(file_name)
-# config_loader = ConfigLoader('./config.json')
+config_loader = ConfigLoader('./config.json')
 
 

@@ -1,4 +1,5 @@
 import logging
+import traceback
 from utils.config_loader import config_loader
 
 # 根据环境变量判断模式
@@ -18,7 +19,10 @@ else:
 # 定义一个统一的日志记录器
 logger = logging.getLogger(__name__)
 
-# 在项目中根据模式设置打印信息
+def log_exception(e : Exception):
+    logger.error(''.join(traceback.format_exception(etype=type(e), value=e, tb=e.__traceback__)))
+    
+
 def log_debug(message):
     if DEBUG_MODE:
         logger.debug(message)
