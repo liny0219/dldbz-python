@@ -10,14 +10,6 @@ current_path = os.path.dirname(os.path.abspath(__file__))
 assert_path = './refs/dfw/'
 
 
-def run_task():
-    while True:
-        event = comparator.template_in_picture(assert_path +  'dfwysz.png')
-        if event:
-            controller.d.click(853, 435)
-        time.sleep(1)
-
-
 # 分支 1富足 2权威 3名望
 # 代币类型 1富足 2权威 3名望
 # 随机事件 1 左边加难度 2右边减难度

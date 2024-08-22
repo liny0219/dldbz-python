@@ -10,12 +10,12 @@ import time
 controller = DeviceController(config_loader.get('adb_port'))
 comparator = Comparator(controller)
 
-path = './refs/monopoly/battle/girl.png'
+path = './refs/monopoly/play.png'
 
 save = True
 if save:
-    leftup_coordinate = [132, 102]
-    rightdown_coordinate = [310,390]
+    leftup_coordinate = [820, 440]
+    rightdown_coordinate = [864,464]
     comparator._cropped_screenshot( leftup_coordinate, rightdown_coordinate, convert_gray=False, save_path=path)
 
 

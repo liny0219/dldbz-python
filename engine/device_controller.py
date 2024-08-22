@@ -50,7 +50,10 @@ class DeviceController:
         else:
             loger.log_info(f"关闭游戏失败")
             return False
-
+    def restart_game(self):
+        self.stop_game()
+        self.sleep_ms(1000)
+        self.start_game()
     def sleep_ms(self, T = None):
         if not T:
             T = self.default_sleep_ms
@@ -70,16 +73,7 @@ class DeviceController:
             loger.log_error("设备未连接")
 
     def light_press(self, coordinate, T = None):
-        if not T:
-            T = self.press_duration
-        if self.d:
-            x = coordinate[0]
-            y = coordinate[1]
-            self.d.long_click(x, y, duration= T / 1000.)
-            self.sleep_ms(100)
-            loger.log_info(f"已按压位置 ({x}, {y}) 持续 {T} 毫秒")
-        else:
-            loger.log_error("设备未连接")
+        self.press(coordinate, T = T, operate_latency=100)
 
 
     def swipe(self, start_coordinate, end_coordinate, T = None):

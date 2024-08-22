@@ -126,7 +126,7 @@ class World:
         self._swipe(self.move_param["bottom"], self.move_param["top"], log_message)
         self._swipe(self.move_param["top"], self.move_param["bottom"])
 
-    def check_in_starting_screen(self):
+    def check_in_starting_screen_and_start(self):
         in_starting = self.comparator.template_in_picture(self.check_starting_screen, return_center_coord=True)
         if in_starting:
             self.controller.press(in_starting)
@@ -145,12 +145,12 @@ class World:
         self.check_and_cancel1()
         self.check_and_cancel2()
 
-    def check_menu2_back_menu(self):
+    def check_menu2_and_back_menu1(self):
         in_menu2 = self.comparator.template_in_picture(self.check_menu2_ui_refs)
         if in_menu2:
             self.controller.press(self.confirm_coord)
 
-    def check_leave_monopoly(self):
+    def check_monopoly_and_leave(self):
         event = self.comparator.template_in_picture(self.check_monopoly_option, return_center_coord=True)
         if event:
             # print("7")
@@ -163,53 +163,18 @@ class World:
                 if event:
                     # print("9")
                     self.controller.press(event)
-    def back_world(self):
-            n = 0
-            while True:
-                n += 1 
-                if n > 100:
-                    self.controller.stop_game()
-                    self.controller.sleep_ms(1000)
-                    self.controller.sart_game()
-                    n = 0
-                if not self.controller.in_game():
-                     self.controller.sart_game()
-                     n = 0 
-                self.check_menu2_back_menu()
-                self.check_in_starting_screen()
-                self.check_and_cancel()
-                self.check_leave_monopoly()
-                if self._check_have_menu1():
-                    break
 
-
-        #开始游戏
-
-
-        # event = comparator.template_in_picture(assert_path +  'begin_game.png', return_center_coord=True)
-        # if event:
-        #     controller.press(event,operate_latency=operate_latency)
-        # 点掉菜单
-        # event = comparator.template_in_picture(assert_path +  'others.png', return_center_coord=True)
-        # if event:
-        #     controller.press((516, 316),operate_latency=operate_latency)
-        # 点掉打叉
-        # event = comparator.template_in_picture(assert_path +  'cross1.png', return_center_coord=True)
-        # if event:
-        #     controller.press(event,operate_latency=operate_latency)
-        # event = comparator.template_in_picture(assert_path +  'cross2.png', return_center_coord=True)
-        # if event:
-        #     controller.press(event,operate_latency=operate_latency)
-        # event = comparator.template_in_picture(assert_path +  'cancel.png', return_center_coord=True)
-        # if event:
-        #     controller.press(event,operate_latency=operate_latency)
-        # event = comparator.template_in_picture(assert_path +  'No.png', return_center_coord=True)
-
-
-        # if event:
-        #     controller.press(event,operate_latency=operate_latency)
-        # event = comparator.template_in_picture(assert_path +  'monopoly_game_board.png', return_center_coord=True)
-        # if event:
-        #     print("Back to the world, and find the monopoly game board.")
-        #     break
-        # pass
+    def back_menu1(self):
+        """
+        This function is used to back to the main menu.
+        
+        The function waits until the game is in the game state, if not, it starts the game.
+        After that, it waits until the game has the main menu page, if not, it performs
+        the operations specified in operate_funcs. The function uses the wait_until
+        function to achieve this. If the timeout is reached, it will execute the
+        time_out_operate_funcs.
+        
+        Note: The code for the operations is commented out in the function.
+        """
+        wait_until(self.controller.in_game, operate_funcs=[self.controller.start_game],check_interval=5)
+        wait_until(self._check_have_menu1, operate_funcs=[self.check_in_starting_screen_and_start, self.check_menu2_and_back_menu1, self.check_and_cancel, self.check_monopoly_and_leave], timeout=30, check_interval=0.5, time_out_operate_funcs=[self.controller.restart_game])

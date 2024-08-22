@@ -5,6 +5,7 @@ from engine.comparator import Comparator
 from engine.player import Player
 from engine.monopoly import Monopoly
 from utils.config_loader import config_loader
+from utils.wait import wait_until
 import cv2 
 
 if __name__ == '__main__':
@@ -13,13 +14,20 @@ if __name__ == '__main__':
     team = 'TBD'
     player = Player(controller, comparator, team)
     world      = World(player)
-    monopoly = Monopoly(player)
-
+    monopoly = Monopoly(player,world)
+    # world.back_menu1()
+    # wait_until(controller.in_game, operate_funcs=[controller.start_game],check_interval=1)
+    # monopoly.exhaust_everything()
+    ticket_num = 0
+    difficulty = 2
+    # monopoly.in_monopoly_game()
+    monopoly.play_monopoly(ticket_num,difficulty)
+    # monopoly.exhaust_everything()
     # monopoly.move_right()
-    for i in range(10):
-        print("turn",i)
-        r = monopoly.in_battle()
-        print(r)
+    # for i in range(10):
+    #     print("turn",i)
+    #     r = monopoly.in_battle()
+    #     print(r)
     # 截图示例
     '''
     #comparator.crop_save_image([879, 369], [910, 386], "your_file_name")

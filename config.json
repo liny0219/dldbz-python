@@ -6,7 +6,7 @@
     "game_activity":"com.epicgames.ue4.GameActivity",
     "controller":{
         "rand_press_px"     : 5,
-        "press_duration"    : 500,
+        "press_duration"    : 300,
         "swipe_duration"    : 50,
         "operate_latency"   : 500, 
         "default_sleep_ms"  : 10
@@ -126,6 +126,11 @@
     },
     "monopoly":{
         "check":{
+            "check_play_board_refs": "./refs/monopoly/monopoly_game_board.png",
+            "check_in_monopoly_menu_refs": "./refs/monopoly/in_monopoly_menu.png",
+            "check_exhaust_everything_refs": "./refs/monopoly/board_type/exhaust_everything.png",
+            "check_monopoly_setting_refs": "./refs/monopoly/monopoly_setting.png",
+            "check_play_refs": "./refs/monopoly/play.png",
             "check_waitroll_refs" : "./refs/monopoly/roll_button.png",
             "check_rolling_refs"  : "./refs/monopoly/rolling.png",
             "check_rolldone_refs" : "./refs/monopoly/check_rolldone.png",

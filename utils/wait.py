@@ -1,6 +1,6 @@
 import time
 
-def wait_until(condition_func, operate_funcs = None, timeout=10, check_interval=0.1):
+def wait_until(condition_func, operate_funcs = None, timeout=10, check_interval=0.1, time_out_operate_funcs = None):
     """
     等待直到条件函数返回 True 或超时。
     
@@ -12,8 +12,8 @@ def wait_until(condition_func, operate_funcs = None, timeout=10, check_interval=
     """
     assert callable(condition_func), "wait_until传入的第一个参数必须是函数"
     start_time = time.time()
-    
-    while time.time() - start_time < timeout:
+    time_elapsed = 0
+    while True:
         if condition_func():
             return True
         if operate_funcs and type(operate_funcs) == list:
@@ -23,7 +23,15 @@ def wait_until(condition_func, operate_funcs = None, timeout=10, check_interval=
             except:
                 pass
         time.sleep(check_interval)
-    
+        time_elapsed = time.time() - start_time
+        if time_elapsed >= timeout:
+            if time_out_operate_funcs and type(time_out_operate_funcs) == list:
+                try:
+                    for time_out_operate_func in time_out_operate_funcs:
+                        time_out_operate_func()
+                except:
+                    pass
+            break
     return False
 def wait_either(condition_func1, condition_func2, 
                 operate_funcs = None, timeout=10, check_interval=0.1):
