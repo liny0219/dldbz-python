@@ -54,6 +54,7 @@ class DeviceController:
         self.stop_game()
         self.sleep_ms(1000)
         self.start_game()
+        
     def sleep_ms(self, T = None):
         if not T:
             T = self.default_sleep_ms

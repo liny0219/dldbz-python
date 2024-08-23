@@ -37,14 +37,22 @@ class Monopoly:
         self.check_battle_monster_bear = config_loader.get('monopoly.battle.check.check_battle_monster_bear_refs')
         self.check_battle_monster_fire_refs = config_loader.get('monopoly.battle.check.check_battle_monster_fire_refs')
         self.check_battle_monster_girl_refs = config_loader.get('monopoly.battle.check.check_battle_monster_girl_refs')
+
+        self.minus_ticket_coord = config_loader.get('monopoly.button.minus_ticket_coord')
+        self.add_difficulty_coord = config_loader.get('monopoly.button.add_difficulty_coord')
+        self.add_ticket_num_coord = config_loader.get('monopoly.button.add_ticket_num_coord')
+        self.move_down_coord = config_loader.get('monopoly.button.move_down_coord')
+        self.move_left_coord = config_loader.get('monopoly.button.move_left_coord')
+        self.move_right_coord = config_loader.get('monopoly.button.move_right_coord')
     # def goto(self, board : GAMEBOARD):
-        
+        self.movement = [self.check_little_man, ]
 
     def roll_dice(self):  
         event_roll = self.comparator.template_in_picture(self.check_waitroll_refs, return_center_coord=True)
         if event_roll:
             self.controller.press(event_roll, T=200, operate_latency=1000)
             self.controller.press(event_roll, T=200)
+
         
     def check_little_man(self):
         if not self.meet_little_man:
@@ -104,24 +112,16 @@ class Monopoly:
                 return "Girl"
             
     def move_down(self):
-        self.controller.press([482, 336])
+        self.controller.press(self.move_down_coord)
     def move_right(self):
-        self.controller.press([560, 246])
+        self.controller.press(self.move_right_coord)
     def move_left(self):
-        self.controller.press([404, 246])
+        self.controller.press(self.move_left_coord)
     def in_monopoly_game(self):
         return self.comparator.template_in_picture(self.check_waitroll_refs)
     def in_monopoly_menu(self):
         return self.comparator.template_in_picture(self.check_in_monopoly_menu_refs)
-    # def check_and_click_play_board(self):
-    #     event = self.comparator.template_in_picture(self.check_play_board_refs, return_center_coord=True)
-    #     if event:
-    #         self.controller.press(event)
-    
-    def check_and_click_exhaust_everything(self):
-        event = self.comparator.template_in_picture(self.check_exhaust_everything_refs, return_center_coord=True)
-        if event:
-            self.controller.press(event)
+
     def in_monopoly_setting(self):
         return self.comparator.template_in_picture(self.check_monopoly_setting_refs)
     def start_playing_exhaust_everything(self, ticket_num=0,difficulty=0):
@@ -147,10 +147,28 @@ class Monopoly:
         self.start_playing_exhaust_everything(ticket_num=ticket_num,difficulty=difficulty)
 
     def initialize_monopoly_setting(self):
-        self.controller.light_press([246, 222],T = 100)
+        self.controller.light_press(self.minus_ticket_coord,T = 100)
     def add_ticket_num(self,n):
         for _ in range(n):
-            self.controller.light_press([372, 222],T = 100)
+            self.controller.light_press(self.add_ticket_coord,T = 100)
     def add_difficulty(self,n):
         for _ in range(n):
-            self.controller.light_press([716, 222],T = 100)
+            self.controller.light_press(self.add_difficulty_coord,T = 100)
+            
+            
+            
+            
+            
+            
+            
+# others
+            
+    # def check_and_click_play_board(self):
+    #     event = self.comparator.template_in_picture(self.check_play_board_refs, return_center_coord=True)
+    #     if event:
+    #         self.controller.press(event)
+    
+    # def check_and_click_exhaust_everything(self):
+    #     event = self.comparator.template_in_picture(self.check_exhaust_everything_refs, return_center_coord=True)
+    #     if event:
+    #         self.controller.press(event)

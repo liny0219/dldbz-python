@@ -20,8 +20,9 @@ if __name__ == '__main__':
     # monopoly.exhaust_everything()
     ticket_num = 0
     difficulty = 2
-    # monopoly.in_monopoly_game()
-    monopoly.play_monopoly(ticket_num,difficulty)
+    monopoly.play_monopoly()
+    strin = './utils/loger.py'
+    # monopoly.roll_dice()
     # monopoly.exhaust_everything()
     # monopoly.move_right()
     # for i in range(10):
