@@ -26,3 +26,6 @@ def load_battle_configurations(instance):
     instance.all_switch_refs = cfg_battle.get("button.all_switch_refs")   # 全员交替按钮图片
     instance.all_boost_refs  = cfg_battle.get("button.all_boost_refs")    # 全员加成按钮图片
     instance.attack_refs = cfg_battle.get("button.attack_refs")       # “攻击”图片
+
+    instance.sp_coords = cfg_battle.get("coord.sp_coords")            # sp坐标
+    instance.sp_confirm_coords = cfg_battle.get("coord.sp_confirm_coords")  # sp确认坐标

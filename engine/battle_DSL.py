@@ -17,7 +17,7 @@ class BattleDSL:
             
         """ 解析并执行指令 """
         parts = instruction.split(',')
-        command = parts[0].capitalize()  # 将指令转换为首字母大写以匹配 hook 名称
+        command = parts[0]  # 将指令转换为首字母大写以匹配 hook 名称
         hook_func = self.hook_manager.get(command)
 
         if hook_func is not None:

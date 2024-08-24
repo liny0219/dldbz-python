@@ -4,10 +4,10 @@ from utils.config_loader import cfg_battle
 from functools import partial
 from contextlib import contextmanager
 from utils.singleton import singleton
-from utils.wait import wait_until, wait_until_not, wait_either
+from utils.wait import wait_limit, wait_until, wait_until_not, wait_either
 from utils.status import ROLE_HP_STATUS, ROLE_MP_STATUS, MATCH_CONFIDENCE
 from utils.load import load_battle_configurations
-
+import time
 
 def get_front_front_role_id(role):    # 获某号位站到前排的index
     assert role > 0 & role <= 8   # 最多有8号位
@@ -49,7 +49,7 @@ class Battle:
             'Attack', lambda: self.StartAttack(lambda: self.WaitRound()))
         battle_hook.set('SwitchAll', lambda: self.SwitchAll())
         battle_hook.set('Boost', lambda: self.Boost())
-        # battle_hook.set('SP', lambda role_id: self.sp(role_id))
+        battle_hook.set('SP', lambda role_id: self.SP(int(role_id)))
         # battle_hook.set('Reset', lambda: self.reset())
         # battle_hook.set('Switch', lambda role_id: self.switch(role_id))
         # battle_hook.set('Wait', lambda time: self.wait(time))
@@ -236,3 +236,33 @@ class Battle:
         print(all_boost_coord)
         if (all_boost_coord):
             self.controller.press(all_boost_coord, T=0.5)
+
+    def SP(self, role):
+        assert self.in_round_ctx == True  # 必须在Round中执行
+        assert role > 0 & role <= 8   # 最多有8号位
+
+        loger.log_info(f"执行{role}号位的必杀技能!")
+
+        front_role_id = get_front_front_role_id(role)
+
+        # 点击角色, 等待进入选技能界面
+        select_role_coord = [self.role_coord_x,
+                             self.role_coords_y[front_role_id]]
+        self.controller.press(select_role_coord)
+        # wait_until(self._in_select_skill, [partial(self.controller.press, select_role_coord)])
+        loger.log_info(f"进入选技能界面!")
+        role_in_behind = (role in self.behind)
+        # 切换人物
+        if (role_in_behind):
+            loger.log_info(f"切换人物!")
+            switch_coord = self.comparator.template_in_picture(
+                self.switch_refs, return_center_coord=True)
+            if (switch_coord):
+                self.controller.press(switch_coord)
+                self.front[front_role_id], self.behind[front_role_id] = self.behind[front_role_id],  self.front[front_role_id]
+
+        loger.log_info(f"正在选中必杀!")
+
+        self.controller.press(self.sp_coords)
+        time.sleep(0.4)
+        self.controller.press(self.sp_confirm_coords)

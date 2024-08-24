@@ -152,6 +152,8 @@
     "attack_refs": "./refs/battle/attack.png"
   },
   "coord": {
+    "sp_coords": [525, 68],
+    "sp_confirm_coords": [702, 348],
     "role_coords_y": [60, 162, 270, 378],
     "role_coord_x": 816,
     "skill_coords_y": [151, 232, 313, 394, 475],

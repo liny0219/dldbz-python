@@ -37,19 +37,18 @@ class JJC:
 
     def start(self):
         # 等待读取并确认读取
-        runState = wait_limit(self.read,  operate_funcs=[self.read], thread=self.thread,
-                              timeout=10, check_interval=1)
-        if not runState:
-            return
+        # runState = wait_limit(self.read,  operate_funcs=[self.read], thread=self.thread,
+        #                       timeout=10, check_interval=1)
+        # if not runState:
+        #     return
+        # runState = wait_limit(self.confirm_read, operate_funcs=[self.confirm_read],  thread=self.thread,
+        #                       timeout=10, check_interval=1)
+        # btnSkipTimeout = cfg_jjc.get("common.btn_skip_timeout")
+        # btnSkip = cfg_jjc.get("coord.btn_skip")
+        # self.controller.press(btnSkip, btnSkipTimeout)
 
-        runState = wait_limit(self.confirm_read, operate_funcs=[self.confirm_read],  thread=self.thread,
-                              timeout=10, check_interval=1)
-        btnSkipTimeout = cfg_jjc.get("common.btn_skip_timeout")
-        btnSkip = cfg_jjc.get("coord.btn_skip")
-        self.controller.press(btnSkip, btnSkipTimeout)
-
-        if not runState:
-            return
+        # if not runState:
+        #     return
 
         with Battle(self.player, '测试') as b:
             b.SetThread(self.thread)
