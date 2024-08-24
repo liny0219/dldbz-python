@@ -1,333 +1,161 @@
 {
-    "check": {
-        "check_battle_ui_refs": "./refs/battle/battle_ui.png",
-        "check_round_ui_refs": "./refs/battle/round_ui.png",
-        "check_skill_ui_refs": "./refs/battle/skill_ui.png",
-        "check_sleep_ui_refs": "./refs/battle/sleep_ui.png"
+  "check": {
+    "check_battle_ui_refs": "./refs/battle/battle_ui.png",
+    "check_round_ui_refs": "./refs/battle/round_ui.png",
+    "check_skill_ui_refs": "./refs/battle/skill_ui.png",
+    "check_sleep_ui_refs": "./refs/battle/sleep_ui.png"
+  },
+  "front_role": {
+    "role_rect": [
+      [
+        [774, 27],
+        [872, 105]
+      ],
+      [
+        [774, 134],
+        [872, 212]
+      ],
+      [
+        [774, 242],
+        [872, 319]
+      ],
+      [
+        [774, 349],
+        [872, 427]
+      ]
+    ],
+    "front_role_status": [
+      [1104, 54],
+      [1168, 548]
+    ],
+    "role_hpmps": [
+      [
+        [1108, 60],
+        [1170, 114]
+      ],
+      [
+        [1108, 200],
+        [1170, 256]
+      ],
+      [
+        [1108, 345],
+        [1170, 400]
+      ],
+      [
+        [1108, 485],
+        [1170, 542]
+      ]
+    ],
+    "hp": {
+      "hp_high1_refs": "./refs/battle/front_hp_high1_refs.png",
+      "hp_high2_refs": "./refs/battle/front_hp_high2_refs.png",
+      "hp_mid_refs": "./refs/battle/front_hp_mid_refs.png",
+      "dead_refs": "./refs/battle/front_dead_ui.png"
     },
-    "front_role": {
-        "role_rect": [
-            [
-                [
-                    774,
-                    27
-                ],
-                [
-                    872,
-                    105
-                ]
-            ],
-            [
-                [
-                    774,
-                    134
-                ],
-                [
-                    872,
-                    212
-                ]
-            ],
-            [
-                [
-                    774,
-                    242
-                ],
-                [
-                    872,
-                    319
-                ]
-            ],
-            [
-                [
-                    774,
-                    349
-                ],
-                [
-                    872,
-                    427
-                ]
-            ]
-        ],
-        "front_role_status": [
-            [
-                1104,
-                54
-            ],
-            [
-                1168,
-                548
-            ]
-        ],
-        "role_hpmps": [
-            [
-                [
-                    1108,
-                    60
-                ],
-                [
-                    1170,
-                    114
-                ]
-            ],
-            [
-                [
-                    1108,
-                    200
-                ],
-                [
-                    1170,
-                    256
-                ]
-            ],
-            [
-                [
-                    1108,
-                    345
-                ],
-                [
-                    1170,
-                    400
-                ]
-            ],
-            [
-                [
-                    1108,
-                    485
-                ],
-                [
-                    1170,
-                    542
-                ]
-            ]
-        ],
-        "hp": {
-            "hp_high1_refs": "./refs/battle/front_hp_high1_refs.png",
-            "hp_high2_refs": "./refs/battle/front_hp_high2_refs.png",
-            "hp_mid_refs": "./refs/battle/front_hp_mid_refs.png",
-            "dead_refs": "./refs/battle/front_dead_ui.png"
-        },
-        "mp": {
-            "mp_high_refs": "./refs/battle/front_mp_high_refs.png"
-        }
-    },
-    "behind_role": {
-        "role_rect": [
-            [
-                [
-                    869,
-                    34
-                ],
-                [
-                    943,
-                    106
-                ]
-            ],
-            [
-                [
-                    869,
-                    141
-                ],
-                [
-                    943,
-                    215
-                ]
-            ],
-            [
-                [
-                    869,
-                    248
-                ],
-                [
-                    943,
-                    322
-                ]
-            ],
-            [
-                [
-                    869,
-                    355
-                ],
-                [
-                    943,
-                    430
-                ]
-            ]
-        ],
-        "behind_role_status": [
-            [
-                1204,
-                62
-            ],
-            [
-                1258,
-                546
-            ]
-        ],
-        "role_hpmps": [
-            [
-                [
-                    1208,
-                    64
-                ],
-                [
-                    1254,
-                    112
-                ]
-            ],
-            [
-                [
-                    1208,
-                    208
-                ],
-                [
-                    1254,
-                    256
-                ]
-            ],
-            [
-                [
-                    1208,
-                    350
-                ],
-                [
-                    1254,
-                    400
-                ]
-            ],
-            [
-                [
-                    1208,
-                    494
-                ],
-                [
-                    1254,
-                    542
-                ]
-            ]
-        ],
-        "hp": {
-            "hp_high1_refs": "./refs/battle/behind_hp_high1_refs.png",
-            "hp_high2_refs": "./refs/battle/behind_hp_high2_refs.png",
-            "hp_mid_refs": "./refs/battle/behind_hp_mid_refs.png",
-            "dead_refs": "./refs/battle/behind_dead_ui.png"
-        },
-        "mp": {
-            "mp_high_refs": "./refs/battle/behind_mp_high_refs.png"
-        }
-    },
-    "role_info": {
-        "role_hpmp_location": [
-            [
-                [
-                    1108,
-                    60
-                ],
-                [
-                    1170,
-                    114
-                ]
-            ],
-            [
-                [
-                    1108,
-                    200
-                ],
-                [
-                    1170,
-                    256
-                ]
-            ],
-            [
-                [
-                    1108,
-                    345
-                ],
-                [
-                    1170,
-                    400
-                ]
-            ],
-            [
-                [
-                    1108,
-                    485
-                ],
-                [
-                    1170,
-                    542
-                ]
-            ],
-            [
-                [
-                    1208,
-                    64
-                ],
-                [
-                    1254,
-                    112
-                ]
-            ],
-            [
-                [
-                    1208,
-                    208
-                ],
-                [
-                    1254,
-                    256
-                ]
-            ],
-            [
-                [
-                    1208,
-                    350
-                ],
-                [
-                    1254,
-                    400
-                ]
-            ],
-            [
-                [
-                    1208,
-                    494
-                ],
-                [
-                    1254,
-                    542
-                ]
-            ]
-        ]
-    },
-    "button": {
-        "switch_refs": "./refs/battle/switch.png",
-        "fallback_refs": "./refs/battle/fallback.png",
-        "supports_refs": "./refs/battle/supports.png",
-        "all_switch_refs": "./refs/battle/allswitch.png",
-        "all_boost_refs": "./refs/battle/allboost.png",
-        "attack_refs": "./refs/battle/attack.png"
-    },
-    "coord": {
-        "role_coords_y": [
-            60,
-            162,
-            270,
-            378
-        ],
-        "role_coord_x": 816,
-        "skill_coords_y": [
-            151,
-            232,
-            313,
-            394,
-            475
-        ],
-        "skill_coord_x": 580,
-        "boost_coords_x": [
-            600,
-            787,
-            854,
-            921
-        ]
+    "mp": {
+      "mp_high_refs": "./refs/battle/front_mp_high_refs.png"
     }
+  },
+  "behind_role": {
+    "role_rect": [
+      [
+        [869, 34],
+        [943, 106]
+      ],
+      [
+        [869, 141],
+        [943, 215]
+      ],
+      [
+        [869, 248],
+        [943, 322]
+      ],
+      [
+        [869, 355],
+        [943, 430]
+      ]
+    ],
+    "behind_role_status": [
+      [1204, 62],
+      [1258, 546]
+    ],
+    "role_hpmps": [
+      [
+        [1208, 64],
+        [1254, 112]
+      ],
+      [
+        [1208, 208],
+        [1254, 256]
+      ],
+      [
+        [1208, 350],
+        [1254, 400]
+      ],
+      [
+        [1208, 494],
+        [1254, 542]
+      ]
+    ],
+    "hp": {
+      "hp_high1_refs": "./refs/battle/behind_hp_high1_refs.png",
+      "hp_high2_refs": "./refs/battle/behind_hp_high2_refs.png",
+      "hp_mid_refs": "./refs/battle/behind_hp_mid_refs.png",
+      "dead_refs": "./refs/battle/behind_dead_ui.png"
+    },
+    "mp": {
+      "mp_high_refs": "./refs/battle/behind_mp_high_refs.png"
+    }
+  },
+  "role_info": {
+    "role_hpmp_location": [
+      [
+        [1108, 60],
+        [1170, 114]
+      ],
+      [
+        [1108, 200],
+        [1170, 256]
+      ],
+      [
+        [1108, 345],
+        [1170, 400]
+      ],
+      [
+        [1108, 485],
+        [1170, 542]
+      ],
+      [
+        [1208, 64],
+        [1254, 112]
+      ],
+      [
+        [1208, 208],
+        [1254, 256]
+      ],
+      [
+        [1208, 350],
+        [1254, 400]
+      ],
+      [
+        [1208, 494],
+        [1254, 542]
+      ]
+    ]
+  },
+  "button": {
+    "switch_refs": "./refs/battle/switch.png",
+    "fallback_refs": "./refs/battle/fallback.png",
+    "supports_refs": "./refs/battle/supports.png",
+    "all_switch_refs": "./refs/battle/allswitch.png",
+    "all_boost_refs": "./refs/battle/allboost.png",
+    "attack_refs": "./refs/battle/attack.png"
+  },
+  "coord": {
+    "role_coords_y": [60, 162, 270, 378],
+    "role_coord_x": 816,
+    "skill_coords_y": [151, 232, 313, 394, 475],
+    "skill_coord_x": 580,
+    "boost_coords_x": [600, 787, 854, 921]
+  }
 }

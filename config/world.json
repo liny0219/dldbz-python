@@ -1,21 +1,21 @@
 {
-    "check":{
-        "check_world_ui_refs" : "./refs/world/world_ui.png",
-        "check_menu1_ui_refs" : "./refs/world/menu1_ui.png",
-        "check_menu2_ui_refs" : "./refs/world/others.png",
-        "check_in_starting_screen" : "./refs/world/starting_screen.png",
-        "check_cross1": "./refs/world/cross1.png",
-        "check_cross2": "./refs/world/cross2.png"
-    },
-    "button":{
-        "rest_active_refs"     : "./refs/world/rest_active.png",
-        "rest_disable_refs"    : "./refs/world/rest_disable.png"
-    },
-    "move":{
-        "interval"    : 1500,
-        "left"        : [336, 297],
-        "right"       : [624, 297],
-        "top"         : [480, 216],
-        "bottom"      : [480, 378]
-    }
+  "check": {
+    "check_world_ui_refs": "./refs/world/world_ui.png",
+    "check_menu1_ui_refs": "./refs/world/menu1_ui.png",
+    "check_menu2_ui_refs": "./refs/world/others.png",
+    "check_in_starting_screen": "./refs/world/starting_screen.png",
+    "check_cross1": "./refs/world/cross1.png",
+    "check_cross2": "./refs/world/cross2.png"
+  },
+  "button": {
+    "rest_active_refs": "./refs/world/rest_active.png",
+    "rest_disable_refs": "./refs/world/rest_disable.png"
+  },
+  "move": {
+    "interval": 1500,
+    "left": [336, 297],
+    "right": [624, 297],
+    "top": [480, 216],
+    "bottom": [480, 378]
+  }
 }

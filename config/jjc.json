@@ -1,0 +1,14 @@
+{
+  "common": {
+    "btn_skip_timeout": 5000
+  },
+  "check": {
+    "check_read_ui_refs": "./refs/jjc/read_ui.png",
+    "check_confirm_read_ui_refs": "./refs/jjc/confirm_read_ui.png"
+  },
+  "coord": {
+    "btn_skip": [700, 515],
+    "btn_read": [820, 140],
+    "btn_confirm_read": [600, 460]
+  }
+}
