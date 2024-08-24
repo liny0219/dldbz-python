@@ -1,3 +1,5 @@
+from engine.battle_DSL import BattleDSL
+from engine.battle_hook import BattleHook
 from engine.device_controller import DeviceController
 from engine.world import Move_Direct, World
 from engine.battle import Battle
@@ -20,7 +22,23 @@ if __name__ == '__main__':
     # monopoly.exhaust_everything()
     ticket_num = 0
     difficulty = 1
-    monopoly.play_monopoly(ticket_num, difficulty)
+
+    
+    # 使用示例
+    # 获取 BattleDSL 和 BattleHook 单例实例
+    battle_dsl = BattleDSL()
+    hook_manager = BattleHook()
+
+    # 设置自定义 hook 函数，保留默认打印行为
+    def custom_role_hook(role_id, skill_id, energy_level):
+        print(f"Custom Role Hook: Role {role_id}, Skill {skill_id}, Energy {energy_level}")
+
+    hook_manager.set("Role", custom_role_hook)
+
+    # 运行脚本
+    battle_dsl.run_script('./battle_script/coliseum.txt')
+    
+    # monopoly.play_monopoly(ticket_num, difficulty)
     # monopoly.check_get_props()
     # monopoly.check_coin_type_branch()
     # monopoly.check_and_choose_coin_type(coin_type='wealth')
