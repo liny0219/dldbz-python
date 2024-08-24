@@ -19,10 +19,22 @@ if __name__ == '__main__':
     # wait_until(controller.in_game, operate_funcs=[controller.start_game],check_interval=1)
     # monopoly.exhaust_everything()
     ticket_num = 0
-    difficulty = 2
-    monopoly.play_monopoly()
-    strin = './utils/loger.py'
-    # monopoly.roll_dice()
+    difficulty = 1
+    monopoly.play_monopoly(ticket_num, difficulty)
+    # monopoly.check_get_props()
+    # monopoly.check_coin_type_branch()
+    # monopoly.check_and_choose_coin_type(coin_type='wealth')
+    # monopoly.check_and_choose_forked_road()
+    # monopoly.play_monopoly(ticket_num, difficulty)
+    # monopoly.check_and_confirm_props_found()
+    # comparator.template_in_picture('./refs/monopoly/props_found.png')
+    # monopoly.test_a_roll()
+    # monopoly.check_end_and_continue()
+    # monopoly.check_dedicate_and_cancle()
+    # monopoly.check_get_props()
+    # print(monopoly.check_forked_road())
+    # monopoly.check_little_man()
+    # monopoly.check_and_fight_and_continue()
     # monopoly.exhaust_everything()
     # monopoly.move_right()
     # for i in range(10):

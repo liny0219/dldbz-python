@@ -153,15 +153,15 @@ class World:
     def check_monopoly_and_leave(self):
         event = self.comparator.template_in_picture(self.check_monopoly_option, return_center_coord=True)
         if event:
-            # print("7")
             self.controller.press(event)
             event = self.comparator.template_in_picture(self.check_monopoly_end, return_center_coord=True)
             if event:
-                # print("8")
                 self.controller.press(event)
                 event = self.comparator.template_in_picture(self.check_monopoly_end_confirm, return_center_coord=True)
                 if event:
-                    # print("9")
+                    self.controller.press(event)
+                event = self.comparator.template_in_picture(self.check_monopoly_end_confirm, return_center_coord=True)
+                if event:
                     self.controller.press(event)
 
     def back_menu1(self):
@@ -177,4 +177,4 @@ class World:
         Note: The code for the operations is commented out in the function.
         """
         wait_until(self.controller.in_game, operate_funcs=[self.controller.start_game],check_interval=5)
-        wait_until(self._check_have_menu1, operate_funcs=[self.check_in_starting_screen_and_start, self.check_menu2_and_back_menu1, self.check_and_cancel, self.check_monopoly_and_leave], timeout=30, check_interval=0.5, time_out_operate_funcs=[self.controller.restart_game])
+        wait_until(self._check_have_menu1, operate_funcs=[self.check_in_starting_screen_and_start, self.check_menu2_and_back_menu1, self.check_and_cancel, self.check_monopoly_and_leave], timeout=60, check_interval=1, time_out_operate_funcs=[self.controller.restart_game])
