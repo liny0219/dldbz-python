@@ -1,0 +1,10 @@
+{
+    "debug": false,
+    "adb_port": "127.0.0.1:5555",
+    "resolution": [
+        960,
+        540
+    ],
+    "package": "com.netease.ma167",
+    "game_activity": "com.epicgames.ue4.GameActivity"
+}

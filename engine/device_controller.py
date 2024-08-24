@@ -1,14 +1,14 @@
 import uiautomator2 as u2
 import utils.loger as loger
 import time 
-from utils.config_loader import config_loader
+from utils.config_loader import cfg_startup
 from utils.load import load_controller_configurations
 
 class DeviceController:
     def __init__(self, adb_port):
         self.adb_port = adb_port
-        self.package  = config_loader.get("package")
-        self.game_activity = config_loader.get("game_activity")
+        self.package  = cfg_startup.get("package")
+        self.game_activity = cfg_startup.get("game_activity")
         self.d, self.resolution = self._init_device(adb_port)
         load_controller_configurations(self)
         self.initialized = True

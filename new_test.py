@@ -4,10 +4,10 @@ import cv2
 from utils.image_process import crop_save_img
 from engine.device_controller import DeviceController
 from engine.comparator import Comparator
-from utils.config_loader import config_loader
+from utils.config_loader import cfg_startup
 import time
 
-controller = DeviceController(config_loader.get('adb_port'))
+controller = DeviceController(cfg_startup.get('adb_port'))
 comparator = Comparator(controller)
 
 path = './refs/monopoly/fourth_forked_road.png'

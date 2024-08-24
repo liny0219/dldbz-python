@@ -6,7 +6,6 @@ from engine.battle import Battle
 from engine.comparator import Comparator
 from engine.player import Player
 from engine.monopoly import Monopoly
-from utils.config_loader import config_loader
 from utils.wait import wait_until
 import cv2 
 

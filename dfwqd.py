@@ -4,7 +4,7 @@ from fun.tools import backworld
 from engine.device_controller import DeviceController
 from engine.world import World
 from engine.comparator import Comparator
-from utils.config_loader import config_loader
+from utils.config_loader import cfg_startup
 
 current_path = os.path.dirname(os.path.abspath(__file__))
 assert_path = './refs/dfw/'
@@ -141,7 +141,7 @@ def ysz(wealth, coin_type, random_event):
 
 
 if __name__ == '__main__':
-    controller = DeviceController(config_loader.get('adb_port'))
+    controller = DeviceController(cfg_startup.get('adb_port'))
     comparator = Comparator(controller)
     world = World(controller, comparator)
 

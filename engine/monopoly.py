@@ -1,5 +1,5 @@
 from enum import Enum
-from utils.config_loader import config_loader
+from utils.config_loader import cfg_monopoly
 from utils.status import MATCH_CONFIDENCE
 from utils.wait import wait_until, wait_until_not
 from functools import partial
@@ -19,43 +19,43 @@ class Monopoly:
 
         self.meet_little_man = False
 
-        self.check_play_board_refs = config_loader.get('monopoly.check.check_play_board_refs')
-        self.check_in_monopoly_menu_refs = config_loader.get('monopoly.check.check_in_monopoly_menu_refs')
-        self.check_exhaust_everything_refs = config_loader.get('monopoly.check.check_exhaust_everything_refs')
-        self.check_monopoly_setting_refs = config_loader.get('monopoly.check.check_monopoly_setting_refs')
-        self.check_play_refs = config_loader.get('monopoly.check.check_play_refs')
-        self.check_waitroll_refs = config_loader.get('monopoly.check.check_waitroll_refs')
-        self.check_little_man_refs = config_loader.get('monopoly.check.check_little_man_refs')
-        self.check_confirm_refs = config_loader.get('monopoly.check.check_confirm_refs')
-        self.check_props_found_refs = config_loader.get('monopoly.check.check_props_found_refs')
-        self.check_get_props_refs = config_loader.get('monopoly.check.check_get_props_refs')
+        self.check_play_board_refs = cfg_monopoly.get('check.check_play_board_refs')
+        self.check_in_monopoly_menu_refs = cfg_monopoly.get('check.check_in_monopoly_menu_refs')
+        self.check_exhaust_everything_refs = cfg_monopoly.get('check.check_exhaust_everything_refs')
+        self.check_monopoly_setting_refs = cfg_monopoly.get('check.check_monopoly_setting_refs')
+        self.check_play_refs = cfg_monopoly.get('check.check_play_refs')
+        self.check_waitroll_refs = cfg_monopoly.get('check.check_waitroll_refs')
+        self.check_little_man_refs = cfg_monopoly.get('check.check_little_man_refs')
+        self.check_confirm_refs = cfg_monopoly.get('check.check_confirm_refs')
+        self.check_props_found_refs = cfg_monopoly.get('check.check_props_found_refs')
+        self.check_get_props_refs = cfg_monopoly.get('check.check_get_props_refs')
         
-        self.check_dedicate_refs = config_loader.get('monopoly.check.check_dedicate_refs')
+        self.check_dedicate_refs = cfg_monopoly.get('check.check_dedicate_refs')
 
-        self.first_forked_road_refs = config_loader.get('monopoly.check.first_forked_road_refs')
-        self.second_forked_road_refs = config_loader.get('monopoly.check.second_forked_road_refs')
-        self.third_forked_road_refs = config_loader.get('monopoly.check.third_forked_road_refs')
-        self.fourth_forked_road_refs = config_loader.get('monopoly.check.fourth_forked_road_refs')
+        self.first_forked_road_refs = cfg_monopoly.get('check.first_forked_road_refs')
+        self.second_forked_road_refs = cfg_monopoly.get('check.second_forked_road_refs')
+        self.third_forked_road_refs = cfg_monopoly.get('check.third_forked_road_refs')
+        self.fourth_forked_road_refs = cfg_monopoly.get('check.fourth_forked_road_refs')
 
-        self.check_choose_coin_type_refs = config_loader.get('monopoly.check.check_choose_coin_type_refs')
-        self.check_end_refs = config_loader.get('monopoly.check.check_end_refs')
+        self.check_choose_coin_type_refs = cfg_monopoly.get('check.check_choose_coin_type_refs')
+        self.check_end_refs = cfg_monopoly.get('check.check_end_refs')
 
-        self.check_card_of_wealth = config_loader.get('monopoly.check.check_card_of_wealth_refs')
-        self.check_card_of_authority = config_loader.get('monopoly.check.check_card_of_authority_refs')
-        self.check_card_of_fame = config_loader.get('monopoly.check.check_card_of_fame_refs')
+        self.check_card_of_wealth = cfg_monopoly.get('check.check_card_of_wealth_refs')
+        self.check_card_of_authority = cfg_monopoly.get('check.check_card_of_authority_refs')
+        self.check_card_of_fame = cfg_monopoly.get('check.check_card_of_fame_refs')
         
-        self.check_battle_ui_refs = config_loader.get('battle.check.check_battle_ui_refs')
-        self.check_battle_monster_bear = config_loader.get('monopoly.battle.check.check_battle_monster_bear_refs')
-        self.check_battle_monster_fire_refs = config_loader.get('monopoly.battle.check.check_battle_monster_fire_refs')
-        self.check_battle_monster_girl_refs = config_loader.get('monopoly.battle.check.check_battle_monster_girl_refs')
-        self.check_battle_monster_red_dress_refs = config_loader.get('monopoly.battle.check.check_battle_monster_red_dress_refs')
+        self.check_battle_ui_refs = cfg_monopoly.get('battle.check.check_battle_ui_refs')
+        self.check_battle_monster_bear = cfg_monopoly.get('battle.check.check_battle_monster_bear_refs')
+        self.check_battle_monster_fire_refs = cfg_monopoly.get('battle.check.check_battle_monster_fire_refs')
+        self.check_battle_monster_girl_refs = cfg_monopoly.get('battle.check.check_battle_monster_girl_refs')
+        self.check_battle_monster_red_dress_refs = cfg_monopoly.get('battle.check.check_battle_monster_red_dress_refs')
 
-        self.minus_ticket_coord = config_loader.get('monopoly.button.minus_ticket_coord')
-        self.add_difficulty_coord = config_loader.get('monopoly.button.add_difficulty_coord')
-        self.add_ticket_num_coord = config_loader.get('monopoly.button.add_ticket_num_coord')
-        self.move_down_coord = config_loader.get('monopoly.button.move_down_coord')
-        self.move_left_coord = config_loader.get('monopoly.button.move_left_coord')
-        self.move_right_coord = config_loader.get('monopoly.button.move_right_coord')
+        self.minus_ticket_coord = cfg_monopoly.get('button.minus_ticket_coord')
+        self.add_difficulty_coord = cfg_monopoly.get('button.add_difficulty_coord')
+        self.add_ticket_num_coord = cfg_monopoly.get('button.add_ticket_num_coord')
+        self.move_down_coord = cfg_monopoly.get('button.move_down_coord')
+        self.move_left_coord = cfg_monopoly.get('button.move_left_coord')
+        self.move_right_coord = cfg_monopoly.get('button.move_right_coord')
     # def goto(self, board : GAMEBOARD):
         self.forked_road_actions = {'first_forked_road': self.move_down_coord, 
                                     'second_forked_road': self.move_left_coord,

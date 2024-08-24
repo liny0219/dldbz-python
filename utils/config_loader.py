@@ -20,6 +20,10 @@ class ConfigLoader:
             return default
 
 
-config_loader = ConfigLoader('./config.json')
+cfg_startup = ConfigLoader('./config/startup.json')
+cfg_common = ConfigLoader('./config/common.json')
+cfg_world = ConfigLoader('./config/world.json')
+cfg_battle = ConfigLoader('./config/battle.json')
+cfg_monopoly = ConfigLoader('./config/monopoly.json')
 
 

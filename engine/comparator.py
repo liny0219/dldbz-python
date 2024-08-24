@@ -1,7 +1,7 @@
 import cv2
 import numpy as np
 import utils.loger as loger
-from utils.config_loader import config_loader
+from utils.config_loader import cfg_common
 from utils.image_process import get_pixel_color ,check_image_similarity, find_target_in_image,\
     compute_mask, color_match_all, color_match_count, color_in_image
 from utils.status import MATCH_CONFIDENCE
@@ -23,7 +23,7 @@ class Comparator:
         """
         self.controller = controller
         self.ocr = PaddleOCR(lang='ch')
-        self.match_thresholds =  config_loader.get("comparator.pic_match_similaritys")
+        self.match_thresholds =  cfg_common.get("comparator.pic_match_similaritys")
         self.levels = {MATCH_CONFIDENCE.HIGH:0, MATCH_CONFIDENCE.MID:1, MATCH_CONFIDENCE.LOW:2, MATCH_CONFIDENCE.VERY_LOW:3}
     
     def _template_image(self, template_path, convert_gray = True):

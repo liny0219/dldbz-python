@@ -1,7 +1,7 @@
 from enum import Enum
 from functools import partial
 from utils.status import BUTTON_STATUS
-from utils.config_loader import config_loader
+from utils.config_loader import cfg_common, cfg_world, cfg_battle, cfg_monopoly
 from utils.wait import wait_until, wait_until_not
 import utils.loger as loger
 
@@ -22,36 +22,36 @@ class World:
         self.moving     = False
         
         self.confirm_coord = \
-            config_loader.get("general.confirm_coord")
+            cfg_common.get("general.confirm_coord")
         
         self.check_world_ui_refs  = \
-            config_loader.get("world.check.check_world_ui_refs")
+            cfg_world.get("check.check_world_ui_refs")
         self.check_menu1_ui_refs  = \
-            config_loader.get("world.check.check_menu1_ui_refs")   # 检测世界图片1
+            cfg_world.get("check.check_menu1_ui_refs")   # 检测世界图片1
         self.check_menu2_ui_refs  = \
-            config_loader.get("world.check.check_menu2_ui_refs")   # 检测世界图片2
+            cfg_world.get("check.check_menu2_ui_refs")   # 检测世界图片2
         self.check_in_battle_refs = \
-            config_loader.get("battle.check.check_battle_ui_refs") # 检测在战斗中
+            cfg_battle.get("check.check_battle_ui_refs") # 检测在战斗中
             
         self.rest_active_refs  = \
-            config_loader.get("world.button.rest_active_refs")    # 休息按钮（可用）图片
+            cfg_world.get("world.button.rest_active_refs")    # 休息按钮（可用）图片
         self.rest_disable_refs  = \
-            config_loader.get("world.button.rest_disable_refs")   # 休息按钮（不可用）图片
+            cfg_world.get("world.button.rest_disable_refs")   # 休息按钮（不可用）图片
             
         
         
-        self.move_param = {"interval": config_loader.get('world.move.interval'),
-                           "left"    : config_loader.get('world.move.left'),
-                           "right"   : config_loader.get('world.move.right'),
-                           "top"     : config_loader.get('world.move.top'),
-                           "bottom"  : config_loader.get('world.move.bottom')}
+        self.move_param = {"interval": cfg_world.get('world.move.interval'),
+                           "left"    : cfg_world.get('world.move.left'),
+                           "right"   : cfg_world.get('world.move.right'),
+                           "top"     : cfg_world.get('world.move.top'),
+                           "bottom"  : cfg_world.get('world.move.bottom')}
         
-        self.check_starting_screen = config_loader.get('world.check.check_in_starting_screen')
-        self.check_cross1 = config_loader.get('world.check.check_cross1')
-        self.check_cross2 = config_loader.get('world.check.check_cross2')
-        self.check_monopoly_option = config_loader.get('monopoly.check.check_monopoly_option')
-        self.check_monopoly_end = config_loader.get('monopoly.check.check_monopoly_end')
-        self.check_monopoly_end_confirm = config_loader.get('monopoly.check.check_monopoly_end_confirm')
+        self.check_starting_screen = cfg_world.get('check.check_in_starting_screen')
+        self.check_cross1 = cfg_world.get('check.check_cross1')
+        self.check_cross2 = cfg_world.get('check.check_cross2')
+        self.check_monopoly_option = cfg_monopoly.get('check.check_monopoly_option')
+        self.check_monopoly_end = cfg_monopoly.get('check.check_monopoly_end')
+        self.check_monopoly_end_confirm = cfg_monopoly.get('check.check_monopoly_end_confirm')
 
     
     def _check_have_menu1(self):

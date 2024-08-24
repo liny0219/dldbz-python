@@ -1,0 +1,96 @@
+{
+    "check": {
+        "check_play_board_refs": "./refs/monopoly/monopoly_game_board.png",
+        "check_in_monopoly_menu_refs": "./refs/monopoly/in_monopoly_menu.png",
+        "check_exhaust_everything_refs": "./refs/monopoly/board_type/exhaust_everything.png",
+        "check_monopoly_setting_refs": "./refs/monopoly/monopoly_setting.png",
+        "check_play_refs": "./refs/monopoly/play.png",
+        "check_waitroll_refs": "./refs/monopoly/buttons/roll_button.png",
+        "check_rolling_refs": "./refs/monopoly/buttons/rolling.png",
+        "check_rolldone_refs": "./refs/monopoly/check_rolldone.png",
+        "check_little_man_refs": "./refs/monopoly/little_man.png",
+        "check_confirm_refs": "./refs/monopoly/buttons/monopoly_confirm.png",
+        "check_wealth_refs": "./refs/monopoly/route/wealth.png",
+        "check_authority_refs": "./refs/monopoly/route/authority.png",
+        "check_choose_coin_type_refs": "./refs/monopoly/choose_coin_type.png",
+        "first_forked_road_refs": "./refs/monopoly/route/first_forked_road.png",
+        "second_forked_road_refs": "./refs/monopoly/route/second_forked_road.png",
+        "third_forked_road_refs": "./refs/monopoly/route/third_forked_road.png",
+        "fourth_forked_road_refs": "./refs/monopoly/route/fourth_forked_road.png",
+        "check_dedicate_refs": "./refs/monopoly/events/dedicate.png",
+        "check_fame_refs": "./refs/monopoly/route/fame.png",
+        "check_card_of_wealth_refs": "./refs/monopoly/card/card_of_wealth.png",
+        "check_card_of_authority_refs": "./refs/monopoly/card/card_of_authority.png",
+        "check_card_of_fame_refs": "./refs/monopoly/card/card_of_fame.png",
+        "check_monopoly_option": "./refs/monopoly/monopoly_option.png",
+        "check_monopoly_end": "./refs/monopoly/monopoly_end.png",
+        "check_monopoly_end_confirm": "./refs/monopoly/buttons/monopoly_end_confirm.png",
+        "check_props_found_refs": "./refs/monopoly/props_found.png",
+        "check_get_props_refs": "./refs/monopoly/get_props.png",
+        "check_end_refs": "./refs/monopoly/end.png"
+    },
+    "battle": {
+        "check": {
+            "check_battle_monster_bear_refs": "./refs/monopoly/battle/bear.png",
+            "check_battle_monster_fire_refs": "./refs/monopoly/battle/fire.png",
+            "check_battle_monster_girl_refs": "./refs/monopoly/battle/girl.png",
+            "check_battle_monster_red_dress_refs": "./refs/monopoly/battle/red_dress.png"
+        }
+    },
+    "boards": {
+        "entrace": {
+            "danger_20": "",
+            "danger_25": "",
+            "danger_60": ""
+        },
+        "map_info": {
+            "danger_20": "",
+            "danger_25": "",
+            "danger_60": ""
+        }
+    },
+    "button": {
+        "roll_button_coord_x": [
+            850,
+            440
+        ],
+        "roll_button_coords_y": [
+            435,
+            355,
+            297,
+            233
+        ],
+        "minus_ticket_coord": [
+            246,
+            222
+        ],
+        "add_ticket_coord": [
+            372,
+            222
+        ],
+        "add_difficulty_coord": [
+            716,
+            222
+        ],
+        "move_down_coord": [
+            482,
+            336
+        ],
+        "move_right_coord": [
+            560,
+            246
+        ],
+        "move_left_coord": [
+            410,
+            246
+        ]
+    },
+    "dices": [
+        "./refs/monopoly/num_1.png",
+        "./refs/monopoly/num_2.png",
+        "./refs/monopoly/num_3.png",
+        "./refs/monopoly/num_4.png",
+        "./refs/monopoly/num_5.png",
+        "./refs/monopoly/num_6.png"
+    ]
+}

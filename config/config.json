@@ -1,0 +1,201 @@
+{
+    "debug"   : false,
+    "adb_port": "127.0.0.1:5555",
+    "resolution": [960, 540],
+    "package":"com.netease.ma167",
+    "game_activity":"com.epicgames.ue4.GameActivity",
+    "controller":{
+        "rand_press_px"     : 5,
+        "press_duration"    : 300,
+        "swipe_duration"    : 50,
+        "operate_latency"   : 500, 
+        "default_sleep_ms"  : 10
+    },
+    "general":{
+        "confirm_coord"   : [50, 100]
+    },
+    "world":{
+        "check":{
+            "check_world_ui_refs" : "./refs/world/world_ui.png",
+            "check_menu1_ui_refs" : "./refs/world/menu1_ui.png",
+            "check_menu2_ui_refs" : "./refs/world/others.png",
+            "check_in_starting_screen" : "./refs/world/starting_screen.png",
+            "check_cross1": "./refs/world/cross1.png",
+            "check_cross2": "./refs/world/cross2.png"
+        },
+        "button":{
+            "rest_active_refs"     : "./refs/world/rest_active.png",
+            "rest_disable_refs"    : "./refs/world/rest_disable.png"
+        },
+        "move":{
+            "interval"    : 1500,
+            "left"        : [336, 297],
+            "right"       : [624, 297],
+            "top"         : [480, 216],
+            "bottom"      : [480, 378]
+        }
+    },
+    "battle":{
+        "check" : {
+            "check_battle_ui_refs" : "./refs/battle/battle_ui.png",
+            "check_round_ui_refs"  : "./refs/battle/round_ui.png",
+            "check_skill_ui_refs"  : "./refs/battle/skill_ui.png",
+            "check_sleep_ui_refs"  : "./refs/battle/sleep_ui.png"
+        },
+        "front_role"  : {
+            "role_rect":
+                [[[774, 27], [872, 105]],
+                [[774, 134], [872, 212]],
+                [[774, 242], [872, 319]],
+                [[774, 349], [872, 427]]]
+            ,
+            "front_role_status":
+            [[1104, 54], [1168, 548]]
+            ,
+            "role_hpmps":
+            [[[1108,60],[1170,114]],
+            [[1108,200],[1170,256]],
+            [[1108,345],[1170,400]],
+            [[1108,485],[1170,542]]
+            ]
+            ,
+            "hp":{
+                "hp_high1_refs"         : "./refs/battle/front_hp_high1_refs.png",
+                "hp_high2_refs"         : "./refs/battle/front_hp_high2_refs.png",
+                "hp_mid_refs"           : "./refs/battle/front_hp_mid_refs.png",
+                "dead_refs"             : "./refs/battle/front_dead_ui.png"
+            },
+            "mp":{
+                "mp_high_refs"          : "./refs/battle/front_mp_high_refs.png"
+            }
+        },
+        "behind_role"  : {
+            "role_rect":
+                [[[869, 34], [943, 106]],
+                [[869, 141], [943, 215]],
+                [[869, 248], [943, 322]],
+                [[869, 355], [943, 430]]]
+            ,
+            "behind_role_status":
+            [[1204,62],[1258,546]]
+            ,
+            "role_hpmps":
+            [[[1208,64],[1254,112]],
+            [[1208,208],[1254,256]],
+            [[1208,350],[1254,400]],
+            [[1208,494],[1254,542]]
+            ]
+            ,
+            "hp":{
+                "hp_high1_refs"         : "./refs/battle/behind_hp_high1_refs.png",
+                "hp_high2_refs"         : "./refs/battle/behind_hp_high2_refs.png",
+                "hp_mid_refs"           : "./refs/battle/behind_hp_mid_refs.png",
+                "dead_refs"             : "./refs/battle/behind_dead_ui.png"
+            },
+            "mp":{
+                "mp_high_refs"          : "./refs/battle/behind_mp_high_refs.png"
+            }
+        },
+        "role_info"  : {
+            "role_hpmp_location":
+            [[[1108,60], [1170,114]],
+             [[1108,200], [1170,256]],
+             [[1108,345], [1170,400]],
+             [[1108,485], [1170,542]],
+             [[1208,64], [1254,112]],
+             [[1208,208], [1254,256]],
+             [[1208,350], [1254,400]],
+             [[1208,494], [1254,542]]
+            ]
+        },
+        "button": {
+            "switch_refs"     : "./refs/battle/switch.png",
+            "fallback_refs"   : "./refs/battle/fallback.png",
+            "supports_refs"   : "./refs/battle/supports.png",
+            "all_switch_refs" : "./refs/battle/allswitch.png",
+            "all_boost_refs"  : "./refs/battle/allboost.png",
+            "attack_refs"     : "./refs/battle/attack.png"
+        },
+        "coord":{
+            "role_coords_y"   : [60, 162, 270, 378],
+            "role_coord_x"    : 816,
+            "skill_coords_y"  :[151, 232, 313, 394, 475],
+            "skill_coord_x"   : 580,
+            "boost_coords_x"  : [600, 787, 854, 921]
+        }
+    },
+    "monopoly":{
+        "check":{
+            "check_play_board_refs": "./refs/monopoly/monopoly_game_board.png",
+            "check_in_monopoly_menu_refs": "./refs/monopoly/in_monopoly_menu.png",
+            "check_exhaust_everything_refs": "./refs/monopoly/board_type/exhaust_everything.png",
+            "check_monopoly_setting_refs": "./refs/monopoly/monopoly_setting.png",
+            "check_play_refs": "./refs/monopoly/play.png",
+            "check_waitroll_refs" : "./refs/monopoly/buttons/roll_button.png",
+            "check_rolling_refs"  : "./refs/monopoly/buttons/rolling.png",
+            "check_rolldone_refs" : "./refs/monopoly/check_rolldone.png",
+            "check_little_man_refs": "./refs/monopoly/little_man.png",
+            "check_confirm_refs":"./refs/monopoly/buttons/monopoly_confirm.png",
+            "check_wealth_refs": "./refs/monopoly/route/wealth.png",
+            "check_authority_refs": "./refs/monopoly/route/authority.png",
+            "check_choose_coin_type_refs": "./refs/monopoly/choose_coin_type.png",
+            "first_forked_road_refs": "./refs/monopoly/route/first_forked_road.png",
+            "second_forked_road_refs": "./refs/monopoly/route/second_forked_road.png",
+            "third_forked_road_refs": "./refs/monopoly/route/third_forked_road.png",
+            "fourth_forked_road_refs": "./refs/monopoly/route/fourth_forked_road.png",
+            "check_dedicate_refs": "./refs/monopoly/events/dedicate.png",
+            "check_fame_refs": "./refs/monopoly/route/fame.png",
+            "check_card_of_wealth_refs": "./refs/monopoly/card/card_of_wealth.png",
+            "check_card_of_authority_refs": "./refs/monopoly/card/card_of_authority.png",
+            "check_card_of_fame_refs": "./refs/monopoly/card/card_of_fame.png",
+            "check_monopoly_option": "./refs/monopoly/monopoly_option.png",
+            "check_monopoly_end": "./refs/monopoly/monopoly_end.png",
+            "check_monopoly_end_confirm": "./refs/monopoly/buttons/monopoly_end_confirm.png",
+            "check_props_found_refs": "./refs/monopoly/props_found.png",
+            "check_get_props_refs": "./refs/monopoly/get_props.png",
+            "check_end_refs": "./refs/monopoly/end.png"
+        },
+        "battle":{
+            "check":{
+                "check_battle_monster_bear_refs": "./refs/monopoly/battle/bear.png",
+                "check_battle_monster_fire_refs": "./refs/monopoly/battle/fire.png",
+                "check_battle_monster_girl_refs": "./refs/monopoly/battle/girl.png",
+                "check_battle_monster_red_dress_refs": "./refs/monopoly/battle/red_dress.png"
+            }
+        },
+        "boards":{
+            "entrace":{
+                "danger_20" : "",
+                "danger_25" : "",
+                "danger_60" : ""
+            },
+            "map_info":{
+                "danger_20" : "",
+                "danger_25" : "",
+                "danger_60" : ""
+            }
+            
+
+        },
+        "button":{
+            "roll_button_coord_x" : [850, 440],
+            "roll_button_coords_y": [435, 355, 297, 233],
+            "minus_ticket_coord": [246, 222],
+            "add_ticket_coord": [372, 222],
+            "add_difficulty_coord": [716, 222],
+            "move_down_coord": [482, 336],
+            "move_right_coord": [560, 246],
+            "move_left_coord": [410, 246]
+        },
+        "dices":["./refs/monopoly/num_1.png",
+                 "./refs/monopoly/num_2.png",
+                 "./refs/monopoly/num_3.png",
+                 "./refs/monopoly/num_4.png",
+                 "./refs/monopoly/num_5.png",
+                 "./refs/monopoly/num_6.png"]
+    },
+
+    "comparator":{
+        "pic_match_similaritys" : [0.9, 0.85, 0.8, 0.55]
+    }
+}

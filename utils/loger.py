@@ -1,6 +1,5 @@
 import logging
 import traceback
-from utils.config_loader import config_loader
 
 # 根据环境变量判断模式
 logging.basicConfig(level=logging.INFO,

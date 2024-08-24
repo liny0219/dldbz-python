@@ -3,12 +3,12 @@ import os
 from engine.device_controller import DeviceController
 from engine.world import  World
 from engine.comparator import Comparator
-from utils.config_loader import config_loader
+from utils.config_loader import cfg_startup
 
 current_path = os.path.dirname(os.path.abspath(__file__))
 assert_path = './ref/dfw/'
 
-controller = DeviceController(config_loader.get('adb_port'))
+controller = DeviceController(cfg_startup.get('adb_port'))
 comparator = Comparator(controller)
 world = World(controller, comparator)
 operate_latency = 1000

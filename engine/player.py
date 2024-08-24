@@ -1,4 +1,4 @@
-from utils.config_loader import config_loader
+from utils.config_loader import cfg_battle
 from utils.ocr_utils import extract_value_credential_from_result,my_str2int
 from utils.image_process import match_pic_coord,match_pic_coord_k
 import utils.loger as loger
@@ -11,7 +11,7 @@ from utils.status import ROLE_HP_STATUS, ROLE_MP_STATUS, MATCH_CONFIDENCE
 import cv2
 import time
 
-hpmp_location = config_loader.get("battle.role_info.role_hpmp_location")
+hpmp_location = cfg_battle.get("battle.role_info.role_hpmp_location")
 
 class Role:
     def __init__(self, name):
@@ -19,7 +19,7 @@ class Role:
         self.name = name 
 
         # 技能列表 ["普通攻击", "1技能", "2技能", "3技能", "4技能"]
-        self.skill_list = config_loader("roles."+name+".skill_list")
+        self.skill_list = cfg_battle("roles."+name+".skill_list")
 
         # 角色初始化时, 默认未加入队伍
         self.player = None

@@ -1,14 +1,14 @@
-from utils.config_loader import config_loader
+from utils.config_loader import cfg_world
 import utils.loger as loger
 
 class MoveEngine:
     def __init__(self, controller):
         self.controller = controller
-        self.interval= config_loader.get('move.interval')
-        self.left    = config_loader.get('move.left')
-        self.right   = config_loader.get('move.right')
-        self.top     = config_loader.get('move.top')
-        self.bottom  = config_loader.get('move.bottom')
+        self.interval= cfg_world.get('move.interval')
+        self.left    = cfg_world.get('move.left')
+        self.right   = cfg_world.get('move.right')
+        self.top     = cfg_world.get('move.top')
+        self.bottom  = cfg_world.get('move.bottom')
 
     def run_to_left(self):
         loger.log_debug('正在执行向左跑')

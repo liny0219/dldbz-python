@@ -1,5 +1,5 @@
 import utils.loger as loger
-from utils.config_loader import config_loader
+from utils.config_loader import cfg_battle
 from functools import partial
 from contextlib import contextmanager
 from utils.wait import wait_until, wait_until_not, wait_either
@@ -107,8 +107,8 @@ class Battle:
             sider_str = "front"
             if(role > 4):
                 sider_str = "behind" 
-            config_str = f"battle.{sider_str}_role.{keyword}"
-            return config_loader.get(config_str)
+            config_str = f"{sider_str}_role.{keyword}"
+            return cfg_battle.get(config_str)
         
         front_role_id = get_front_front_role_id(role)
         
