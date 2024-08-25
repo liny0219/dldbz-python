@@ -24,8 +24,7 @@ battle_hook = BattleHook()
 
 @singleton
 class Battle:
-    def __init__(self, player, alias='', updateUI=None, thread=None):
-        self.thread = thread
+    def __init__(self, player, alias='', updateUI=None):
         self.finish_hook = None
         self.updateUI = updateUI
 
@@ -101,7 +100,7 @@ class Battle:
                     partial(self.controller.press, fallback_coord)]   # 点击撤退按钮
         return [partial(self.controller.press, self.confirm_coord)]   # 点击
 
-    def SetThread(self, thread):
+    def setThread(self, thread):
         self.thread = thread
 
     def WaitRound(self, round_number=0, newRound=True):

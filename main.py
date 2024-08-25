@@ -10,7 +10,8 @@ def on_close():
     app.destroy()  # 销毁窗口
 
 def evt_recollection(thread: StoppableThread):
-    recollection_instance = recollection(thread, updateUI)
+    recollection_instance = recollection(updateUI)
+    recollection_instance.setThread(thread)
     recollection_instance.start()
 
 def on_click():

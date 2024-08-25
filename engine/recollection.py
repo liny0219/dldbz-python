@@ -12,10 +12,10 @@ from functools import partial
 
 
 class recollection:
-    def __init__(self, thread, updateUI, device_ip="127.0.0.1:5555", team='TBD'):
-        self.thread = thread
+    def __init__(self, updateUI, device_ip="127.0.0.1:5555", team='TBD'):
         self.loopNum = 0
         self.updateUI = updateUI
+
         self.loop = int(cfg_recollection.get("common.loop"))
         self.controller = DeviceController(device_ip)
         self.comparator = Comparator(self.controller)
@@ -24,7 +24,7 @@ class recollection:
         self.battle_hook = BattleHook()
         self.Timestartup = time.time()  # 程序启动时间
         self.TimeroundStart = time.time()  # 每轮开始时间
-        self.battle = Battle(self.player, '测试', updateUI, thread)
+        self.battle = Battle(self.player, '测试', updateUI)
 
         # 显示程序启动时间
         startup_time_str = time.strftime(
@@ -33,6 +33,10 @@ class recollection:
             f"程序启动时间: {startup_time_str}\n旅途即将开始...",
             stats="大霸启动！！"
         )
+
+    def setThread(self, thread):
+        self.thread = thread
+        self.battle.setThread(thread)
 
     def log_time(self, start_time, action_description):
         elapsed_time = time.time() - start_time
