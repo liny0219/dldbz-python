@@ -25,6 +25,6 @@ cfg_common = ConfigLoader('./config/common.json')
 cfg_world = ConfigLoader('./config/world.json')
 cfg_battle = ConfigLoader('./config/battle.json')
 cfg_monopoly = ConfigLoader('./config/monopoly.json')
-cfg_jjc = ConfigLoader('./config/jjc.json')
+cfg_recollection = ConfigLoader('./config/recollection.json')
 
 

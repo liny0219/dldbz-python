@@ -9,6 +9,7 @@ from utils.status import ROLE_HP_STATUS, ROLE_MP_STATUS, MATCH_CONFIDENCE
 from utils.load import load_battle_configurations
 import time
 
+
 def get_front_front_role_id(role):    # 获某号位站到前排的index
     assert role > 0 & role <= 8   # 最多有8号位
     return (role - 1) % 4
@@ -24,6 +25,9 @@ battle_hook = BattleHook()
 @singleton
 class Battle:
     def __init__(self, player, alias=''):
+        self.thread = None
+        self.finish_hook = None
+
         self.player = player
         self.controller = player.controller
         self.comparator = player.comparator
@@ -31,7 +35,7 @@ class Battle:
         self.team = player.team
         self.front = [1, 2, 3, 4]
         self.behind = [5, 6, 7, 8]
-        self.thread = None
+
         self.battle_end = False
         self.in_round_ctx = False
         # self.current_record = None
@@ -39,8 +43,12 @@ class Battle:
         self.round_records = []
 
         load_battle_configurations(self)
+
+        # 注意hook函数返回值为bool类型，表示是否继续执行！！！！！！！
+        battle_hook.set('Finish', lambda: self.finish_hook and self.finish_hook())
         battle_hook.set('CmdStart', lambda: not self.thread.stopped())
-        battle_hook.set('RoundStart', lambda: self.WaitRound())
+        battle_hook.set('BattleStart', lambda: self.WaitRound(0))
+        battle_hook.set('BattleEnd', lambda: self.WaitRound(newRound=False))
         battle_hook.set('Role', lambda role_id, skill_id, energy_level: self.Skill(
             int(role_id), int(skill_id), int(energy_level)))
         battle_hook.set('XRole', lambda role_id, skill_id, energy_level: self.Skill(
@@ -52,8 +60,8 @@ class Battle:
         battle_hook.set('SP', lambda role_id: self.SP(int(role_id)))
         # battle_hook.set('Reset', lambda: self.reset())
         # battle_hook.set('Switch', lambda role_id: self.switch(role_id))
-        # battle_hook.set('Wait', lambda time: self.wait(time))
-        # battle_hook.set('Skip', lambda time: self.skip(time))
+        battle_hook.set('Wait', lambda time: self.Wait(time))
+        battle_hook.set('Skip', lambda time: self.Skip(time))
 
     def __enter__(self):
         wait_until(self._in_battle, thread=self.thread)  # 等待进入战斗
@@ -97,14 +105,24 @@ class Battle:
     def SetThread(self, thread):
         self.thread = thread
 
-    def WaitRound(self, round_number=0):
-        if round_number:
-            self.round_number = round_number
-        self.round_number = self.round_number + 1
-        self.in_round_ctx = True
-        loger.log_info(f"进入回合{self.round_number}！")
-        wait_until(self._in_round, [partial(
-            self.controller.press, self.confirm_coord)], thread=self.thread)     # 等待在回合中
+    def WaitRound(self, round_number=0, newRound=True):
+        # 等待在回合中
+        inRound = wait_until(self._in_round, [partial(
+            self.controller.press, self.confirm_coord, press_duration=10, operate_latency=10)], thread=self.thread)
+        if inRound and newRound:
+            if round_number:
+                self.round_number = round_number
+            self.round_number = self.round_number + 1
+            self.in_round_ctx = True
+            loger.log_info(f"进入回合{self.round_number}！")
+        else:
+            inBattle = self._in_battle()
+            if not inBattle:
+                self.Skip(2000)
+            else:
+                if (self.thread.stopped()):
+                    return False
+            return True
 
     def StartAttack(self, cb=None):
         loger.log_info("开始攻击！")
@@ -266,3 +284,17 @@ class Battle:
         self.controller.press(self.sp_coords)
         time.sleep(0.4)
         self.controller.press(self.sp_confirm_coords)
+
+    def Wait(self, time_in_ms):
+        # 将毫秒转换为秒
+        time_in_seconds = int(time_in_ms) / 1000.0
+        loger.log_info(f"等待 {time_in_ms} 毫秒...")
+        time.sleep(time_in_seconds)
+
+    def Skip(self, time_in_ms):
+        # 将毫秒转换为秒
+        loger.log_info(f"跳过 {time_in_ms} 毫秒...")
+        self.controller.press(self.confirm_coord, int(time_in_ms))
+
+    def setFinishHook(self, finish_hook):
+        self.finish_hook = finish_hook

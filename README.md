@@ -21,6 +21,12 @@ Gitee 是 OSCHINA 推出的基于 Git 的代码托管平台（同时支持 SVN�
 3.  启动脚本：python dldbz.py
 
 #### 战斗DSL说明
+# 战斗开始
+BattleStart
+
+# 战斗结束
+BattleEnd
+
 # 前排角色1使用技能2，能量级别为3进行攻击
 Role,1,2,3
 
@@ -33,10 +39,10 @@ SwitchAll
 # 切换角色1 TODO
 Switch,1
 
-# 等待500毫秒 TODO
+# 等待500毫秒
 Wait,500
 
-# 跳过500毫秒（占位符逻辑）TODO
+# 跳过500毫秒（占位符逻辑）
 Skip,500
 
 # 执行攻击

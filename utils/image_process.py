@@ -117,7 +117,7 @@ def check_image_similarity(gray_image1, gray_image2, threshold):
     - 如果匹配,返回True;否则返回False
     '''
     similarity_index = ssim(gray_image1, gray_image2)
-    loger.log_info(f'相似度:{similarity_index},阈值：{threshold}')
+    # loger.log_info(f'相似度:{similarity_index},阈值：{threshold}')
     if similarity_index >= threshold:
         return True
     return False
