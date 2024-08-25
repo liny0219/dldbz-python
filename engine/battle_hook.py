@@ -2,7 +2,7 @@ from utils.singleton import singleton
 
 @singleton
 class BattleHook:
-    def __init__(self, log_enabled=True):
+    def __init__(self, log_enabled=False):
         # 控制日志输出的属性
         self.log_enabled = log_enabled
 

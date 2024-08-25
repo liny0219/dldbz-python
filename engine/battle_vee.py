@@ -48,7 +48,7 @@ class Battle:
         battle_hook.set('Finish', lambda: self.finish_hook and self.finish_hook())
         battle_hook.set('CmdStart', lambda: not self.thread.stopped())
         battle_hook.set('BattleStart', lambda: self.WaitRound(0))
-        battle_hook.set('BattleEnd', lambda: self.WaitRound(newRound=False))
+        battle_hook.set('BattleEnd', lambda: self.BattleEnd)
         battle_hook.set('Role', lambda role_id, skill_id, energy_level: self.Skill(
             int(role_id), int(skill_id), int(energy_level)))
         battle_hook.set('XRole', lambda role_id, skill_id, energy_level: self.Skill(
@@ -295,6 +295,9 @@ class Battle:
         # 将毫秒转换为秒
         loger.log_info(f"跳过 {time_in_ms} 毫秒...")
         self.controller.press(self.confirm_coord, int(time_in_ms))
+
+    def BattleEnd(self):
+        loger.log_info(f"Round{self.round_number},战斗结束...")
 
     def setFinishHook(self, finish_hook):
         self.finish_hook = finish_hook
