@@ -13,7 +13,6 @@ from functools import partial
 
 class recollection:
     def __init__(self, updateUI, device_ip="127.0.0.1:5555", team='TBD'):
-        self.loopNum = 0
         self.updateUI = updateUI
 
         self.loop = int(cfg_recollection.get("common.loop"))
@@ -78,44 +77,52 @@ class recollection:
             return True
 
     def start(self):
-        self.loop = int(cfg_recollection.get("common.loop"))
+        self.loopNum = 0
+        self.run()
 
-        self.updateUI("开始旅途...")
-        start_time = time.time()
+    def run(self):
+        try:
+            self.loop = int(cfg_recollection.get("common.loop"))
 
-        # 等待读取并确认读取
-        self.updateUI("正在读取旅途内容...")
-        runState = wait_limit(self.on_read,  operate_funcs=[self.on_read], thread=self.thread,
-                              timeout=10, check_interval=1)
-        self.log_time(start_time, "读取旅途内容")
-        if not runState:
-            self.updateUI("读取失败，旅途中止。", stats="旅途中断，请重试。")
-            return
+            self.updateUI("开始旅途...")
+            start_time = time.time()
 
-        self.updateUI("确认读取内容...")
-        start_time = time.time()
-        runState = wait_limit(self.on_confirm_read, operate_funcs=[self.on_confirm_read],  thread=self.thread,
-                              timeout=10, check_interval=1)
-        self.log_time(start_time, "确认读取内容")
-        if not runState:
-            self.updateUI("确认失败，旅途中止。", stats="确认失败，请检查。")
-            return
+            # 等待读取并确认读取
+            self.updateUI("正在读取旅途内容...")
+            runState = wait_limit(self.on_read,  operate_funcs=[self.on_read], thread=self.thread,
+                                  timeout=10, check_interval=1)
+            self.log_time(start_time, "读取旅途内容")
+            if not runState:
+                self.updateUI("读取失败，旅途中止。", stats="旅途中断，请重试。")
+                return
 
-        self.updateUI("跳过开场动画...")
-        start_time = time.time()
-        btnSkipTimeout = cfg_recollection.get("common.btn_skip_timeout")
-        btnSkip = cfg_recollection.get("coord.btn_skip")
-        self.controller.press(btnSkip, btnSkipTimeout)
-        self.log_time(start_time, "跳过开场动画")
+            self.updateUI("确认读取内容...")
+            start_time = time.time()
+            runState = wait_limit(self.on_confirm_read, operate_funcs=[self.on_confirm_read],  thread=self.thread,
+                                  timeout=10, check_interval=1)
+            self.log_time(start_time, "确认读取内容")
+            if not runState:
+                self.updateUI("确认失败，旅途中止。", stats="确认失败，请检查。")
+                return
 
-        if not runState:
-            self.updateUI("跳过动画失败，旅途中止。", stats="跳过动画失败，请重试。")
-            return
+            self.updateUI("跳过开场动画...")
+            start_time = time.time()
+            btnSkipTimeout = cfg_recollection.get("common.btn_skip_timeout")
+            btnSkip = cfg_recollection.get("coord.btn_skip")
+            self.controller.press(btnSkip, btnSkipTimeout)
+            self.log_time(start_time, "跳过开场动画")
 
-        self.updateUI("开始战斗...")
-        start_time = time.time()
-        self.battle_dsl.run_script('./battle_script/recollection.txt')
-        self.finish()
+            if not runState:
+                self.updateUI("跳过动画失败，旅途中止。", stats="跳过动画失败，请重试。")
+                return
+
+            self.updateUI("开始战斗...")
+            start_time = time.time()
+            self.battle.reset()
+            self.battle_dsl.run_script('./battle_script/recollection.txt')
+            self.finish()
+        except Exception as e:
+            self.updateUI(f"发生错误：{e}", stats="发生错误，请检查。")
 
     def finish(self):
         self.loopNum += 1
@@ -140,17 +147,28 @@ class recollection:
             stats=f"已完成 {self.loopNum} 次旅途 | 本次耗时：{round_time/60:.2f} 分钟 | 总耗时：{total_time/60:.2f} 分钟"
         )
 
-        runState = wait_limit(self.on_confirm_award, operate_funcs=[self.on_confirm_award], thread=self.thread,
-                              timeout=10, check_interval=1)
-        if not runState:
+        # 等待确认奖励
+        runStateAward = wait_limit(self.on_confirm_award, operate_funcs=[self.on_confirm_award], thread=self.thread,
+                                   timeout=30, check_interval=1)
+        # 输出奖励确认结果
+        if not runStateAward:
+            self.updateUI(f"奖励确认失败：{self.loop}\n")
             return
-        runState = wait_limit(self.on_status_close, operate_funcs=[self.on_status_close], thread=self.thread,
-                              timeout=10, check_interval=1)
-        if not runState:
+        runStateStatus = wait_limit(self.on_status_close, operate_funcs=[self.on_status_close], thread=self.thread,
+                                    timeout=30, check_interval=1)
+        # 输出状态关闭结果
+        if not runStateStatus:
+            self.updateUI(f"状态关闭失败：{self.loop}\n")
             return
         if self.loop != 0 and self.loopNum >= self.loop:
+            # 旅途完成，已达到设定次数 展示loop与loopNum 更新UI
+            self.updateUI(
+                f"追忆之书旅途完成，已达到设定次数：{self.loop}\n"
+                f"总运行时间：{total_time/60:.2f} 分钟",
+                stats=f"已完成 {self.loopNum} 次旅途 | 本次耗时：{round_time/60:.2f} 分钟 | 总耗时：{total_time/60:.2f} 分钟"
+            )
             return
-        self.start()
+        self.run()
 
     def shot(self):
         self.comparator._cropped_screenshot(

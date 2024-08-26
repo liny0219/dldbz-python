@@ -3,28 +3,34 @@ from tkinter import ttk
 from engine.recollection import recollection
 from utils.stoppable_thread import StoppableThread
 
+
 def on_close():
     print("Closing the application...")
     on_stop()  # 停止当前线程
     app.quit()  # 退出主循环
     app.destroy()  # 销毁窗口
 
+
 def evt_recollection(thread: StoppableThread):
     recollection_instance = recollection(updateUI)
     recollection_instance.setThread(thread)
     recollection_instance.start()
 
+
 def on_click():
     global current_thread
     if current_thread is not None and current_thread.is_alive():
         print(f"{current_thread.name} is already running.")
+        updateUI("已经在追忆之旅中了，不要重复点击哦！")
         return
     current_thread = StoppableThread(target=lambda: evt_recollection(current_thread))
     current_thread.start()
 
+
 def on_stop():
     if current_thread is not None:
         current_thread.stop()
+
 
 # 创建主窗口
 app = tk.Tk()
@@ -34,10 +40,12 @@ app.geometry("800x400")  # 增加窗口宽度
 # 设置关闭事件处理
 app.protocol("WM_DELETE_WINDOW", on_close)
 
+
 def updateUI(msg, stats=None):
     app.after(0, update_message_label, msg)
     if stats:
         app.after(0, update_stats_label, stats)
+
 
 def update_message_label(text):
     message_text.config(state=tk.NORMAL)  # 使 Text 可编辑以便插入
@@ -45,8 +53,10 @@ def update_message_label(text):
     message_text.config(state=tk.DISABLED)  # 插入后再设置为不可编辑
     message_text.see(tk.END)  # 自动滚动到底部
 
+
 def update_stats_label(stats):
     stats_label.config(text=stats)  # 更新统计信息
+
 
 # 使用 grid 布局管理器
 app.grid_rowconfigure(2, weight=1)  # 设置行的权重使其拉伸

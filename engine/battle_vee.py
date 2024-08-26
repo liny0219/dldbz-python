@@ -47,7 +47,7 @@ class Battle:
         battle_hook.set(
             'Finish', lambda: self.finish_hook and self.finish_hook())
         battle_hook.set('CmdStart', lambda: not self.thread.stopped())
-        battle_hook.set('BattleStart', lambda: self.WaitRound(0))
+        battle_hook.set('BattleStart', lambda: self.WaitRound(True))
         battle_hook.set('BattleEnd', lambda: self.BattleEnd())
         battle_hook.set('Role', lambda role_id, skill_id, energy_level: self.Skill(
             int(role_id), int(skill_id), int(energy_level)))
@@ -102,13 +102,19 @@ class Battle:
     def setThread(self, thread):
         self.thread = thread
 
-    def WaitRound(self, round_number=0, newRound=True):
+    def reset(self):
+        self.battle_end = False
+        self.in_round_ctx = False
+        self.round_number = 0
+        self.round_records = []
+
+    def WaitRound(self, resetRound=False, newRound=True):
         start_time = time.time()
         inRound = wait_until(self._in_round, [partial(
             self.controller.press, self.confirm_coord, press_duration=10, operate_latency=10)], thread=self.thread)
         if inRound and newRound:
-            if round_number:
-                self.round_number = round_number
+            if resetRound == True:
+                self.round_number = 0
             self.round_number += 1
             self.in_round_ctx = True
             self.log_info(f"进入回合{self.round_number}！ 耗时：{time.time() - start_time:.2f} 秒")
@@ -118,6 +124,7 @@ class Battle:
                 self.Skip(2000)
             else:
                 if self.thread.stopped():
+                    self.log_info(f"self.thread.stopped")
                     return False
             return True
 
@@ -155,7 +162,7 @@ class Battle:
         assert boost >= 0 & boost <= 3  # 最多boost三个豆
 
         start_time = time.time()
-        self.log_info(f"执行{role}号位的{skill}技能, boost{boost}!...")
+        self.log_info(f"执行{role}号位的{skill}技能, boost {boost}!...")
 
         front_role_id = get_front_front_role_id(role)
         select_role_coord = [self.role_coord_x,
@@ -232,7 +239,7 @@ class Battle:
         self.controller.press(self.confirm_coord, int(time_in_ms))
 
     def BattleEnd(self):
-        self.log_info(f"Round {self.round_number}, 战斗结束...")
+        self.log_info(f"战斗结束...")
 
     def setFinishHook(self, finish_hook):
         self.finish_hook = finish_hook
