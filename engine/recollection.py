@@ -137,8 +137,7 @@ class recollection:
             f"追忆之书旅途完成，当前次数：{self.loopNum}\n"
             f"本次旅途时间：{round_time/60:.2f} 分钟\n"
             f"总运行时间：{total_time/60:.2f} 分钟",
-            stats=f"已完成 {self.loopNum} 次旅途 | 本次耗时：{
-                round_time/60:.2f} 分钟 | 总耗时：{total_time/60:.2f} 分钟"
+            stats=f"已完成 {self.loopNum} 次旅途 | 本次耗时：{round_time/60:.2f} 分钟 | 总耗时：{total_time/60:.2f} 分钟"
         )
 
         runState = wait_limit(self.on_confirm_award, operate_funcs=[self.on_confirm_award], thread=self.thread,

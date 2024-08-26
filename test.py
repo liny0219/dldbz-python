@@ -1,83 +1,78 @@
-from paddleocr import paddleocr,PaddleOCR, draw_ocr
-import logging
-# ocr = PaddleOCR(use_angle_cls=True, lang='ch')
+import matplotlib.pyplot as plt
+import numpy as np
+import cv2
+import uiautomator2 as u2
 from skimage.feature import match_template
 from skimage.metrics import structural_similarity as ssim
 
-paddleocr.logging.disable(logging.DEBUG)
-import uiautomator2 as u2
-# import time
-import cv2
-import numpy as np
-
-ocr = PaddleOCR(lang='ch') 
 
 def match_pic(img, goal):
-    #转灰度图
+    # 转灰度图
     gray_image = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     gray_image = np.squeeze(gray_image)
     gray_goal = cv2.cvtColor(goal, cv2.COLOR_BGR2GRAY)
     gray_goal = np.squeeze(gray_goal)
-    #在img中最吻合goal的左上角位置, 记为(x,y)
+    # 在img中最吻合goal的左上角位置, 记为(x,y)
     result = match_template(gray_image, gray_goal)
     yx = np.unravel_index(np.argmax(result), result.shape)
-    x, y = yx[::-1] 
-    #基于(x,y)在img中截取与goal相同shape的cropped_img
-    h_goal, w_goal = gray_goal.shape 
+    x, y = yx[::-1]
+    # 基于(x,y)在img中截取与goal相同shape的cropped_img
+    h_goal, w_goal = gray_goal.shape
     cropped_img = gray_image[y:y+h_goal, x:x+w_goal]
-    #由于cropped_img和goal已有相同shape, 可以用ssim特征匹配
+    # 由于cropped_img和goal已有相同shape, 可以用ssim特征匹配
     similarity_index = ssim(cropped_img, gray_goal)
     if similarity_index >= 0.95:
         return True
     return False
 
-def match_pic_coord4(img, goal,k=1):
-    #转灰度图
+
+def match_pic_coord4(img, goal, k=1):
+    # 转灰度图
     gray_image = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     gray_image = np.squeeze(gray_image)
     gray_goal = cv2.cvtColor(goal, cv2.COLOR_BGR2GRAY)
     gray_goal = np.squeeze(gray_goal)
-    #在img中最吻合goal的左上角位置, 记为(x,y)
+    # 在img中最吻合goal的左上角位置, 记为(x,y)
     match_result = match_template(gray_image, gray_goal)
     top_k_indices = np.argpartition(match_result.flatten(), -k)[-k:]
     top_k_coords = [np.unravel_index(idx, match_result.shape) for idx in top_k_coords]
     top_k_coords = [(y, x) for y, x in top_k_coords]
-    #基于(x,y)在img中截取与goal相同shape的cropped_img
-    h_goal, w_goal = gray_goal.shape 
-    cropped_imgs = [gray_image[y:y+h_goal, x:x+w_goal] for (y,x) in top_k_coords]
-    #由于cropped_img和goal已有相同shape, 可以用ssim特征匹配
+    # 基于(x,y)在img中截取与goal相同shape的cropped_img
+    h_goal, w_goal = gray_goal.shape
+    cropped_imgs = [gray_image[y:y+h_goal, x:x+w_goal] for (y, x) in top_k_coords]
+    # 由于cropped_img和goal已有相同shape, 可以用ssim特征匹配
     sims = [ssim(cropped_img, gray_goal) for cropped_img in cropped_imgs]
     # similarity_index = ssim(cropped_img, gray_goal)
     if max(sims) >= 0.95:
         return top_k_coords, match_result
     return None
 
+
 def match_pic_coord(img, goal):
-    #转灰度图
+    # 转灰度图
     gray_image = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     gray_image = np.squeeze(gray_image)
     gray_goal = cv2.cvtColor(goal, cv2.COLOR_BGR2GRAY)
     gray_goal = np.squeeze(gray_goal)
-    #在img中最吻合goal的左上角位置, 记为(x,y)
+    # 在img中最吻合goal的左上角位置, 记为(x,y)
     result = match_template(gray_image, gray_goal)
     yx = np.unravel_index(np.argmax(result), result.shape)
-    x, y = yx[::-1] 
-    #基于(x,y)在img中截取与goal相同shape的cropped_img
-    h_goal, w_goal = gray_goal.shape 
+    x, y = yx[::-1]
+    # 基于(x,y)在img中截取与goal相同shape的cropped_img
+    h_goal, w_goal = gray_goal.shape
     cropped_img = gray_image[y:y+h_goal, x:x+w_goal]
-    #由于cropped_img和goal已有相同shape, 可以用ssim特征匹配
+    # 由于cropped_img和goal已有相同shape, 可以用ssim特征匹配
     similarity_index = ssim(cropped_img, gray_goal)
     if similarity_index >= 0.95:
         return (x, y)
     return None
+
+
 shield = cv2.imread('./refs/battle/shield.png')
 # shield_gray = cv2.cvtColor(shield, cv2.COLOR_BGR2GRAY)
 
-import matplotlib.pyplot as plt
-
 
 device = u2.connect("127.0.0.1:5555")
-
 
 
 info = device.info
@@ -91,11 +86,6 @@ goal = cv2.imread('./refs/battle/test.png')
 gray_goal = cv2.cvtColor(goal, cv2.COLOR_BGR2GRAY)
 gray_goal = np.squeeze(gray_goal)
 sims, result = match_pic_coord4(img, goal)
-
-
-
-
-
 
 
 fig = plt.figure(figsize=(8, 3))
@@ -113,7 +103,7 @@ ax2.set_title('image')
 # highlight matched region
 hcoin, wcoin = gray_goal.shape
 for coord in sims:
-    y,x = coord
+    y, x = coord
     rect = plt.Rectangle((x, y), wcoin, hcoin, edgecolor='r', facecolor='none')
     ax2.add_patch(rect)
 
@@ -123,12 +113,10 @@ ax3.set_title('`match_template`\nresult')
 # highlight matched region
 ax3.autoscale(False)
 for coord in sims:
-    y,x = coord
+    y, x = coord
     ax3.plot(x, y, 'o', markeredgecolor='r', markerfacecolor='none', markersize=10)
 
 plt.show()
-
-
 
 
 # re = match_pic_coord(img, shield)
@@ -170,7 +158,7 @@ plt.show()
 # # x1,y1 = (1656,80)
 # # x2,y2 = (1750,812)
 # subimg = img[y1:y2, x1:x2]
-# # template_in_picture(self, template_path, leftup_coordinate=None, rightdown_coordinate=None, 
+# # template_in_picture(self, template_path, leftup_coordinate=None, rightdown_coordinate=None,
 #                             # save_path = '', match_level = MATCH_CONFIDENCE.HIGH)
 
 
@@ -234,15 +222,8 @@ plt.show()
 # im_show.save('result.jpg')
 
 
-
-
-
-
-
-
-
-# # from utils.controller import * 
-# # from utils.comparator import * 
+# # from utils.controller import *
+# # from utils.comparator import *
 
 # # # cropped_image_path = './refs/cropped_image.png'
 # # # temp_image_path = './refs/round_ui.png'
@@ -275,7 +256,6 @@ plt.show()
 # # from skimage.feature import match_template
 
 
-
 # def match_pic(img, goal):
 #     #转灰度图
 #     gray_image = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -285,9 +265,9 @@ plt.show()
 #     #在img中最吻合goal的左上角位置, 记为(x,y)
 #     result = match_template(np.squeeze(gray_image), np.squeeze(gray_goal))
 #     yx = np.unravel_index(np.argmax(result), result.shape)
-#     x, y = yx[::-1] 
+#     x, y = yx[::-1]
 #     #基于(x,y)在img中截取与goal相同shape的cropped_img
-#     h_goal, w_goal = gray_goal.shape 
+#     h_goal, w_goal = gray_goal.shape
 #     cropped_img = gray_image[y:y+h_goal, x:x+w_goal]
 #     #由于cropped_img和goal已有相同shape, 可以用ssim特征匹配
 #     similarity_index = ssim(cropped_img, gray_goal)

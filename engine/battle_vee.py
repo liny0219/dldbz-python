@@ -64,8 +64,7 @@ class Battle:
     def __enter__(self):
         start_time = time.time()
         wait_until(self._in_battle, thread=self.thread)  # 等待进入战斗
-        self.log_info(f"进入战斗“{self.alias}”! 耗时：{
-                      time.time() - start_time:.2f} 秒")
+        self.log_info(f"进入战斗“{self.alias}”! 耗时：{time.time() - start_time:.2f} 秒")
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
@@ -112,8 +111,7 @@ class Battle:
                 self.round_number = round_number
             self.round_number += 1
             self.in_round_ctx = True
-            self.log_info(f"进入回合{self.round_number}！ 耗时：{
-                          time.time() - start_time:.2f} 秒")
+            self.log_info(f"进入回合{self.round_number}！ 耗时：{time.time() - start_time:.2f} 秒")
         else:
             inBattle = self._in_battle()
             if not inBattle:
