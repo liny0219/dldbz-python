@@ -1,6 +1,7 @@
 import os
 import tkinter as tk
 from tkinter import ttk
+import tkinter.messagebox
 from engine.recollection import recollection
 from utils.stoppable_thread import StoppableThread
 import psutil
@@ -62,6 +63,19 @@ def edit_battle_script():
         updateUI("战斗脚本(recollection.txt)不存在，请检查！")
 
 
+def open_startup_config():
+    # 弹出警告框
+    response = tkinter.messagebox.askokcancel("配置修改警告",
+                                              "请注意，修改配置后需要重启程序才能生效。是否继续打开配置文件？")
+    if response:
+        file_path = os.path.join('config', 'startup.json')
+        if os.path.exists(file_path):
+            os.startfile(file_path)
+            updateUI("已尝试打开配置文件(startup)。")
+        else:
+            updateUI("配置文件(startup)不存在，请检查！")
+
+
 # 创建主窗口
 app = tk.Tk()
 app.title("旅人休息站")
@@ -121,7 +135,11 @@ readme_button.pack(pady=5)
 
 edit_script_button = tk.Button(button_frame, text="战斗编辑", command=edit_battle_script,
                                font=("Segoe UI", 10), width=10, height=1)
-edit_script_button.pack(pady=5)  # 新添加的按钮
+edit_script_button.pack(pady=5)
+
+settings_button = tk.Button(button_frame, text="设置", command=open_startup_config,
+                            font=("Segoe UI", 10), width=10, height=1)
+settings_button.pack(pady=5)  # 新添加的按钮
 
 # 右侧信息展示区
 message_text = tk.Text(info_frame, wrap=tk.WORD, font=("Segoe UI", 12), height=15, state=tk.DISABLED)
