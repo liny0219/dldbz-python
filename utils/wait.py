@@ -1,9 +1,10 @@
 import time
 
-def wait_until(condition_func, operate_funcs = None, timeout=10, check_interval=0.1, time_out_operate_funcs = None, thread = None):
+
+def wait_until(condition_func, operate_funcs=None, timeout=10, check_interval=0.1, time_out_operate_funcs=None, thread=None):
     """
     等待直到条件函数返回 True 或超时。
-    
+
     :param condition_func: 一个返回布尔值的函数，检查是否满足条件。
     :param operate_func: 如果存在该参数,则在等待过程中按照顺序执行
     :param timeout: 最大等待时间（秒）。
@@ -36,19 +37,21 @@ def wait_until(condition_func, operate_funcs = None, timeout=10, check_interval=
                     pass
             break
     return False
-def wait_either(condition_func1, condition_func2, 
-                operate_funcs = None, timeout=10, check_interval=0.1, thread = None):
+
+
+def wait_either(condition_func1, condition_func2,
+                operate_funcs=None, timeout=10, check_interval=0.1, thread=None):
 
     start_time = time.time()
-    
+
     while time.time() - start_time < timeout:
         if thread is not None and thread.stopped():
             print("Thread has ended.")
             return False
         if condition_func1():
-            return 1 
+            return 1
         if condition_func2():
-            return 2  
+            return 2
         if operate_funcs and type(operate_funcs) == list:
             try:
                 for operate_func in operate_funcs:
@@ -56,13 +59,14 @@ def wait_either(condition_func1, condition_func2,
             except:
                 pass
         time.sleep(check_interval)
-    
+
     return False
 
-def wait_until_not(condition_func, operate_funcs = None, timeout=10, check_interval=0.1, thread = None):
+
+def wait_until_not(condition_func, operate_funcs=None, timeout=10, check_interval=0.1, thread=None):
     """
     等待直到条件函数返回 False 或超时。
-    
+
     :param condition_func: 一个返回布尔值的函数，检查是否满足条件。
     :param operate_funcs: 等待中途做的操作比如点击屏幕,点击撤退等。
     :param timeout: 最大等待时间（秒）。
@@ -71,7 +75,7 @@ def wait_until_not(condition_func, operate_funcs = None, timeout=10, check_inter
     """
     assert callable(condition_func), "wait_until_not传入的第一个参数必须是函数"
     start_time = time.time()
-    
+
     while time.time() - start_time < timeout:
         if thread is not None and thread.stopped():
             print("Thread has ended.")
@@ -85,13 +89,14 @@ def wait_until_not(condition_func, operate_funcs = None, timeout=10, check_inter
             except:
                 pass
         time.sleep(check_interval)
-    
+
     return False
+
 
 def wait_limit(condition_func, operate_funcs=None, timeout=10, check_interval=0.1, time_out_operate_funcs=None, thread=None):
     """
     等待直到条件函数返回 True 或超时。
-    
+
     :param condition_func: 一个返回布尔值的函数，检查是否满足条件。
     :param operate_funcs: 如果存在该参数, 则在等待过程中按照顺序执行
     :param timeout: 最大等待时间（秒）。
@@ -102,9 +107,10 @@ def wait_limit(condition_func, operate_funcs=None, timeout=10, check_interval=0.
     """
     assert callable(condition_func), "wait_until传入的第一个参数必须是函数"
     start_time = time.time()
-    
+
     while True:
         if condition_func():
+            print(f"condition_func: true")
             return True
         if thread is not None and thread.stopped():
             print("Thread has ended.")
@@ -118,7 +124,7 @@ def wait_limit(condition_func, operate_funcs=None, timeout=10, check_interval=0.
             except Exception as e:
                 print(f"Error in operate_func: {e}")
         time.sleep(check_interval)
-        
+
         # 检查是否超时
         if time_elapsed >= timeout:
             if time_out_operate_funcs and type(time_out_operate_funcs) == list:
@@ -128,5 +134,5 @@ def wait_limit(condition_func, operate_funcs=None, timeout=10, check_interval=0.
                 except Exception as e:
                     print(f"Error in time_out_operate_func: {e}")
             break
-    
+
     return False

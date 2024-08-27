@@ -65,7 +65,10 @@ class recollection:
             ui_confirm_award, return_center_coord=True)
         if in_confirm_award:
             self.controller.press(in_confirm_award)
+            print(f"on_confirm_award in_confirm_award True")
             return True
+        print(f"on_confirm_award in_confirm_award False")
+        return False
 
     def on_status_close(self):
         ui_status_close = cfg_recollection.get(
@@ -74,7 +77,10 @@ class recollection:
             ui_status_close, return_center_coord=True)
         if in_status_close:
             self.controller.press(in_status_close)
+            print(f"on_status_close in_status_close True")
             return True
+        print(f"on_status_close in_status_close True")
+        return False
 
     def start(self):
         self.loopNum = 0
@@ -148,14 +154,14 @@ class recollection:
         )
 
         # 等待确认奖励
-        runStateAward = wait_limit(self.on_confirm_award, operate_funcs=[self.on_confirm_award], thread=self.thread,
-                                   timeout=30, check_interval=1)
+        runStateAward = wait_limit(self.on_confirm_award, time_out_operate_funcs=[self.on_confirm_award], thread=self.thread,
+                                   timeout=20)
         # 输出奖励确认结果
         if not runStateAward:
             self.updateUI(f"奖励确认失败：{self.loop}\n")
             return
-        runStateStatus = wait_limit(self.on_status_close, operate_funcs=[self.on_status_close], thread=self.thread,
-                                    timeout=30, check_interval=1)
+        runStateStatus = wait_limit(self.on_status_close, time_out_operate_funcs=[self.on_status_close], thread=self.thread,
+                                    timeout=20)
         # 输出状态关闭结果
         if not runStateStatus:
             self.updateUI(f"状态关闭失败：{self.loop}\n")
