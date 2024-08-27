@@ -1,10 +1,13 @@
 from engine.battle_hook import BattleHook
 from utils.singleton import singleton
+
+
 @singleton
 class BattleDSL:
-    def __init__(self):
+    def __init__(self, updateUI=None):
         # 使用 BattleHook 单例管理 hooks
         self.hook_manager = BattleHook()
+        self.updateUI = updateUI
 
     def execute_instruction(self, instruction):
         hook_func_cmd_start = self.hook_manager.get('CmdStart')  # 获取对应指令的 hook 函数
@@ -20,6 +23,9 @@ class BattleDSL:
             # 执行对应的 hook 函数，并传递参数
             hook_func(*parts[1:])
         else:
+            # 更新 UI
+            if self.updateUI:
+                self.updateUI(f"找不到对应战斗指令 '{command}'.")
             print(f"Error: No hook function set for command '{command}'.")
         return True
 
@@ -39,4 +45,7 @@ class BattleDSL:
             if finish_hook:
                 finish_hook()
         except UnicodeDecodeError:
+            # 更新 UI
+            if self.updateUI:
+                self.updateUI(f"Error: Unable to decode the file {filename}. Please ensure it is encoded in UTF-8.")
             print(f"Error: Unable to decode the file {filename}. Please ensure it is encoded in UTF-8.")

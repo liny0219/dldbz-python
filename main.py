@@ -1,11 +1,23 @@
+import os
 import tkinter as tk
 from tkinter import ttk
 from engine.recollection import recollection
 from utils.stoppable_thread import StoppableThread
+import psutil
 
 
 def on_close():
     print("Closing the application...")
+    # 尝试查找并终止所有adb进程
+    for proc in psutil.process_iter(['pid', 'name']):
+        if 'adb' in proc.info['name']:
+            print(f"终止进程: {proc.info['name']} (PID: {proc.info['pid']})")
+            proc.terminate()
+            try:
+                proc.wait(3)  # 等待最多3秒以确保进程被终止
+            except psutil.TimeoutExpired:
+                print(f"强制终止进程: {proc.info['name']}")
+                proc.kill()
     on_stop()  # 停止当前线程
     app.quit()  # 退出主循环
     app.destroy()  # 销毁窗口
@@ -32,6 +44,24 @@ def on_stop():
         current_thread.stop()
 
 
+def open_readme():
+    file_path = 'readme.txt'
+    if os.path.exists(file_path):
+        os.startfile(file_path)
+        updateUI("已尝试打开帮助文档(readme.txt)。")
+    else:
+        updateUI("帮助文档(readme.txt)不存在，请检查！")
+
+
+def edit_battle_script():
+    file_path = os.path.join('battle_script', 'recollection.txt')
+    if os.path.exists(file_path):
+        os.startfile(file_path)
+        updateUI("已尝试打开战斗脚本(recollection.txt)。")
+    else:
+        updateUI("战斗脚本(recollection.txt)不存在，请检查！")
+
+
 # 创建主窗口
 app = tk.Tk()
 app.title("旅人休息站")
@@ -48,20 +78,20 @@ def updateUI(msg, stats=None):
 
 
 def update_message_label(text):
-    message_text.config(state=tk.NORMAL)  # 使 Text 可编辑以便插入
-    message_text.insert(tk.END, text + "\n")  # 在末尾插入新消息
-    message_text.config(state=tk.DISABLED)  # 插入后再设置为不可编辑
-    message_text.see(tk.END)  # 自动滚动到底部
+    message_text.config(state=tk.NORMAL)
+    message_text.insert(tk.END, text + "\n")
+    message_text.config(state=tk.DISABLED)
+    message_text.see(tk.END)
 
 
 def update_stats_label(stats):
-    stats_label.config(text=stats)  # 更新统计信息
+    stats_label.config(text=stats)
 
 
 # 使用 grid 布局管理器
-app.grid_rowconfigure(2, weight=1)  # 设置行的权重使其拉伸
-app.grid_columnconfigure(0, weight=1)  # 左侧按钮区域
-app.grid_columnconfigure(1, weight=3)  # 右侧信息展示区域，宽度是左侧的三倍
+app.grid_rowconfigure(2, weight=1)
+app.grid_columnconfigure(0, weight=1)
+app.grid_columnconfigure(1, weight=3)
 
 # 顶部子标题标签居中显示
 message_label = tk.Label(app, text="愉快的歧路旅途", font=("Segoe UI", 14, "bold"))
@@ -71,20 +101,27 @@ message_label.grid(row=0, column=0, columnspan=2, pady=10)
 stats_label = tk.Label(app, text="即将开始旅途", font=("Segoe UI", 12))
 stats_label.grid(row=1, column=0, columnspan=2, pady=5)
 
-# 左侧按钮区域框架，进一步缩小按钮区域宽度
+# 左侧按钮区域框架
 button_frame = tk.Frame(app)
 button_frame.grid(row=2, column=0, sticky="nswe", padx=5, pady=5)
 
-# 右侧信息展示框架，扩大信息展示区域
+# 右侧信息展示框架
 info_frame = tk.Frame(app)
 info_frame.grid(row=2, column=1, sticky="nswe", padx=10, pady=10)
 
-# 左侧操作按钮，按钮区域宽度和高度缩小一半
+# 左侧操作按钮
 start_button = tk.Button(button_frame, text="追忆之旅", command=on_click, font=("Segoe UI", 10), width=10, height=1)
 start_button.pack(pady=5)
 
 stop_button = tk.Button(button_frame, text="休息一下", command=on_stop, font=("Segoe UI", 10), width=10, height=1)
 stop_button.pack(pady=5)
+
+readme_button = tk.Button(button_frame, text="查看帮助", command=open_readme, font=("Segoe UI", 10), width=10, height=1)
+readme_button.pack(pady=5)
+
+edit_script_button = tk.Button(button_frame, text="战斗编辑", command=edit_battle_script,
+                               font=("Segoe UI", 10), width=10, height=1)
+edit_script_button.pack(pady=5)  # 新添加的按钮
 
 # 右侧信息展示区
 message_text = tk.Text(info_frame, wrap=tk.WORD, font=("Segoe UI", 12), height=15, state=tk.DISABLED)

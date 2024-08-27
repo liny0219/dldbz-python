@@ -19,7 +19,7 @@ class recollection:
         self.controller = DeviceController(device_ip)
         self.comparator = Comparator(self.controller)
         self.player = Player(self.controller, self.comparator, team)
-        self.battle_dsl = BattleDSL()
+        self.battle_dsl = BattleDSL(updateUI)
         self.battle_hook = BattleHook()
         self.Timestartup = time.time()  # 程序启动时间
         self.TimeroundStart = time.time()  # 每轮开始时间
@@ -156,9 +156,12 @@ class recollection:
         # 等待确认奖励
         runStateAward = wait_limit(self.on_confirm_award, time_out_operate_funcs=[self.on_confirm_award], thread=self.thread,
                                    timeout=20)
+        if self.thread.stopped():
+            self.updateUI(f"休息一下\n")
+            return
         # 输出奖励确认结果
         if not runStateAward:
-            self.updateUI(f"奖励确认失败：{self.loop}\n")
+            self.updateUI(f"奖励确认失败\n")
             return
         runStateStatus = wait_limit(self.on_status_close, time_out_operate_funcs=[self.on_status_close], thread=self.thread,
                                     timeout=20)
