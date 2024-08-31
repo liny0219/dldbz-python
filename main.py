@@ -4,6 +4,7 @@ import tkinter as tk
 import tkinter.messagebox
 from engine.comparator import Comparator
 from engine.device_controller import DeviceController
+from gameplay.monopoly import Monopoly
 from gameplay.recollection import Recollection
 from get_coord import GetCoord
 from global_data import GlobalData
@@ -55,7 +56,8 @@ def updateUI(msg, stats=None):
 
 
 def evt_monopoly():
-    pass
+    monopoly = Monopoly(global_data)
+    monopoly.start()
 
 
 def evt_recollection():
@@ -107,6 +109,18 @@ def get_coord():
     coordinate_getter.show_coordinates_window(resolution)
 
 
+def open_monopoly_config():
+    # 弹出警告框
+    response = tkinter.messagebox.askokcancel("配置修改警告",
+                                              "请注意，修改配置后需要重启程序才能生效。是否继续打开配置文件？")
+    if response:
+        file_path = os.path.join('config', 'monopoly.json')
+        if os.path.exists(file_path):
+            os.startfile(file_path)
+        else:
+            updateUI("配置文件(monopoly.json)不存在，请检查！")
+
+
 def open_startup_config():
     # 弹出警告框
     response = tkinter.messagebox.askokcancel("配置修改警告",
@@ -115,9 +129,8 @@ def open_startup_config():
         file_path = os.path.join('config', 'startup.json')
         if os.path.exists(file_path):
             os.startfile(file_path)
-            updateUI("已尝试打开配置文件(startup)。")
         else:
-            updateUI("配置文件(startup)不存在，请检查！")
+            updateUI("配置文件(startup.json)不存在，请检查！")
 
 
 def update_message_label(text):

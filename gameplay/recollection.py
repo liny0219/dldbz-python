@@ -6,14 +6,14 @@ from utils.wait import wait_until
 
 
 class Recollection:
-    def __init__(self, globData: GlobalData):
+    def __init__(self, global_data: GlobalData):
         self.set_config()
         self.loop = int(cfg_recollection.get("common.loop"))
-        self.thread = globData.thread
-        self.controller = globData.controller
-        self.comparator = globData.comparator
-        self.battle = globData.battle
-        self.updateUI = globData.updateUI
+        self.thread = global_data.thread
+        self.controller = global_data.controller
+        self.comparator = global_data.comparator
+        self.battle = global_data.battle
+        self.updateUI = global_data.updateUI
         self.Timestartup = time.time()  # 程序启动时间
         self.TimeroundStart = time.time()  # 每轮开始时间
 

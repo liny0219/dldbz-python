@@ -1,4 +1,7 @@
+from __future__ import annotations
 from enum import Enum
+from engine.world import World
+from global_data import GlobalData
 from utils.config_loader import cfg_monopoly
 from utils.status import MATCH_CONFIDENCE
 from utils.wait import wait_until, wait_until_not
@@ -12,14 +15,16 @@ class GAMEBOARD(Enum):
 
 
 class Monopoly:
-    def __init__(self, player, world):
-        self.player = player
-        self.controller = player.controller
-        self.comparator = player.comparator
-        self.world = world
-
+    def __init__(self, global_data: GlobalData):
+        self.global_data = global_data
+        self.controller = global_data.controller
+        self.comparator = global_data.comparator
+        self.world = World(global_data)
         self.meet_little_man = False
+        self.game_over = False
+        self.set_config()
 
+    def set_config(self):
         self.check_play_board_refs = cfg_monopoly.get('check.check_play_board_refs')
         self.check_in_monopoly_menu_refs = cfg_monopoly.get('check.check_in_monopoly_menu_refs')
         self.check_exhaust_everything_refs = cfg_monopoly.get('check.check_exhaust_everything_refs')
@@ -63,6 +68,34 @@ class Monopoly:
                                     'third_forked_road': self.move_down_coord,
                                     'fourth_forked_road': self.move_down_coord}
 
+    def start(self):
+        self.world.back_menu1()
+        wait_until(self.controller.in_game, operate_funcs=[
+                   self.controller.start_game], check_interval=1, thread=self.global_data.thread)
+        ticket_num = 0
+        difficulty = 1
+        self.play_monopoly(ticket_num, difficulty)
+        self.check_get_props()
+        self.check_coin_type_branch()
+        self.check_and_choose_coin_type(coin_type='wealth')
+        self.check_and_choose_forked_road()
+        self.play_monopoly(ticket_num, difficulty)
+        self.check_and_confirm_props_found()
+        self.comparator.template_in_picture('./refs/monopoly/props_found.png')
+        self.test_a_roll()
+        # self.check_end_and_continue()
+        # self.check_dedicate_and_cancle()
+        self.check_get_props()
+        print(self.check_forked_road())
+        self.check_little_man()
+        self.check_and_fight_and_continue()
+        # self.exhaust_everything()
+        self.move_right()
+        for i in range(10):
+            print("turn", i)
+            r = self.global_data.battle._in_battle()
+            print(r)
+
     def check_have_dice(self):
         return self.comparator.template_in_picture(self.check_waitroll_refs, return_center_coord=True)
 
@@ -100,7 +133,7 @@ class Monopoly:
                                   self.check_and_choose_forked_road,
                                   partial(self.check_dedicate_and_continue, willing=False),
                                   self.check_and_fight_and_continue,
-                                  self.check_game_over_and_continue])
+                                  self.check_game_over_and_continue], thread=self.global_data.thread)
         # 由于有时候会往后退再次遇到事件所以要check两次
         if not self.check_have_dice():
             wait_until(self.check_have_dice,
@@ -109,7 +142,7 @@ class Monopoly:
                                       self.check_and_confirm_props_found,
                                       self.check_and_choose_forked_road,
                                       partial(self.check_dedicate_and_continue, willing=False),
-                                      self.check_and_fight_and_continue])
+                                      self.check_and_fight_and_continue], thread=self.global_data.thread)
 
     def check_get_props(self):
         return self.comparator.template_in_picture(self.check_get_props_refs)
@@ -120,9 +153,10 @@ class Monopoly:
             if event:
                 self.controller.press(event, T=2000)
                 self.meet_little_man = True
-                wait_until(self.check_coin_type_branch, operate_funcs=[self.random_press])
+                wait_until(self.check_coin_type_branch, operate_funcs=[
+                           self.random_press], thread=self.global_data.thread)
                 wait_until_not(self.check_coin_type_branch, operate_funcs=[
-                               partial(self.choose_coin_type, coin_type=coin_type)])
+                               partial(self.choose_coin_type, coin_type=coin_type)], thread=self.global_data.thread)
 
     def check_coin_type_branch(self):
         return self.comparator.template_in_picture(self.check_choose_coin_type_refs)
@@ -225,14 +259,16 @@ class Monopoly:
             print(boss)
             self.controller.light_press([368, 484])
             self.controller.light_press([834, 490])
-            wait_until_not(self.check_in_battle, timeout=300, check_interval=3)
+            wait_until_not(self.check_in_battle, timeout=300, check_interval=3, thread=self.global_data.thread)
 
     def check_and_fight_and_continue(self):
         in_battle = self.check_in_battle()
         if in_battle:
             self.check_boss_and_fight()
-            wait_until(self.check_get_props, operate_funcs=[self.random_press], timeout=20)
-            wait_until_not(self.check_get_props, operate_funcs=[partial(self.controller.light_press, [480, 474])])
+            wait_until(self.check_get_props, operate_funcs=[
+                       self.random_press], timeout=20, thread=self.global_data.thread)
+            wait_until_not(self.check_get_props, operate_funcs=[partial(
+                self.controller.light_press, [480, 474])], thread=self.global_data.thread)
 
     def check_end(self):
         return self.comparator.template_in_picture(self.check_end_refs)
@@ -263,16 +299,25 @@ class Monopoly:
     def start_playing_exhaust_everything(self, ticket_num=0, difficulty=0):
         # 运行此函数时必须在menu1界面
         wait_until(self.in_monopoly_menu, operate_funcs=[partial(
-            self.controller.press, [454, 464], operate_latency=1000)])
+            self.controller.press, [454, 464], operate_latency=1000)], thread=self.global_data.thread)
         while True:
+            if self.global_data.thread.stopped():
+                # 如果线程结束则直接
+                print("Thread has ended. 1")
+                break
             wait_until(self.in_monopoly_setting, operate_funcs=[partial(
-                self.controller.press, [694, 376]), partial(self.controller.press, [844, 452])])
+                self.controller.press, [694, 376]), partial(self.controller.press, [844, 452])], thread=self.global_data.thread)
             self.initialize_monopoly_setting()
             self.add_ticket_num(ticket_num)
             self.add_difficulty(difficulty)
-            wait_until(self.in_monopoly_game, operate_funcs=[partial(self.controller.press, [598, 430])])
+            wait_until(self.in_monopoly_game, operate_funcs=[partial(
+                self.controller.press, [598, 430])], thread=self.global_data.thread)
             self.game_over = False
             while not self.game_over:
+                if self.global_data.thread.stopped():
+                    # 如果线程结束则直接
+                    print("Thread has ended. 2")
+                    break
                 self.test_a_roll()
 
     def play_monopoly(self, ticket_num=0, difficulty=0):

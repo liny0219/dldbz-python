@@ -24,7 +24,7 @@ def get_front_role_order(role):  # 获得n号位的前排序号
 
 @singleton
 class Battle:
-    def __init__(self, globData: GlobalData):
+    def __init__(self, global_data: GlobalData):
         self.finish_hook = None
         self.front = [1, 2, 3, 4]
         self.behind = [5, 6, 7, 8]
@@ -34,19 +34,19 @@ class Battle:
         self.in_round_ctx = False
         self.round_number = 0
         self.round_records = []
-        self.set_global_data(globData)
+        self.set_global_data(global_data)
 
-    def set_global_data(self, globData: GlobalData):
-        self.globData = globData
-        self.controller = globData.controller
-        self.comparator = globData.comparator
-        self.updateUI = globData.updateUI
-        self.battle_dsl = BattleDSL(globData.updateUI)
+    def set_global_data(self, global_data: GlobalData):
+        self.global_data = global_data
+        self.controller = global_data.controller
+        self.comparator = global_data.comparator
+        self.updateUI = global_data.updateUI
+        self.battle_dsl = BattleDSL(global_data.updateUI)
         # 设置 Hook 函数，返回值为 bool 类型，表示是否继续执行
         battle_hook = self.battle_dsl.hook_manager
         battle_hook.set(
             'Finish', lambda: self.finish_hook and self.finish_hook())
-        battle_hook.set('CmdStart', lambda: not self.globData.thread.stopped())
+        battle_hook.set('CmdStart', lambda: not self.global_data.thread.stopped())
         battle_hook.set('BattleStart', lambda: (self._wait_round(True)))
         battle_hook.set('BattleEnd', lambda: self.hook_battle_end())
         battle_hook.set('Role', lambda role_id, skill_id, energy_level, x=None, y=None: self.cmd_role(
@@ -85,7 +85,7 @@ class Battle:
         self.sp_confirm_coords = cfg_battle.get("coord.sp_confirm_coords")  # sp确认坐标
 
     def run(self, path):
-        self.thread = self.globData.thread
+        self.thread = self.global_data.thread
         self.reset()
         self.set_config()
         self.battle_dsl.load_instructions(path)
@@ -134,7 +134,7 @@ class Battle:
 
     def _wait_round(self, resetRound=False, newRound=True):
         inRound = wait_until(self._in_round, [partial(
-            self.controller.press, self.confirm_coord, press_duration=10, operate_latency=10)], thread=self.globData.thread)
+            self.controller.press, self.confirm_coord, press_duration=10, operate_latency=10)], thread=self.global_data.thread)
         if inRound and newRound:
             if resetRound == True:
                 self.round_number = 0
@@ -146,7 +146,7 @@ class Battle:
             if not inBattle:
                 self.cmd_skip(2000)
             else:
-                if self.globData.thread.stopped():
+                if self.global_data.thread.stopped():
                     return False
             return True
 
@@ -154,9 +154,9 @@ class Battle:
         start_time = time.time()
         self._log_info("开始攻击!")
         self.btn_start_attack()
-        wait_until_not(self._in_round, thread=self.globData.thread)
+        wait_until_not(self._in_round, thread=self.global_data.thread)
         end_condition = wait_either(
-            self._in_round, self._not_in_battle, thread=self.globData.thread)
+            self._in_round, self._not_in_battle, thread=self.global_data.thread)
         if end_condition == 2:
             self.battle_end = True
         self.in_round_ctx = False
@@ -188,7 +188,7 @@ class Battle:
         skill_start = [self.skill_coord_x, self.skill_coords_y[skill]]
         skill_end = [self.boost_coords_x[boost], self.skill_coords_y[skill]]
         wait_until(self._in_round, [partial(self.controller.light_swipe, skill_start, skill_end),
-                                    partial(self.controller.light_press, self.confirm_coord)], thread=self.globData.thread)
+                                    partial(self.controller.light_press, self.confirm_coord)], thread=self.global_data.thread)
 
     def cmd_sp(self, role):
         assert self.in_round_ctx == True  # 必须在Round中执行
