@@ -11,11 +11,11 @@ from utils.wait import wait_until
 
 
 class recollection:
-    def __init__(self, updateUI, device_ip="127.0.0.1:5555", team='TBD'):
+    def __init__(self, controller, updateUI, team='TBD'):
         self.updateUI = updateUI
 
         self.loop = int(cfg_recollection.get("common.loop"))
-        self.controller = DeviceController(device_ip)
+        self.controller = controller
         self.comparator = Comparator(self.controller)
         self.player = Player(self.controller, self.comparator, team)
         self.battle_dsl = BattleDSL(updateUI)

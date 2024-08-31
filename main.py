@@ -2,9 +2,15 @@ import os
 import tkinter as tk
 from tkinter import ttk
 import tkinter.messagebox
+from engine.device_controller import DeviceController
 from engine.recollection import recollection
+from get_coord import GetCoord
 from utils.stoppable_thread import StoppableThread
+from utils.config_loader import cfg_startup
 import psutil
+
+controller = DeviceController(cfg_startup.get('adb_port'))
+resolution = cfg_startup.get('resolution')
 
 
 def on_close():
@@ -25,7 +31,7 @@ def on_close():
 
 
 def evt_recollection(thread: StoppableThread):
-    recollection_instance = recollection(updateUI)
+    recollection_instance = recollection(controller, updateUI)
     recollection_instance.set_thread(thread)
     recollection_instance.start()
 
@@ -61,6 +67,11 @@ def edit_battle_script():
         updateUI("已尝试打开战斗脚本(recollection.txt)。")
     else:
         updateUI("战斗脚本(recollection.txt)不存在，请检查！")
+
+
+def get_coord():
+    coordinate_getter = GetCoord(controller, updateUI)
+    coordinate_getter.show_coordinates_window(resolution)
 
 
 def open_startup_config():
@@ -136,6 +147,10 @@ readme_button.pack(pady=5)
 edit_script_button = tk.Button(button_frame, text="战斗编辑", command=edit_battle_script,
                                font=("Segoe UI", 10), width=10, height=1)
 edit_script_button.pack(pady=5)
+
+get_coord_button = tk.Button(button_frame, text="标记坐标", command=get_coord,
+                             font=("Segoe UI", 10), width=10, height=1)
+get_coord_button.pack(pady=5)
 
 settings_button = tk.Button(button_frame, text="设置", command=open_startup_config,
                             font=("Segoe UI", 10), width=10, height=1)

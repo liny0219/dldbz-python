@@ -1,7 +1,8 @@
 BattleStart
-Role,1,2,0,1
-Role,2,1,0,2,up
+Role,1,2,0,104,276
+Role,2,1,0
 Role,3,1,0
+Click,104,276
 Role,4,1,0
 Attack
 Boost

@@ -19,6 +19,7 @@ class BattleHook:
             "Switch": self.default_switch_hook,     # 切换特定角色位置
             "Wait": self.default_wait_hook,         # 等待指定时间
             "Skip": self.default_skip_hook,         # 跳过指定时间
+            "Click": self.default_clk_hook,           # 点击指定坐标
             "BattleStart": self.default_battle_start_hook,  # 战斗开始
             "BattleEnd": self.default_battle_end_hook,  # 战斗结束
             "CmdStart": self.default_cmd_start_hook,  # 指令开始
@@ -51,15 +52,8 @@ class BattleHook:
 
     # 以下是各指令的默认行为
 
-    def default_role_hook(self, role_id, skill_id, energy_level, enemy_id=None, position="down"):
-        direction = {
-            "up": "向上",
-            "down": "向下",
-            "left": "向左",
-            "right": "向右"
-        }.get(position, "未知方向")
-        self.log(f"Default Role Hook: Role {role_id}, Skill {skill_id}, Energy {
-                 energy_level}, Enemy {enemy_id} at {direction}")
+    def default_role_hook(self, role_id, skill_id, energy_level, x=None, y=None):
+        self.log(f"Default Role Hook: Role {role_id}, Skill {skill_id}, Energy {energy_level}, 敌人坐标: {x},{y}")
 
     def default_xrole_hook(self, role_id, skill_id, energy_level):
         self.log(f"Default XRole Hook: Role {role_id}, Skill {skill_id}, Energy {energy_level}")
@@ -87,6 +81,9 @@ class BattleHook:
 
     def default_skip_hook(self, duration):
         self.log(f"Default Skip Hook: Skipping {duration} milliseconds (placeholder).")
+
+    def default_clk_hook(self, x, y):
+        self.log(f"Default Click Hook: Clicking at ({x}, {y}).")
 
     def default_battle_start_hook(self):
         self.log("Default BattleStart Hook: Battle has started.")

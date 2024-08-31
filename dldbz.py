@@ -1,5 +1,3 @@
-from engine.battle_DSL import BattleDSL
-from engine.battle_hook import BattleHook
 from engine.device_controller import DeviceController
 from engine.world import Move_Direct, World
 from engine.battle import Battle
@@ -7,36 +5,21 @@ from engine.comparator import Comparator
 from engine.player import Player
 from engine.monopoly import Monopoly
 from utils.wait import wait_until
-import cv2 
+import cv2
 
 if __name__ == '__main__':
     controller = DeviceController("127.0.0.1:5555")
     comparator = Comparator(controller)
     team = 'TBD'
     player = Player(controller, comparator, team)
-    world      = World(player)
-    monopoly = Monopoly(player,world)
+    world = World(player)
+    monopoly = Monopoly(player, world)
     # world.back_menu1()
     # wait_until(controller.in_game, operate_funcs=[controller.start_game],check_interval=1)
     # monopoly.exhaust_everything()
     ticket_num = 0
     difficulty = 1
 
-    
-    # 使用示例
-    # 获取 BattleDSL 和 BattleHook 单例实例
-    battle_dsl = BattleDSL()
-    hook_manager = BattleHook()
-
-    # 设置自定义 hook 函数，保留默认打印行为
-    def custom_role_hook(role_id, skill_id, energy_level):
-        print(f"Custom Role Hook: Role {role_id}, Skill {skill_id}, Energy {energy_level}")
-
-    hook_manager.set("Role", custom_role_hook)
-
-    # 运行脚本
-    battle_dsl.run_script('./battle_script/coliseum.txt')
-    
     # monopoly.play_monopoly(ticket_num, difficulty)
     # monopoly.check_get_props()
     # monopoly.check_coin_type_branch()
@@ -62,7 +45,7 @@ if __name__ == '__main__':
     '''
     #comparator.crop_save_image([879, 369], [910, 386], "your_file_name")
     '''
-    
+
     # 查看1-8号位战斗状态，准确度不高，待优化
     '''
     with Battle(controller, comparator, '测试') as battle:
@@ -75,7 +58,7 @@ if __name__ == '__main__':
         battle.check_role_status(7)
         battle.check_role_status(8)
     '''
-    
+
     # 战斗示例
 
     # with Battle(player, '测试') as b:
@@ -86,13 +69,13 @@ if __name__ == '__main__':
     #             r1.skill(7, 2, 0)
     #             r1.skill(8, 3, 3)
     #         if b.battle_end:
-    #             break 
+    #             break
     #         with b.Round() as r2:
     #             r2.skill(1, 0, 3)
     #             r2.skill(2, 1, 3)
     #             r2.skill(3, 2, 3)
     #             r2.skill(4, 3, 3)
-                    
+
     # with Battle(player, alias="My Battle") as battle:
     #     with battle.Round() as round:
     #         # Code to be executed during the round
@@ -115,4 +98,3 @@ if __name__ == '__main__':
     # 移动示例，下一步要添加一个移动状态的判断，暂时未实现
     # world.move_once(Move_Direct.LEFT_RIGHT)
     # world.move_until_not_in_world(Move_Direct.LEFT_RIGHT)   # 有bug,需要修改
-
