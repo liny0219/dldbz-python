@@ -7,8 +7,7 @@ from engine.battle_vee import Battle
 from engine.comparator import Comparator
 from utils.config_loader import cfg_recollection
 from engine.player import Player
-from utils.wait import wait_limit
-from functools import partial
+from utils.wait import wait_until
 
 
 class recollection:
@@ -95,7 +94,7 @@ class recollection:
 
             # 等待读取并确认读取
             self.updateUI("正在读取旅途内容...")
-            runState = wait_limit(self.on_read,  operate_funcs=[self.on_read], thread=self.thread,
+            runState = wait_until(self.on_read,  operate_funcs=[self.on_read], thread=self.thread,
                                   timeout=10, check_interval=1)
             self.log_time(start_time, "读取旅途内容")
             if not runState:
@@ -104,7 +103,7 @@ class recollection:
 
             self.updateUI("确认读取内容...")
             start_time = time.time()
-            runState = wait_limit(self.on_confirm_read, operate_funcs=[self.on_confirm_read],  thread=self.thread,
+            runState = wait_until(self.on_confirm_read, operate_funcs=[self.on_confirm_read],  thread=self.thread,
                                   timeout=10, check_interval=1)
             self.log_time(start_time, "确认读取内容")
             if not runState:
@@ -154,7 +153,7 @@ class recollection:
         )
 
         # 等待确认奖励
-        runStateAward = wait_limit(self.on_confirm_award, time_out_operate_funcs=[self.on_confirm_award], thread=self.thread,
+        runStateAward = wait_until(self.on_confirm_award, time_out_operate_funcs=[self.on_confirm_award], thread=self.thread,
                                    timeout=20)
         if self.thread.stopped():
             self.updateUI(f"休息一下\n")
@@ -163,7 +162,7 @@ class recollection:
         if not runStateAward:
             self.updateUI(f"奖励确认失败\n")
             return
-        runStateStatus = wait_limit(self.on_status_close, time_out_operate_funcs=[self.on_status_close], thread=self.thread,
+        runStateStatus = wait_until(self.on_status_close, time_out_operate_funcs=[self.on_status_close], thread=self.thread,
                                     timeout=20)
         # 输出状态关闭结果
         if not runStateStatus:
