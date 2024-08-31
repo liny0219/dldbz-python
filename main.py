@@ -26,7 +26,7 @@ def on_close():
 
 def evt_recollection(thread: StoppableThread):
     recollection_instance = recollection(updateUI)
-    recollection_instance.setThread(thread)
+    recollection_instance.set_thread(thread)
     recollection_instance.start()
 
 

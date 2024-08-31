@@ -32,9 +32,9 @@ class recollection:
             stats="大霸启动！！"
         )
 
-    def setThread(self, thread):
+    def set_thread(self, thread):
         self.thread = thread
-        self.battle.setThread(thread)
+        self.battle.set_thread(thread)
 
     def log_time(self, start_time, action_description):
         elapsed_time = time.time() - start_time
@@ -86,45 +86,49 @@ class recollection:
         self.run()
 
     def run(self):
+        debug = False
         try:
-            self.loop = int(cfg_recollection.get("common.loop"))
+            if not debug:
+                self.loop = int(cfg_recollection.get("common.loop"))
 
-            self.updateUI("开始旅途...")
-            start_time = time.time()
+                self.updateUI("开始旅途...")
+                start_time = time.time()
 
-            # 等待读取并确认读取
-            self.updateUI("正在读取旅途内容...")
-            runState = wait_until(self.on_read,  operate_funcs=[self.on_read], thread=self.thread,
-                                  timeout=10, check_interval=1)
-            self.log_time(start_time, "读取旅途内容")
-            if not runState:
-                self.updateUI("读取失败，旅途中止。", stats="旅途中断，请重试。")
-                return
+                # 等待读取并确认读取
+                self.updateUI("正在读取旅途内容...")
+                runState = wait_until(self.on_read,  operate_funcs=[self.on_read], thread=self.thread,
+                                      timeout=10, check_interval=1)
+                self.log_time(start_time, "读取旅途内容")
+                if not runState:
+                    self.updateUI("读取失败，旅途中止。", stats="旅途中断，请重试。")
+                    return
 
-            self.updateUI("确认读取内容...")
-            start_time = time.time()
-            runState = wait_until(self.on_confirm_read, operate_funcs=[self.on_confirm_read],  thread=self.thread,
-                                  timeout=10, check_interval=1)
-            self.log_time(start_time, "确认读取内容")
-            if not runState:
-                self.updateUI("确认失败，旅途中止。", stats="确认失败，请检查。")
-                return
+                self.updateUI("确认读取内容...")
+                start_time = time.time()
+                runState = wait_until(self.on_confirm_read, operate_funcs=[self.on_confirm_read],  thread=self.thread,
+                                      timeout=10, check_interval=1)
+                self.log_time(start_time, "确认读取内容")
+                if not runState:
+                    self.updateUI("确认失败，旅途中止。", stats="确认失败，请检查。")
+                    return
 
-            self.updateUI("跳过开场动画...")
-            start_time = time.time()
-            btnSkipTimeout = cfg_recollection.get("common.btn_skip_timeout")
-            btnSkip = cfg_recollection.get("coord.btn_skip")
-            self.controller.press(btnSkip, btnSkipTimeout)
-            self.log_time(start_time, "跳过开场动画")
+                self.updateUI("跳过开场动画...")
+                start_time = time.time()
+                btnSkipTimeout = cfg_recollection.get("common.btn_skip_timeout")
+                btnSkip = cfg_recollection.get("coord.btn_skip")
+                self.controller.press(btnSkip, btnSkipTimeout)
+                self.log_time(start_time, "跳过开场动画")
 
-            if not runState:
-                self.updateUI("跳过动画失败，旅途中止。", stats="跳过动画失败，请重试。")
-                return
+                if not runState:
+                    self.updateUI("跳过动画失败，旅途中止。", stats="跳过动画失败，请重试。")
+                    return
 
             self.updateUI("开始战斗...")
             start_time = time.time()
-            self.battle.reset()
-            self.battle_dsl.run_script('./battle_script/recollection.txt')
+            self.battle._reset()
+            self.battle_dsl.load_instructions(
+                './battle_script/recollection.txt')
+            self.battle_dsl.run_script()
             self.finish()
         except Exception as e:
             self.updateUI(f"发生错误：{e}", stats="发生错误，请检查。")

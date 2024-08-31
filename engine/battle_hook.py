@@ -1,5 +1,6 @@
 from utils.singleton import singleton
 
+
 @singleton
 class BattleHook:
     def __init__(self, log_enabled=False):
@@ -50,8 +51,15 @@ class BattleHook:
 
     # 以下是各指令的默认行为
 
-    def default_role_hook(self, role_id, skill_id, energy_level):
-        self.log(f"Default Role Hook: Role {role_id}, Skill {skill_id}, Energy {energy_level}")
+    def default_role_hook(self, role_id, skill_id, energy_level, enemy_id=None, position="down"):
+        direction = {
+            "up": "向上",
+            "down": "向下",
+            "left": "向左",
+            "right": "向右"
+        }.get(position, "未知方向")
+        self.log(f"Default Role Hook: Role {role_id}, Skill {skill_id}, Energy {
+                 energy_level}, Enemy {enemy_id} at {direction}")
 
     def default_xrole_hook(self, role_id, skill_id, energy_level):
         self.log(f"Default XRole Hook: Role {role_id}, Skill {skill_id}, Energy {energy_level}")
