@@ -3,7 +3,7 @@ from engine.world import Move_Direct, World
 from engine.battle import Battle
 from engine.comparator import Comparator
 from engine.player import Player
-from engine.monopoly import Monopoly
+from gameplay.monopoly import Monopoly
 from utils.wait import wait_until
 import cv2
 

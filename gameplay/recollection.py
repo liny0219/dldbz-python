@@ -1,29 +1,40 @@
+from __future__ import annotations
 import time
-import cv2
-from engine.battle_DSL import BattleDSL
-from engine.battle_hook import BattleHook
-from engine.battle_vee import Battle
-from engine.comparator import Comparator
-from utils.config_loader import cfg_recollection
+from global_data import GlobalData
+from utils.config_loader import cfg_recollection, cfg_common, cfg_battle
 from utils.wait import wait_until
 
 
-class recollection:
-    def __init__(self, controller, updateUI, team='TBD'):
-        self.updateUI = updateUI
-
+class Recollection:
+    def __init__(self, globData: GlobalData):
+        self.set_config()
         self.loop = int(cfg_recollection.get("common.loop"))
-        self.controller = controller
-        self.comparator = Comparator(self.controller)
-        self.battle_dsl = BattleDSL(updateUI)
-        self.battle_hook = BattleHook()
+        self.thread = globData.thread
+        self.controller = globData.controller
+        self.comparator = globData.comparator
+        self.battle = globData.battle
+        self.updateUI = globData.updateUI
         self.Timestartup = time.time()  # 程序启动时间
         self.TimeroundStart = time.time()  # 每轮开始时间
-        self.battle = Battle(self.controller, self.comparator, updateUI=updateUI)
 
-    def set_thread(self, thread):
-        self.thread = thread
-        self.battle.set_thread(thread)
+    def set_config(self):
+        self.check_battle_ui_refs = cfg_battle.get("check.check_battle_ui_refs")   # 检测战斗图片
+        self.check_round_ui_refs = cfg_battle.get("check.check_round_ui_refs")    # 检测回合结束图片
+        self.check_skill_ui_refs = cfg_battle.get("check.check_skill_ui_refs")    # 检测技能界面图片
+        self.role_coords_y = cfg_battle.get("coord.role_coords_y")     # 角色y坐标
+        self.role_coord_x = cfg_battle.get("coord.role_coord_x")      # 角色x坐标
+        self.skill_coords_y = cfg_battle.get("coord.skill_coords_y")    # 技能y坐标
+        self.skill_coord_x = cfg_battle.get("coord.skill_coord_x")     # 技能x坐标
+        self.boost_coords_x = cfg_battle.get("coord.boost_coords_x")    # boost终点x坐标
+        self.confirm_coord = cfg_common.get("general.confirm_coord")     # 额外点击
+        self.switch_refs = cfg_battle.get("button.switch_refs")       # 前后排切换按钮图片
+        self.fallback_refs = cfg_battle.get("button.fallback_refs")     # 撤退按钮图片
+        self.supports_refs = cfg_battle.get("button.supports_refs")     # 支援者按钮图片
+        self.all_switch_refs = cfg_battle.get("button.all_switch_refs")   # 全员交替按钮图片
+        self.all_boost_refs = cfg_battle.get("button.all_boost_refs")    # 全员加成按钮图片
+        self.attack_refs = cfg_battle.get("button.attack_refs")       # “攻击”图片
+        self.sp_coords = cfg_battle.get("coord.sp_coords")            # sp坐标
+        self.sp_confirm_coords = cfg_battle.get("coord.sp_confirm_coords")  # sp确认坐标
 
     def log_time(self, start_time, action_description):
         elapsed_time = time.time() - start_time
@@ -87,32 +98,34 @@ class recollection:
                 self.updateUI(f"开始阅读")
                 runState = wait_until(self.on_read,  operate_funcs=[self.on_read], thread=self.thread,
                                       timeout=10, check_interval=1)
+                if self.thread.stopped():
+                    self.updateUI(f"线程已停止")
+                    return
                 if not runState:
-                    self.updateUI("开始阅读，旅途中止", stats="旅途中断，请重试。")
+                    self.updateUI("开始阅读，中止", stats="中断，请重试。")
                     return
 
                 self.updateUI(f"确认阅读内容")
                 runState = wait_until(self.on_confirm_read, operate_funcs=[self.on_confirm_read],  thread=self.thread,
                                       timeout=10, check_interval=1)
+                if self.thread.stopped():
+                    self.updateUI(f"线程已停止")
+                    return
                 if not runState:
-                    self.updateUI("确认失败，旅途中止。", stats="确认失败，请检查。")
+                    self.updateUI("确认失败，中止。", stats="确认失败，请检查。")
                     return
 
                 self.updateUI("跳过开场动画")
-                start_time = time.time()
                 btnSkipTimeout = cfg_recollection.get("common.btn_skip_timeout")
                 btnSkip = cfg_recollection.get("coord.btn_skip")
                 self.controller.press(btnSkip, btnSkipTimeout)
 
                 if not runState:
-                    self.updateUI("跳过动画失败，旅途中止。", stats="跳过动画失败，请重试。")
+                    self.updateUI("跳过动画失败，中止。", stats="跳过动画失败，请重试。")
                     return
 
             self.updateUI("开始战斗")
-            self.battle.reset()
-            self.battle_dsl.load_instructions(
-                './battle_script/recollection.txt')
-            self.battle_dsl.run_script()
+            self.battle.run('./battle_script/recollection.txt')
             self.finish()
         except Exception as e:
             self.updateUI(f"发生错误：{e}", stats="发生错误，请检查。")
@@ -127,23 +140,19 @@ class recollection:
         # 计算总时间
         total_time = current_time - self.Timestartup
 
-        # 获取当前时间的字符串表示
-        current_time_str = time.strftime(
-            "%Y-%m-%d %H:%M:%S", time.localtime(current_time))
-
         # 更新 UI，时间格式为分钟
         self.updateUI(
-            f"追忆之书旅途完成，当前次数：{self.loopNum}\n"
-            f"本次旅途时间：{round_time/60:.2f} 分钟\n"
+            f"追忆之书完成次数：{self.loopNum-1}\n"
+            f"本次时间：{round_time/60:.2f} 分钟\n"
             f"总运行时间：{total_time/60:.2f} 分钟",
-            stats=f"已完成 {self.loopNum-1} 次旅途 | 本次耗时：{round_time/60:.2f} 分钟 | 总耗时：{total_time/60:.2f} 分钟"
+            stats=f"追忆之书完成次数：{self.loopNum-1} 次 | 本次耗时：{round_time/60:.2f} 分钟 | 总耗时：{total_time/60:.2f} 分钟"
         )
 
         # 等待确认奖励
         runStateAward = wait_until(self.on_confirm_award, time_out_operate_funcs=[self.on_confirm_award], thread=self.thread,
                                    timeout=20)
         if self.thread.stopped():
-            self.updateUI(f"休息一下")
+            self.updateUI(f"线程已停止")
             return
         # 输出奖励确认结果
         if not runStateAward:
@@ -156,11 +165,10 @@ class recollection:
             self.updateUI(f"状态关闭失败：{self.loop}")
             return
         if self.loop != 0 and self.loopNum >= self.loop:
-            # 旅途完成，已达到设定次数 展示loop与loopNum 更新UI
             self.updateUI(
-                f"追忆之书旅途完成，已达到设定次数：{self.loop}\n"
+                f"追忆之书已达到设定次数：{self.loop}\n"
                 f"总运行时间：{total_time/60:.2f} 分钟",
-                stats=f"已完成 {self.loopNum} 次旅途 | 本次耗时：{round_time/60:.2f} 分钟 | 总耗时：{total_time/60:.2f} 分钟"
+                stats=f"已完成 {self.loopNum} 次 | 本次耗时：{round_time/60:.2f} 分钟 | 总耗时：{total_time/60:.2f} 分钟"
             )
             return
         self.run()

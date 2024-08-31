@@ -2,15 +2,33 @@ import os
 import datetime
 import tkinter as tk
 import tkinter.messagebox
+from engine.comparator import Comparator
 from engine.device_controller import DeviceController
-from engine.recollection import recollection
+from gameplay.recollection import Recollection
 from get_coord import GetCoord
+from global_data import GlobalData
 from utils.stoppable_thread import StoppableThread
 from utils.config_loader import cfg_startup
 import psutil
 
-controller = DeviceController(cfg_startup.get('adb_port'))
+
+# 创建主窗口
+app = tk.Tk()
+app.title("旅人休息站")
+app.geometry("800x400")  # 增加窗口宽度
+
+# 设置关闭事件处理
+app.protocol("WM_DELETE_WINDOW", lambda: on_close())
+
+
+def fn_UpdateUI(msg, stats=None): return updateUI(msg, stats)
+
+
 resolution = cfg_startup.get('resolution')
+controller = DeviceController(cfg_startup.get('adb_port'))
+comparator = Comparator(controller)
+
+global_data = GlobalData(controller, comparator, updateUI=fn_UpdateUI)
 
 
 def on_close():
@@ -30,24 +48,42 @@ def on_close():
     app.destroy()  # 销毁窗口
 
 
-def evt_recollection(thread: StoppableThread):
-    recollection_instance = recollection(controller, updateUI)
-    recollection_instance.set_thread(thread)
+def updateUI(msg, stats=None):
+    app.after(0, update_message_label, msg)
+    if stats:
+        app.after(0, update_stats_label, stats)
+
+
+def evt_monopoly():
+    pass
+
+
+def evt_recollection():
+    recollection_instance = Recollection(global_data)
     recollection_instance.start()
 
 
+def on_monopoly():
+    if global_data.thread is not None and global_data.thread.is_alive():
+        updateUI("已启动游戏盘，不要重复点击哦！")
+        return
+    global_data.thread = StoppableThread(target=lambda: evt_monopoly())
+    global_data.thread.start()
+
+
 def on_recollection():
-    global current_thread
-    if current_thread is not None and current_thread.is_alive():
+    if global_data.thread is not None and global_data.thread.is_alive():
         updateUI("已启动追忆之书，不要重复点击哦！")
         return
-    current_thread = StoppableThread(target=lambda: evt_recollection(current_thread))
-    current_thread.start()
+    global_data.thread = StoppableThread(target=lambda: evt_recollection())
+    global_data.thread.start()
 
 
 def on_stop():
-    if current_thread is not None:
-        current_thread.stop()
+    if global_data.thread is not None:
+        # 更新UI
+        updateUI("正在停止当前操作，请稍等...")
+        global_data.thread.stop()
 
 
 def open_readme():
@@ -82,26 +118,6 @@ def open_startup_config():
             updateUI("已尝试打开配置文件(startup)。")
         else:
             updateUI("配置文件(startup)不存在，请检查！")
-
-
-# 创建主窗口
-app = tk.Tk()
-app.title("旅人休息站")
-app.geometry("800x400")  # 增加窗口宽度
-
-# 设置关闭事件处理
-app.protocol("WM_DELETE_WINDOW", on_close)
-
-
-def updateUI(msg, stats=None):
-    app.after(0, update_message_label, msg)
-    if stats:
-        app.after(0, update_stats_label, stats)
-
-
-def on_monopoly():
-    print("Monopoly")
-    updateUI("Monopoly")
 
 
 def update_message_label(text):
@@ -171,8 +187,6 @@ message_text.pack(expand=True, fill=tk.BOTH)
 message_scrollbar = tk.Scrollbar(info_frame, orient=tk.VERTICAL, command=message_text.yview)
 message_text.config(yscrollcommand=message_scrollbar.set)
 message_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
-
-current_thread = None  # 全局变量来存储当前的线程引用
 
 # 运行主循环
 app.mainloop()
