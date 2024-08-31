@@ -17,10 +17,9 @@ class BattleDSL:
                 self.instructions = [line.strip() for line in file if line.strip() and not line.startswith('#')]
             if self.updateUI:
                 self.updateUI("指令加载成功。")
-        except UnicodeDecodeError as e:
+        except Exception as e:
             if self.updateUI:
-                self.updateUI(f"Error: Unable to decode the file {filename}. Please ensure it is encoded in UTF-8.")
-            print(f"Error: Unable to decode the file {filename}. Please ensure it is encoded in UTF-8.")
+                self.updateUI(f"读取指令出错 {filename}. {e}")
 
     def execute_instruction(self, instruction):
         hook_func_cmd_start = self.hook_manager.get('CmdStart')  # 获取对应指令的 hook 函数
@@ -39,7 +38,6 @@ class BattleDSL:
             # 更新 UI
             if self.updateUI:
                 self.updateUI(f"找不到对应战斗指令 '{command}'.")
-            print(f"Error: No hook function set for command '{command}'.")
         return True
 
     def run_script(self):

@@ -23,15 +23,12 @@ battle_hook = BattleHook()
 
 @singleton
 class Battle:
-    def __init__(self, player, alias='', updateUI=None):
+    def __init__(self, controller, comparator, updateUI=None, alias=''):
         self.finish_hook = None
         self.updateUI = updateUI
-
-        self.player = player
-        self.controller = player.controller
-        self.comparator = player.comparator
+        self.controller = controller
+        self.comparator = comparator
         self.alias = alias
-        self.team = player.team
         self.front = [1, 2, 3, 4]
         self.behind = [5, 6, 7, 8]
         self.enemy = None
@@ -64,15 +61,6 @@ class Battle:
 
     def set_thread(self, thread):
         self.thread = thread
-
-    def __enter__(self):
-        start_time = time.time()
-        wait_until(self._in_battle, thread=self.thread)  # 等待进入战斗
-        self._log_info(f"进入战斗“{self.alias}”! 耗时：{time.time() - start_time:.2f} 秒")
-        return self
-
-    def __exit__(self, exc_type, exc_value, traceback):
-        self._log_info('战斗结束！')
 
     def _in_round(self):
         in_round = self._in_battle() and self.comparator.template_in_picture(
@@ -108,7 +96,7 @@ class Battle:
         self.controller.press([int(x), int(y)])
         time.sleep(0.2)
 
-    def _reset(self):
+    def reset(self):
         self.enemy = None
         self.battle_end = False
         self.in_round_ctx = False
@@ -116,7 +104,6 @@ class Battle:
         self.round_records = []
 
     def _wait_round(self, resetRound=False, newRound=True):
-        start_time = time.time()
         inRound = wait_until(self._in_round, [partial(
             self.controller.press, self.confirm_coord, press_duration=10, operate_latency=10)], thread=self.thread)
         if inRound and newRound:
@@ -124,23 +111,21 @@ class Battle:
                 self.round_number = 0
             self.round_number += 1
             self.in_round_ctx = True
-            self._log_info(f"进入回合{self.round_number}！ 耗时：{time.time() - start_time:.2f} 秒")
+            self._log_info(f"进入回合{self.round_number}")
         else:
             inBattle = self._in_battle()
             if not inBattle:
                 self.cmd_skip(2000)
             else:
                 if self.thread.stopped():
-                    self._log_info(f"self.thread.stopped")
                     return False
             return True
 
     def cmd_start_attack(self, cb=None):
         start_time = time.time()
-        self._log_info("开始攻击！")
+        self._log_info("开始攻击!")
         self.btn_start_attack()
-        wait_until_not(self._in_round, [partial(
-            self.controller.press, self.confirm_coord)], thread=self.thread)
+        wait_until_not(self._in_round, thread=self.thread)
         end_condition = wait_either(
             self._in_round, self._not_in_battle, thread=self.thread)
         if end_condition == 2:
@@ -148,7 +133,6 @@ class Battle:
         self.in_round_ctx = False
         if cb:
             cb()
-        self._log_info(f"攻击结束！耗时：{time.time() - start_time:.2f} 秒")
 
     def cmd_role(self, role, skill, boost=0, x=None, y=None):
         assert self.in_round_ctx == True  # 必须在Round中执行
@@ -156,31 +140,26 @@ class Battle:
         assert skill >= 0 & skill <= 4  # 最多有4个技能(战斗为0)
         assert boost >= 0 & boost <= 3  # 最多boost三个豆
 
-        start_time = time.time()
-        self._log_info(f"执行{role}号位的{skill}技能, boost {boost}!...")
+        self._log_info(f"执行{role}号位的{skill}技能, 加成{boost} ")
 
         front_role_id = get_front_front_role_id(role)
         select_role_coord = [self.role_coord_x,
                              self.role_coords_y[front_role_id]]
         self.controller.press(select_role_coord)
-        self._log_info(f"进入选技能界面!")
         self._select_enemy(x, y)
         role_in_behind = (role in self.behind)
 
         if role_in_behind:
-            self._log_info(f"切换人物!")
             switch_coord = self.comparator.template_in_picture(
                 self.switch_refs, return_center_coord=True)
             if switch_coord:
                 self.controller.press(switch_coord)
                 self.front[front_role_id], self.behind[front_role_id] = self.behind[front_role_id],  self.front[front_role_id]
 
-        self._log_info(f"正在选中技能!")
         skill_start = [self.skill_coord_x, self.skill_coords_y[skill]]
         skill_end = [self.boost_coords_x[boost], self.skill_coords_y[skill]]
         wait_until(self._in_round, [partial(self.controller.light_swipe, skill_start, skill_end),
                                     partial(self.controller.light_press, self.confirm_coord)], thread=self.thread)
-        self._log_info(f"技能执行完毕，耗时：{time.time() - start_time:.2f} 秒")
 
     def cmd_sp(self, role):
         assert self.in_round_ctx == True  # 必须在Round中执行

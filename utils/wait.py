@@ -41,9 +41,7 @@ def wait_until(condition_func, operate_funcs=None, timeout=10, check_interval=0.
 
 def wait_either(condition_func1, condition_func2,
                 operate_funcs=None, timeout=10, check_interval=0.1, thread=None):
-
     start_time = time.time()
-
     while time.time() - start_time < timeout:
         if thread is not None and thread.stopped():
             print("Thread has ended.")

@@ -1,6 +1,6 @@
 import os
+import datetime
 import tkinter as tk
-from tkinter import ttk
 import tkinter.messagebox
 from engine.device_controller import DeviceController
 from engine.recollection import recollection
@@ -14,7 +14,7 @@ resolution = cfg_startup.get('resolution')
 
 
 def on_close():
-    print("Closing the application...")
+    updateUI("正在关闭程序，请稍等...")
     # 尝试查找并终止所有adb进程
     for proc in psutil.process_iter(['pid', 'name']):
         if 'adb' in proc.info['name']:
@@ -36,11 +36,10 @@ def evt_recollection(thread: StoppableThread):
     recollection_instance.start()
 
 
-def on_click():
+def on_recollection():
     global current_thread
     if current_thread is not None and current_thread.is_alive():
-        print(f"{current_thread.name} is already running.")
-        updateUI("已经在追忆之旅中了，不要重复点击哦！")
+        updateUI("已启动追忆之书，不要重复点击哦！")
         return
     current_thread = StoppableThread(target=lambda: evt_recollection(current_thread))
     current_thread.start()
@@ -55,7 +54,6 @@ def open_readme():
     file_path = 'readme.txt'
     if os.path.exists(file_path):
         os.startfile(file_path)
-        updateUI("已尝试打开帮助文档(readme.txt)。")
     else:
         updateUI("帮助文档(readme.txt)不存在，请检查！")
 
@@ -64,7 +62,6 @@ def edit_battle_script():
     file_path = os.path.join('battle_script', 'recollection.txt')
     if os.path.exists(file_path):
         os.startfile(file_path)
-        updateUI("已尝试打开战斗脚本(recollection.txt)。")
     else:
         updateUI("战斗脚本(recollection.txt)不存在，请检查！")
 
@@ -102,9 +99,16 @@ def updateUI(msg, stats=None):
         app.after(0, update_stats_label, stats)
 
 
+def on_monopoly():
+    print("Monopoly")
+    updateUI("Monopoly")
+
+
 def update_message_label(text):
+    current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    message = f"[{current_time}] {text}\n"
     message_text.config(state=tk.NORMAL)
-    message_text.insert(tk.END, text + "\n")
+    message_text.insert(tk.END, message)
     message_text.config(state=tk.DISABLED)
     message_text.see(tk.END)
 
@@ -119,11 +123,11 @@ app.grid_columnconfigure(0, weight=1)
 app.grid_columnconfigure(1, weight=3)
 
 # 顶部子标题标签居中显示
-message_label = tk.Label(app, text="愉快的歧路旅途", font=("Segoe UI", 14, "bold"))
+message_label = tk.Label(app, text="大霸启动", font=("Segoe UI", 18, "bold"))
 message_label.grid(row=0, column=0, columnspan=2, pady=10)
 
 # 统计信息标签，放置在子标题下方
-stats_label = tk.Label(app, text="即将开始旅途", font=("Segoe UI", 12))
+stats_label = tk.Label(app, text="开始旅途", font=("Segoe UI", 12))
 stats_label.grid(row=1, column=0, columnspan=2, pady=5)
 
 # 左侧按钮区域框架
@@ -135,7 +139,10 @@ info_frame = tk.Frame(app)
 info_frame.grid(row=2, column=1, sticky="nswe", padx=10, pady=10)
 
 # 左侧操作按钮
-start_button = tk.Button(button_frame, text="追忆之旅", command=on_click, font=("Segoe UI", 10), width=10, height=1)
+start_button = tk.Button(button_frame, text="游戏盘", command=on_monopoly, font=("Segoe UI", 10), width=10, height=1)
+start_button.pack(pady=5)
+
+start_button = tk.Button(button_frame, text="追忆之书", command=on_recollection, font=("Segoe UI", 10), width=10, height=1)
 start_button.pack(pady=5)
 
 stop_button = tk.Button(button_frame, text="休息一下", command=on_stop, font=("Segoe UI", 10), width=10, height=1)

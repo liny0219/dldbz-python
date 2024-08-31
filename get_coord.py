@@ -22,12 +22,12 @@ class GetCoord:
                 self.updateUI(f"点击坐标为 (x={x}, y={y})")
                 # print(f"点击处的BGR颜色值为 ({b}, {g}, {r})")
                 cv2.putText(self.img, f"({x},{y})", (x, y), cv2.FONT_HERSHEY_PLAIN, 1, (0, 0, 255), 2)
-                cv2.imshow('GetCoordinates', self.img)
+                cv2.imshow('点击获取坐标', self.img)
 
-        cv2.namedWindow("GetCoordinates", cv2.WINDOW_NORMAL)
-        cv2.setMouseCallback("GetCoordinates", on_EVENT_LBUTTONDOWN)
-        cv2.imshow('GetCoordinates', self.img)
+        cv2.namedWindow("点击获取坐标", cv2.WINDOW_NORMAL)
+        cv2.setMouseCallback("点击获取坐标", on_EVENT_LBUTTONDOWN)
+        cv2.imshow('点击获取坐标', self.img)
         if resolution:
-            cv2.resizeWindow("GetCoordinates", resolution[0], resolution[1])
+            cv2.resizeWindow("点击获取坐标", resolution[0], resolution[1])
         cv2.waitKey(0)
         cv2.destroyAllWindows()

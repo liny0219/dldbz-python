@@ -1,11 +1,8 @@
 BattleStart
-Role,1,2,0,104,276
+Role,1,1,0
 Role,2,1,0
 Role,3,1,0
-Click,104,276
 Role,4,1,0
-Attack
-Boost
 Attack
 BattleEnd
 BattleStart
