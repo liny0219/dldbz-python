@@ -86,7 +86,8 @@ class recollection:
         self.run()
 
     def run(self):
-        debug = False
+        # debug = False
+        debug = True
         try:
             if not debug:
                 self.loop = int(cfg_recollection.get("common.loop"))

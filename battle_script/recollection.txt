@@ -1,5 +1,5 @@
 BattleStart
-Role,1,1,0,1
+Role,1,2,0,1
 Role,2,1,0,2,up
 Role,3,1,0
 Role,4,1,0

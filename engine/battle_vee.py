@@ -21,11 +21,76 @@ def get_front_role_order(role):  # 获得n号位的前排序号
 
 
 def non_max_suppression(boxes, overlapThresh, margin=0):
-    pass
+    if len(boxes) == 0:
+        return []
+    if boxes.dtype.kind == "i":
+        boxes = boxes.astype("float")
+
+    pick = []
+    x1 = boxes[:, 0] - margin
+    y1 = boxes[:, 1] - margin
+    x2 = boxes[:, 0] + boxes[:, 2] + margin
+    y2 = boxes[:, 1] + boxes[:, 3] + margin
+    area = (x2 - x1 + 1) * (y2 - y1 + 1)
+    idxs = np.argsort(y2)
+
+    while len(idxs) > 0:
+        last = len(idxs) - 1
+        i = idxs[last]
+        pick.append(i)
+
+        # Compute overlap and remove indexes
+        xx1 = np.maximum(x1[i], x1[idxs[:last]])
+        yy1 = np.maximum(y1[i], y1[idxs[:last]])
+        xx2 = np.minimum(x2[i], x2[idxs[:last]])
+        yy2 = np.minimum(y2[i], y2[idxs[:last]])
+        w = np.maximum(0, xx2 - xx1 + 1)
+        h = np.maximum(0, yy2 - yy1 + 1)
+        overlap = (w * h) / area[idxs[:last]]
+
+        # Remove overlapping boxes
+        idxs = np.delete(idxs, np.concatenate(([last], np.where(overlap > overlapThresh)[0])))
+
+    return boxes[pick].astype("int")
 
 
-def find_and_draw_matches(device, template_path, region=None, threshold=0.8):
-    pass
+def find_and_draw_matches(device, template_path, region=None, return_center_coords=False, save_path='', custom_threshold=0.8):
+    screenshot = device.screenshot(format='opencv')
+    gray_screenshot = cv2.cvtColor(screenshot, cv2.COLOR_BGR2GRAY)
+
+    if region:
+        x, y, width, height = region
+        screenshot_region = gray_screenshot[y:y+height, x:x+width]
+    else:
+        screenshot_region = gray_screenshot
+        x, y = 0, 0
+
+    template = cv2.imread(template_path, cv2.IMREAD_GRAYSCALE)
+    w, h = template.shape[::-1]
+    res = cv2.matchTemplate(screenshot_region, template, cv2.TM_CCOEFF_NORMED)
+    loc = np.where(res >= custom_threshold)
+
+    rectangles = [[pt[0] + x, pt[1] + y, w, h] for pt in zip(*loc[::-1])]
+    rectangles = np.array(rectangles)
+    if len(rectangles):
+        rectangles = non_max_suppression(rectangles, 0, margin=10)  # Lower overlap threshold
+
+    result_image = cv2.cvtColor(gray_screenshot, cv2.COLOR_GRAY2BGR)
+    center_coords = []
+
+    # Draw rectangles and filter overlapping centers
+    seen_centers = set()
+    for (x, y, w, h) in rectangles:
+        center_point = (x + w//2, y + h//2)
+        if center_point not in seen_centers:
+            seen_centers.add(center_point)
+            cv2.rectangle(result_image, (x, y), (x + w, y + h), (0, 0, 255), 2)
+            cv2.circle(result_image, center_point, 2, (0, 255, 255), -1)
+            center_coords.append(center_point)
+
+    if return_center_coords:
+        return list(seen_centers)
+    return result_image
 
 
 battle_hook = BattleHook()
@@ -59,9 +124,9 @@ class Battle:
         battle_hook.set('CmdStart', lambda: not self.thread.stopped())
         battle_hook.set('BattleStart', lambda: (self._wait_round(True), self._check_enemy_status()))
         battle_hook.set('BattleEnd', lambda: self.hook_battle_end())
-        battle_hook.set('Role', lambda role_id, skill_id, energy_level, enemy_id=None, position='left': self.cmd_role(
+        battle_hook.set('Role', lambda role_id, skill_id, energy_level, enemy_id=None, position='down': self.cmd_role(
             int(role_id), int(skill_id), int(energy_level), enemy_id, position))
-        battle_hook.set('XRole', lambda role_id, skill_id, energy_level, enemy_id=None, position='left': self.cmd_role(
+        battle_hook.set('XRole', lambda role_id, skill_id, energy_level, enemy_id=None, position='down': self.cmd_role(
             int(role_id) + 4, int(skill_id), int(energy_level), enemy_id, position))
         battle_hook.set('Attack', lambda: self.cmd_start_attack(
             lambda: self._wait_round()))
@@ -113,30 +178,48 @@ class Battle:
         return [partial(self.controller.press, self.confirm_coord)]   # 点击
 
     def _check_enemy_status(self):
+        if self.enemy:
+            return
         # Template path
-        template_path = './new.png'
+        template_path = cfg_battle.get('check.check_enemy_hp_refs')
         # Execute template matching and draw results
-        result_image = find_and_draw_matches(self.controller.d, template_path, region=[
-                                             12, 90, 460, 340], threshold=0.58)
-        return result_image
+        coords = find_and_draw_matches(self.controller.d, template_path, region=(
+            12, 90, 460, 340), return_center_coords=True, custom_threshold=0.8)
+        self._log_info(f"敌人的坐标为{coords}")
+        self.enemy = sorted(coords, key=lambda x: x[0])
 
     def _select_enemy(self, enemy_id=None, position="down"):
         if not enemy_id:
             return
-        if not self.enemy:
-            self.enemy = self._check_enemy_status()
-        self._log_info(f"敌人的坐标为{self.enemy}")
-        select_enemy_coord = self.enemy[enemy_id]
+        enemy_id = int(enemy_id) - 1
+        select_enemy_coord = None
+        self._check_enemy_status()
+
+        # 确保 enemy_id 是有效的，且能够获取到敌人的坐标
+        if 0 <= enemy_id < len(self.enemy):
+            # 将坐标从元组转换为列表，以便可以修改
+            select_enemy_coord = list(self.enemy[enemy_id])
+        else:
+            self._log_info(f"敌人{enemy_id + 1}不存在！")
+            return
+
         offset = 50
+        # 根据位置修改坐标
         if position == "up":
             select_enemy_coord[1] -= offset
-        if position == "down":
+        elif position == "down":
             select_enemy_coord[1] += offset
-        if position == "left":
+        elif position == "left":
             select_enemy_coord[0] -= offset
-        if position == "right":
+        elif position == "right":
             select_enemy_coord[0] += offset
-        self.controller.press(select_enemy_coord)
+
+        # 使用修改后的坐标，这里假设controller.press接受列表形式的坐标
+        self.controller.press([int(x) for x in select_enemy_coord])
+
+        # 输出选中敌人信息与坐标
+        self._log_info(f"选中敌人{enemy_id + 1}！坐标：{select_enemy_coord} 位置：{position}")
+        time.sleep(0.5)
 
     def _reset(self):
         self.enemy = None
@@ -194,12 +277,10 @@ class Battle:
                              self.role_coords_y[front_role_id]]
         self.controller.press(select_role_coord)
         self._log_info(f"进入选技能界面!")
-        # self._select_enemy(enemy_id, position)
+        self._select_enemy(enemy_id, position)
         role_in_behind = (role in self.behind)
-        if enemy_id:
-            # self.enemy = self.check_enemy_status()
-            # self.log_info(f"敌人的坐标为{self.enemy}")
-            pass
+        if enemy_id and not self.enemy:
+            self.enemy = self._check_enemy_status()
 
         if role_in_behind:
             self._log_info(f"切换人物!")

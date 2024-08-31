@@ -3,7 +3,8 @@
     "check_battle_ui_refs": "./refs/battle/battle_ui.png",
     "check_round_ui_refs": "./refs/battle/round_ui.png",
     "check_skill_ui_refs": "./refs/battle/skill_ui.png",
-    "check_sleep_ui_refs": "./refs/battle/sleep_ui.png"
+    "check_sleep_ui_refs": "./refs/battle/sleep_ui.png",
+    "check_enemy_hp_refs": "./refs/battle/enemy_hp.png"
   },
   "front_role": {
     "role_rect": [
