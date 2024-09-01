@@ -60,8 +60,8 @@ class Startup:
         self.global_data.thread.start()
 
     def on_stop(self):
+        self.updateUI("休息一下，停止当前操作...")
         if self.global_data.thread is not None:
-            self.updateUI("休息一下，停止当前操作...")
             self.global_data.thread.stop()
 
     def updateUI(self, msg, stats=None):

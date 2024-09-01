@@ -24,10 +24,10 @@ class GetCoord:
                 cv2.putText(self.img, f"({x},{y})", (x, y), cv2.FONT_HERSHEY_PLAIN, 1, (0, 0, 255), 2)
                 cv2.imshow('点击获取坐标', self.img)
 
-        cv2.namedWindow("点击获取坐标", cv2.WINDOW_NORMAL)
-        cv2.setMouseCallback("点击获取坐标", on_EVENT_LBUTTONDOWN)
-        cv2.imshow('点击获取坐标', self.img)
+        cv2.namedWindow("ClickWnd", cv2.WINDOW_NORMAL)
+        cv2.setMouseCallback("ClickWnd", on_EVENT_LBUTTONDOWN)
+        cv2.imshow('ClickWnd', self.img)
         if resolution:
-            cv2.resizeWindow("点击获取坐标", resolution[0], resolution[1])
+            cv2.resizeWindow("ClickWnd", resolution[0], resolution[1])
         cv2.waitKey(0)
         cv2.destroyAllWindows()
