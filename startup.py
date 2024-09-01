@@ -21,10 +21,14 @@ class Startup:
         self.comparator = Comparator(self.controller)
         self.global_data = GlobalData(self.controller, self.comparator, updateUI=self.updateUI)
         self.app = app
+        self.stats_label = None
+        self.message_text = None
 
-    def set_ui(self,  message_text, stats_label):
-        self.message_text = message_text
+    def set_stats_label(self, stats_label):
         self.stats_label = stats_label
+
+    def set_message_text(self, message_text):
+        self.message_text = message_text
 
     def on_close(self):
         self.updateUI("正在关闭程序，请稍等...")
@@ -57,10 +61,12 @@ class Startup:
 
     def on_stop(self):
         if self.global_data.thread is not None:
-            self.updateUI("正在停止当前操作，请稍等...")
+            self.updateUI("休息一下，停止当前操作...")
             self.global_data.thread.stop()
 
     def updateUI(self, msg, stats=None):
+        if not self.message_text:
+            return
         current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         message = f"[{current_time}] {msg}\n"
         self.message_text.config(state=tk.NORMAL)

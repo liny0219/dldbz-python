@@ -9,22 +9,37 @@ app.geometry("800x400")  # 增加窗口宽度
 
 startup = Startup(app)
 
-# # 创建Notebook
-# notebook = ttk.Notebook(app)
-# notebook.pack(expand=True, fill='both')
+# 创建样式对象
+style = ttk.Style()
 
-# # 创建游戏盘、追忆之书、设置的Frame
-# monopoly_frame = tk.Frame(notebook)
-# recollection_frame = tk.Frame(notebook)
-# settings_frame = tk.Frame(notebook)
+# 配置'TNotebook.Tab'的样式
+style.configure('TNotebook.Tab', font=('Segoe UI', '12', 'bold'), padding=[20, 8])
 
-# # 添加到Notebook
-# notebook.add(monopoly_frame, text='游戏盘')
-# notebook.add(recollection_frame, text='追忆之书')
-# notebook.add(settings_frame, text='设置')
 
-# 设置关闭事件处理
-app.protocol("WM_DELETE_WINDOW", lambda: startup.on_close())
+# 顶部子标题标签居中显示
+message_label = tk.Label(app, text="歧路旅人休息站", font=("Segoe UI", 18, "bold"))
+message_label.grid(row=0, column=0, columnspan=2, pady=10)
+
+# 统计信息标签，放置在子标题下方
+stats_label = tk.Label(app, text="开始旅途", font=("Segoe UI", 12))
+stats_label.grid(row=1, column=0, columnspan=2, pady=5)
+
+notebook = ttk.Notebook(app)
+notebook.grid(row=1, column=0, columnspan=2, sticky='nsew', padx=10, pady=10)
+
+
+# 创建游戏盘、追忆之书、设置的Frame
+monopoly_frame = tk.Frame(notebook, name="monopoly_frame")
+
+recollection_frame = tk.Frame(notebook, name="recollection_frame")
+
+settings_frame = tk.Frame(notebook)
+settings_frame.grid(padx=10, pady=5)
+
+# 添加到Notebook
+notebook.add(recollection_frame, text='追忆之书')
+notebook.add(monopoly_frame, text='游戏盘')
+notebook.add(settings_frame, text='设置')
 
 
 # 使用 grid 布局管理器
@@ -32,60 +47,80 @@ app.grid_rowconfigure(2, weight=1)
 app.grid_columnconfigure(0, weight=1)
 app.grid_columnconfigure(1, weight=3)
 
-# 顶部子标题标签居中显示
-message_label = tk.Label(app, text="大霸启动", font=("Segoe UI", 18, "bold"))
-message_label.grid(row=0, column=0, columnspan=2, pady=10)
 
-# 统计信息标签，放置在子标题下方
-stats_label = tk.Label(app, text="开始旅途", font=("Segoe UI", 12))
-stats_label.grid(row=1, column=0, columnspan=2, pady=5)
+def create_settings_frame(frame):
+    tk.Button(frame, text="启动设置", command=startup.open_startup_config,
+              font=("Segoe UI", 10), width=10, height=1).grid(row=0, column=0, padx=10, pady=10)
 
-# 左侧按钮区域框架
-button_frame = tk.Frame(app)
-button_frame.grid(row=2, column=0, sticky="nswe", padx=5, pady=5)
 
-# 右侧信息展示框架
-info_frame = tk.Frame(app)
-info_frame.grid(row=2, column=1, sticky="nswe", padx=10, pady=10)
+def create_info_button(frame):
+    # 左侧按钮区域框架
+    button_frame = tk.Frame(frame)
+    button_frame.pack(side='left', fill='y', padx=10, pady=10)
 
-# 左侧操作按钮
-start_button = tk.Button(button_frame, text="游戏盘", command=startup.on_monopoly,
-                         font=("Segoe UI", 10), width=10, height=1)
-start_button.pack(pady=5)
+    # 右侧信息展示框架
+    info_frame = tk.Frame(frame)
+    info_frame.pack(side='left', fill='both', expand=True, padx=10, pady=10)
 
-start_button = tk.Button(button_frame, text="追忆之书", command=startup.on_recollection,
-                         font=("Segoe UI", 10), width=10, height=1)
-start_button.pack(pady=5)
+    # 定义按钮的配置列表
+    buttons = [
+        {"text": "大霸启动", "command": startup.on_monopoly if frame == monopoly_frame else startup.on_recollection},
+        {"text": "休息一下", "command": startup.on_stop},
+        {"text": "查看帮助", "command": startup.open_readme},
+        {"text": "战斗编辑", "command": startup.edit_battle_script},
+        {"text": "标记坐标", "command": startup.get_coord}
+    ]
 
-stop_button = tk.Button(button_frame, text="休息一下", command=startup.on_stop, font=("Segoe UI", 10), width=10, height=1)
-stop_button.pack(pady=5)
+    # 创建按钮
+    for button_config in buttons:
+        tk.Button(button_frame, text=button_config["text"], command=button_config["command"],
+                  font=("Segoe UI", 10), width=10, height=1).pack(pady=5)
 
-readme_button = tk.Button(button_frame, text="查看帮助", command=startup.open_readme,
-                          font=("Segoe UI", 10), width=10, height=1)
-readme_button.pack(pady=5)
+    # 右侧信息展示区
+    message_text = tk.Text(info_frame, name="info_label", wrap=tk.WORD,
+                           font=("Segoe UI", 12), height=15, state=tk.DISABLED)
+    message_text.pack(expand=True, fill='both')
 
-edit_script_button = tk.Button(button_frame, text="战斗编辑", command=startup.edit_battle_script,
-                               font=("Segoe UI", 10), width=10, height=1)
-edit_script_button.pack(pady=5)
+    # 为右侧信息区添加滚动条
+    message_scrollbar = tk.Scrollbar(info_frame, orient=tk.VERTICAL, command=message_text.yview)
+    message_text.config(yscrollcommand=message_scrollbar.set)
+    message_scrollbar.pack(side='right', fill='y')
 
-get_coord_button = tk.Button(button_frame, text="标记坐标", command=startup.get_coord,
-                             font=("Segoe UI", 10), width=10, height=1)
-get_coord_button.pack(pady=5)
 
-settings_button = tk.Button(button_frame, text="设置", command=startup.open_startup_config,
-                            font=("Segoe UI", 10), width=10, height=1)
-settings_button.pack(pady=5)  # 新添加的按钮
+create_info_button(monopoly_frame)
+create_info_button(recollection_frame)
+create_settings_frame(settings_frame)
 
-# 右侧信息展示区
-message_text = tk.Text(info_frame, wrap=tk.WORD, font=("Segoe UI", 12), height=15, state=tk.DISABLED)
-message_text.pack(expand=True, fill=tk.BOTH)
 
-# 为右侧信息区添加滚动条
-message_scrollbar = tk.Scrollbar(info_frame, orient=tk.VERTICAL, command=message_text.yview)
-message_text.config(yscrollcommand=message_scrollbar.set)
-message_scrollbar.pack(side=tk.RIGHT, fill=tk.Y)
+def find_widget_by_name(parent, widget_name):
+    """递归查找具有指定name的组件"""
+    # 检查当前父组件是否是我们正在查找的组件
+    if str(parent.winfo_name()) == widget_name:
+        return parent
+    # 如果不是，遍历所有子组件
+    for child in parent.winfo_children():
+        result = find_widget_by_name(child, widget_name)
+        if result is not None:
+            return result
+    return None
 
-startup.set_ui(message_text, stats_label)
 
+def on_tab_changed(event: tk.Event):
+    notebook: ttk.Notebook = event.widget
+    selected_tab_name = notebook.select()  # 获取当前选中的tab的内部名称
+    selected_tab = notebook.nametowidget(selected_tab_name)  # 从名称获取 widget 对象
+    info_label = find_widget_by_name(selected_tab, "info_label")
+    if info_label is not None:
+        print(f"当前选中的Tab: {info_label}")
+        startup.set_message_text(info_label)
+    else:
+        print("未找到info_label")
+
+
+notebook.bind("<<NotebookTabChanged>>", on_tab_changed)
+startup.set_stats_label(stats_label)
+
+# 设置关闭事件处理
+app.protocol("WM_DELETE_WINDOW", lambda: startup.on_close())
 # 运行主循环
 app.mainloop()
