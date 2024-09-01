@@ -62,6 +62,7 @@ class Monopoly:
                                     'third_forked_road': self.move_down_coord,
                                     'fourth_forked_road': self.move_down_coord}
 
+
     def check_have_dice(self):
         return self.comparator.template_in_picture(self.check_waitroll_refs, return_center_coord=True)
     def check_have_dice_or_game_over(self):
@@ -103,6 +104,7 @@ class Monopoly:
                                         self.check_and_choose_forked_road,
                                         partial(self.check_dedicate_and_continue, willing=False),
                                         self.check_and_fight_and_continue] )
+
 
     def check_get_props(self):
         return self.comparator.template_in_picture(self.check_get_props_refs)

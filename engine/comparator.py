@@ -7,6 +7,7 @@ from utils.image_process import get_pixel_color ,check_image_similarity, find_ta
 from utils.status import MATCH_CONFIDENCE
 from paddleocr import paddleocr,PaddleOCR, draw_ocr
 import logging
+import threading
 #关闭paddleocr的debug信息
 paddleocr.logging.disable(logging.DEBUG)
 
@@ -155,7 +156,33 @@ class Comparator:
                 else:# 如果未指定背景图片, 默认背景图片就是全图, 返回全屏的绝对坐标
                     return get_abs_center_coord((0,0), target_leftup, target_rightdown)
                         
-             
+    def detect_template(self, detect_funcs = []):
+        # 创建线程列表
+        '''
+        使用多线程来检测多个模板图像.
+
+        参数:
+        - detect_funcs: 一个检测模板的函数列表，每个函数都可以检测一个模板图像。
+
+        返回:
+        - 如果有找到模板图像，则返回
+        '''
+        threads = []
+        image = self._cropped_screenshot()
+        # 创建线程来检测
+        for detect_func in detect_funcs:
+            t = threading.Thread(target=detect_func, args=(image,))
+            t.start()
+            threads.append(t)
+
+        # 等待线程完成
+        for t in threads:
+            t.join()
+            result = t.result
+            if result is not None:
+                print(result)
+                break
+
 def get_abs_center_coord(leftup_coordinate, target_leftup, target_rightdown):
     """
     This function calculates the absolute center coordinates of a target area within a larger image.
