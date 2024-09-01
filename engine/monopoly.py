@@ -62,21 +62,33 @@ class Monopoly:
                                     'third_forked_road': self.move_down_coord,
                                     'fourth_forked_road': self.move_down_coord}
 
+        self.roll_dice_coord = config_loader.get('monopoly.button.roll_dice_coord')
 
     def check_have_dice(self):
-        return self.comparator.template_in_picture(self.check_waitroll_refs, return_center_coord=True)
+        return self.comparator.template_in_screen(self.check_waitroll_refs, return_center_coord=True)
+    
+    def detect_dice(self, image): 
+        return self.comparator.template_in_image(image,self.check_waitroll_refs)
+    def roll_dice1(self):
+        self.controller.press(self.roll_dice_coord, T=200, operate_latency=500)
+        self.controller.press(self.roll_dice_coord, T=200)
+
     def check_have_dice_or_game_over(self):
         if self.game_over:
             return True 
         return self.check_have_dice()
     def roll_dice(self):  
-        # event_roll = self.comparator.template_in_picture(self.check_waitroll_refs, return_center_coord=True)
+        # event_roll = self.comparator.template_in_screen(self.check_waitroll_refs, return_center_coord=True)
         have_dice = self.check_have_dice()
         if have_dice:
             self.controller.press(have_dice, T=200, operate_latency=500)
             self.controller.press(have_dice, T=200)
     def check_props_found(self):
-        return self.comparator.template_in_picture(self.check_props_found_refs, return_center_coord=True)
+        return self.comparator.template_in_screen(self.check_props_found_refs, return_center_coord=True)
+    
+    def detect_props_found(self, image):
+        return self.comparator.template_in_image(image, self.check_props_found_refs)
+    
     def check_and_confirm_props_found(self):
         have_props_found = self.check_props_found()
         if have_props_found:
@@ -107,17 +119,32 @@ class Monopoly:
 
 
     def check_get_props(self):
-        return self.comparator.template_in_picture(self.check_get_props_refs)
+        return self.comparator.template_in_screen(self.check_get_props_refs)
+    def detect_get_props(self, image):
+        return  self.comparator.template_in_image(image, self.check_get_props_refs)
+    
     def check_little_man(self, coin_type='wealth'):
         if not self.meet_little_man:
-            event = self.comparator.template_in_picture(self.check_little_man_refs, return_center_coord=True)
+            event = self.comparator.template_in_screen(self.check_little_man_refs, return_center_coord=True)
             if event:
                 self.controller.press(event, T=2000)
                 self.meet_little_man = True
                 wait_until(self.check_coin_type_branch, operate_funcs=[self.random_press])
                 wait_until_not(self.check_coin_type_branch, operate_funcs=[partial(self.choose_coin_type, coin_type=coin_type)])
+    def detect_little_man(self, image):
+        return self.comparator.template_in_image(image, self.check_little_man_refs)
     def check_coin_type_branch(self):
-        return self.comparator.template_in_picture(self.check_choose_coin_type_refs)
+        return self.comparator.template_in_screen(self.check_choose_coin_type_refs)
+    def detect_choose_coin_type(self, image):
+        return self.comparator.template_in_image(image, self.check_choose_coin_type_refs)
+    def detect_scenario(self):
+        image = self.controller.capture_screenshot()
+        detect_funcs = [partial(self.detect_get_props, image),
+                        partial(self.detect_props_found, image),
+                        partial(self.detect_little_man, image),
+                        partial(self.detect_choose_coin_type, image)]
+        return self.comparator.detect_template(detect_funcs=detect_funcs)
+        
     def choose_coin_type(self, coin_type):
         if coin_type == 'wealth':
             self.controller.light_press([334,270])
@@ -130,16 +157,16 @@ class Monopoly:
             self.choose_coin_type(coin_type)
 
     def check_forked_road(self):
-        first_forked_road = self.comparator.template_in_picture(self.first_forked_road_refs, leftup_coordinate=[704,340], rightdown_coordinate=[762,438])
+        first_forked_road = self.comparator.template_in_screen(self.first_forked_road_refs, leftup_coordinate=[704,340], rightdown_coordinate=[762,438])
         if first_forked_road:
             return 'first_forked_road'
-        second_forked_road = self.comparator.template_in_picture(self.second_forked_road_refs, leftup_coordinate=[42,224], rightdown_coordinate=[110,266])
+        second_forked_road = self.comparator.template_in_screen(self.second_forked_road_refs, leftup_coordinate=[42,224], rightdown_coordinate=[110,266])
         if second_forked_road:
             return 'second_forked_road'
-        third_forked_road = self.comparator.template_in_picture(self.third_forked_road_refs, leftup_coordinate=[296,140], rightdown_coordinate=[348,212])
+        third_forked_road = self.comparator.template_in_screen(self.third_forked_road_refs, leftup_coordinate=[296,140], rightdown_coordinate=[348,212])
         if third_forked_road:
             return 'third_forked_road'
-        fourth_forked_road = self.comparator.template_in_picture(self.fourth_forked_road_refs, leftup_coordinate=[598,348], rightdown_coordinate=[670,408])
+        fourth_forked_road = self.comparator.template_in_screen(self.fourth_forked_road_refs, leftup_coordinate=[598,348], rightdown_coordinate=[670,408])
         if fourth_forked_road:
             return 'fourth_forked_road'
 
@@ -149,56 +176,27 @@ class Monopoly:
             action_coord = self.forked_road_actions[have_forked_road]
             self.controller.light_press(action_coord)
     def check_dedicate(self):
-        return self.comparator.template_in_picture(self.check_dedicate_refs)
+        return self.comparator.template_in_screen(self.check_dedicate_refs)
     def check_dedicate_and_continue(self, willing=False):
         if self.check_dedicate():
             if willing:
                 self.controller.light_press([626, 312])
             else:
                 self.controller.light_press([336, 312])
-    def check_wealth_route(self):
-        event = self.comparator.template_in_picture(self.check_wealth, return_center_coord=True)
-        if event:
-            self.controller.press(event)
-
-    def check_authority_route(self):
-        event = self.comparator.template_in_picture(self.check_authority, return_center_coord=True)
-        if event:
-            self.controller.press(event)
-
-    def check_fame_route(self):
-        event = self.comparator.template_in_picture(self.check_fame, return_center_coord=True)
-        if event:
-            self.controller.press(event)
-
-    def check_wealth_card(self):
-        event = self.comparator.template_in_picture(self.check_card_of_wealth, return_center_coord=True)
-        if event:
-            self.controller.press(event)
-
-    def check_authority_card(self):
-        event = self.comparator.template_in_picture(self.check_card_of_authority, return_center_coord=True)
-        if event:
-            self.controller.press(event)
-    
-    def check_fame_card(self):
-        event = self.comparator.template_in_picture(self.check_card_of_fame, return_center_coord=True)
-        if event:
-            self.controller.press(event)
 
     def check_boss(self):
-        if self.comparator.template_in_picture(self.check_battle_monster_bear, match_level = MATCH_CONFIDENCE.VERY_LOW):
+        if self.comparator.template_in_screen(self.check_battle_monster_bear, match_level = MATCH_CONFIDENCE.VERY_LOW):
             return "Bear"
-        elif self.comparator.template_in_picture(self.check_battle_monster_fire_refs, match_level = MATCH_CONFIDENCE.VERY_LOW):
+        elif self.comparator.template_in_screen(self.check_battle_monster_fire_refs, match_level = MATCH_CONFIDENCE.VERY_LOW):
             return "Fire"
-        elif self.comparator.template_in_picture(self.check_battle_monster_girl_refs, match_level = MATCH_CONFIDENCE.VERY_LOW):
+        elif self.comparator.template_in_screen(self.check_battle_monster_girl_refs, match_level = MATCH_CONFIDENCE.VERY_LOW):
             return "Girl"
-        elif self.comparator.template_in_picture(self.check_battle_monster_red_dress_refs, match_level = MATCH_CONFIDENCE.VERY_LOW):
+        elif self.comparator.template_in_screen(self.check_battle_monster_red_dress_refs, match_level = MATCH_CONFIDENCE.VERY_LOW):
             return "Red_Dress"
         else:
             return "Others"
     def check_in_battle(self):
-        return self.comparator.template_in_picture(self.check_battle_ui_refs)
+        return self.comparator.template_in_screen(self.check_battle_ui_refs)
     def check_boss_and_fight(self):
         #后续还要优化, 暂时只能委托
         boss = self.check_boss()
@@ -215,7 +213,7 @@ class Monopoly:
             wait_until_not(self.check_get_props, operate_funcs=[partial(self.controller.light_press, [480,474])])
 
     def check_end(self):
-        return self.comparator.template_in_picture(self.check_end_refs)
+        return self.comparator.template_in_screen(self.check_end_refs)
     def check_game_over_and_continue(self):
         if self.check_end():
             self.controller.light_press([486, 416])
@@ -228,12 +226,12 @@ class Monopoly:
     def move_left(self):
         self.controller.press(self.move_left_coord)
     def in_monopoly_game(self):
-        return self.comparator.template_in_picture(self.check_waitroll_refs)
+        return self.comparator.template_in_screen(self.check_waitroll_refs)
     def in_monopoly_menu(self):
-        return self.comparator.template_in_picture(self.check_in_monopoly_menu_refs)
+        return self.comparator.template_in_screen(self.check_in_monopoly_menu_refs)
 
     def in_monopoly_setting(self):
-        return self.comparator.template_in_picture(self.check_monopoly_setting_refs)
+        return self.comparator.template_in_screen(self.check_monopoly_setting_refs)
     def start_playing_exhaust_everything(self, ticket_num=0,difficulty=0):
         #运行此函数时必须在menu1界面
         wait_until(self.in_monopoly_menu, operate_funcs=[partial(self.controller.press, [454, 464], operate_latency=1000)] )
@@ -278,11 +276,11 @@ class Monopoly:
 # others
             
     # def check_and_click_play_board(self):
-    #     event = self.comparator.template_in_picture(self.check_play_board_refs, return_center_coord=True)
+    #     event = self.comparator.template_in_screen(self.check_play_board_refs, return_center_coord=True)
     #     if event:
     #         self.controller.press(event)
     
     # def check_and_click_exhaust_everything(self):
-    #     event = self.comparator.template_in_picture(self.check_exhaust_everything_refs, return_center_coord=True)
+    #     event = self.comparator.template_in_screen(self.check_exhaust_everything_refs, return_center_coord=True)
     #     if event:
     #         self.controller.press(event)

@@ -42,11 +42,11 @@ class Battle:
         # wait_until_not(self._in_battle, self._confirm_exit_battle)
     
     def _in_round(self):
-        in_round = self._in_battle() and self.comparator.template_in_picture(self.check_round_ui_refs)
+        in_round = self._in_battle() and self.comparator.template_in_screen(self.check_round_ui_refs)
         return in_round
     
     def _in_battle(self):
-        return self.comparator.template_in_picture(self.check_battle_ui_refs)
+        return self.comparator.template_in_screen(self.check_battle_ui_refs)
     
     def _not_in_battle(self):
         return not self._in_battle()
@@ -58,11 +58,11 @@ class Battle:
         return attack_end
     
     def _in_select_skill(self):
-        in_select_skill = self._in_battle() and self.comparator.template_in_picture(self.check_skill_ui_refs)
+        in_select_skill = self._in_battle() and self.comparator.template_in_screen(self.check_skill_ui_refs)
         return in_select_skill
     
     def _confirm_exit_battle(self):
-        fallback_coord = self.comparator.template_in_picture(self.fallback_refs, return_center_coord=True)
+        fallback_coord = self.comparator.template_in_screen(self.fallback_refs, return_center_coord=True)
         if fallback_coord:
             return [partial(self.controller.press, self.confirm_coord),
                     partial(self.controller.press, fallback_coord)]   # 点击撤退按钮
@@ -98,7 +98,7 @@ class Battle:
         
         
     def _start_attack(self):
-        attack_coord = self.comparator.template_in_picture(self.attack_refs, return_center_coord=True)
+        attack_coord = self.comparator.template_in_screen(self.attack_refs, return_center_coord=True)
         if(attack_coord):
             self.controller.press(attack_coord)  # 开始战斗
     
@@ -126,23 +126,23 @@ class Battle:
         
         # 因为低血量会闪烁，所以置信度设为最低
         # 检测蓝量
-        mp_high = self.comparator.template_in_picture(mp_high_refs, *role_rect, match_level = MATCH_CONFIDENCE.LOW)
+        mp_high = self.comparator.template_in_screen(mp_high_refs, *role_rect, match_level = MATCH_CONFIDENCE.LOW)
         if mp_high:
             mp_status = ROLE_MP_STATUS.HIGH
                 
         # 检测血量
-        is_dead = self.comparator.template_in_picture(dead_refs, *role_rect, match_level = MATCH_CONFIDENCE.LOW)
+        is_dead = self.comparator.template_in_screen(dead_refs, *role_rect, match_level = MATCH_CONFIDENCE.LOW)
         if is_dead:
             hp_status = ROLE_HP_STATUS.DEAD
             return (hp_status, mp_status)
         
-        hp_high1 = self.comparator.template_in_picture(hp_high1_refs, *role_rect, match_level = MATCH_CONFIDENCE.LOW)
-        hp_high2 = self.comparator.template_in_picture(hp_high2_refs, *role_rect, match_level = MATCH_CONFIDENCE.LOW)
+        hp_high1 = self.comparator.template_in_screen(hp_high1_refs, *role_rect, match_level = MATCH_CONFIDENCE.LOW)
+        hp_high2 = self.comparator.template_in_screen(hp_high2_refs, *role_rect, match_level = MATCH_CONFIDENCE.LOW)
         if hp_high1 or hp_high2 :
             hp_status = ROLE_HP_STATUS.HIGH
             return (hp_status, mp_status)
         
-        hp_mid = self.comparator.template_in_picture(hp_mid_refs, *role_rect, match_level = MATCH_CONFIDENCE.LOW)
+        hp_mid = self.comparator.template_in_screen(hp_mid_refs, *role_rect, match_level = MATCH_CONFIDENCE.LOW)
         if hp_mid:
             hp_status = ROLE_HP_STATUS.MID
             return (hp_status, mp_status)
@@ -176,7 +176,7 @@ class Battle:
         # 切换人物                                          
         if (role_in_behind):
             loger.log_info(f"切换人物!")
-            switch_coord = self.comparator.template_in_picture(self.switch_refs, return_center_coord=True)
+            switch_coord = self.comparator.template_in_screen(self.switch_refs, return_center_coord=True)
             if(switch_coord):
                 self.controller.press(switch_coord)   
                 self.front[front_role_id], self.behind[front_role_id] = self.behind[front_role_id],  self.front[front_role_id]                             
@@ -195,7 +195,7 @@ class Battle:
     
     def all_switch(self):
         self.front, self.behind = self.behind, self.front  # 交换前后两位
-        all_switch_coord = self.comparator.template_in_picture(self.all_switch_refs,  return_center_coord=True)
+        all_switch_coord = self.comparator.template_in_screen(self.all_switch_refs,  return_center_coord=True)
         print(all_switch_coord)
         if(all_switch_coord):
             self.controller.press(all_switch_coord,T=0.5)
@@ -306,7 +306,7 @@ class Battle:
 #     #         # 切换人物                                          
 #     #         if(need_exchange):
 #     #             loger.log_info(f"切换人物!")
-#     #             switch_coord = self.comparator.template_in_picture(self.switch_refs)
+#     #             switch_coord = self.comparator.template_in_screen(self.switch_refs)
 #     #             if(switch_coord):
 #     #                 self.controller.press(switch_coord)                                    
 

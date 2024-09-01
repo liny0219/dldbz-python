@@ -20,7 +20,8 @@ if __name__ == '__main__':
     # monopoly.exhaust_everything()
     ticket_num = 0
     difficulty = 1
-    monopoly.play_monopoly(ticket_num, difficulty)
+    print(monopoly.detect_scenario())
+    # monopoly.play_monopoly(ticket_num, difficulty)
     # monopoly.check_get_props()
     # monopoly.check_coin_type_branch()
     # monopoly.check_and_choose_coin_type(coin_type='wealth')

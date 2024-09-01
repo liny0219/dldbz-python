@@ -55,10 +55,10 @@ class World:
 
     
     def _check_have_menu1(self):
-        return self.comparator.template_in_picture(self.check_menu1_ui_refs)
+        return self.comparator.template_in_screen(self.check_menu1_ui_refs)
     
     def _check_have_menu2(self):
-        return self.comparator.template_in_picture(self.check_menu2_ui_refs)
+        return self.comparator.template_in_screen(self.check_menu2_ui_refs)
     
     def _check_have_menu(self):
         have_menu1 = self._check_have_menu1()
@@ -66,7 +66,7 @@ class World:
         return have_menu1 or have_menu2
     
     def _check_move_to_battle(self):
-        return self.moving and self.comparator.template_in_picture(self.check_in_battle_refs)
+        return self.moving and self.comparator.template_in_screen(self.check_in_battle_refs)
 
     
     def rest_status(self) -> BUTTON_STATUS:
@@ -76,9 +76,9 @@ class World:
         wait_until(self._check_have_menu1, [partial(self.controller.press, self.confirm_coord)]) # 等待菜单1加载
         
         # 因为休息不可用状态判断更为严格，所以先判断是否为disable
-        if self.comparator.template_in_picture(self.rest_disable_refs): # 休息不可用状态
+        if self.comparator.template_in_screen(self.rest_disable_refs): # 休息不可用状态
             return BUTTON_STATUS.DISABLE
-        if self.comparator.template_in_picture(self.rest_active_refs): # 休息可用状态
+        if self.comparator.template_in_screen(self.rest_active_refs): # 休息可用状态
             return BUTTON_STATUS.ACTIVE
         return BUTTON_STATUS.NOT_EXIST  # 不存在
     
@@ -127,17 +127,17 @@ class World:
         self._swipe(self.move_param["top"], self.move_param["bottom"])
 
     def check_in_starting_screen_and_start(self):
-        in_starting = self.comparator.template_in_picture(self.check_starting_screen, return_center_coord=True)
+        in_starting = self.comparator.template_in_screen(self.check_starting_screen, return_center_coord=True)
         if in_starting:
             self.controller.press(in_starting)
 
     def check_and_cancel1(self):
-        in_cross1 = self.comparator.template_in_picture(self.check_cross1, return_center_coord=True)
+        in_cross1 = self.comparator.template_in_screen(self.check_cross1, return_center_coord=True)
         if in_cross1:
             self.controller.press(in_cross1)
 
     def check_and_cancel2(self):
-        in_cross2 = self.comparator.template_in_picture(self.check_cross2, return_center_coord=True)
+        in_cross2 = self.comparator.template_in_screen(self.check_cross2, return_center_coord=True)
         if in_cross2:
             self.controller.press(in_cross2)
 
@@ -146,21 +146,21 @@ class World:
         self.check_and_cancel2()
 
     def check_menu2_and_back_menu1(self):
-        in_menu2 = self.comparator.template_in_picture(self.check_menu2_ui_refs)
+        in_menu2 = self.comparator.template_in_screen(self.check_menu2_ui_refs)
         if in_menu2:
             self.controller.press(self.confirm_coord)
 
     def check_monopoly_and_leave(self):
-        event = self.comparator.template_in_picture(self.check_monopoly_option, return_center_coord=True)
+        event = self.comparator.template_in_screen(self.check_monopoly_option, return_center_coord=True)
         if event:
             self.controller.press(event)
-            event = self.comparator.template_in_picture(self.check_monopoly_end, return_center_coord=True)
+            event = self.comparator.template_in_screen(self.check_monopoly_end, return_center_coord=True)
             if event:
                 self.controller.press(event)
-                event = self.comparator.template_in_picture(self.check_monopoly_end_confirm, return_center_coord=True)
+                event = self.comparator.template_in_screen(self.check_monopoly_end_confirm, return_center_coord=True)
                 if event:
                     self.controller.press(event)
-                event = self.comparator.template_in_picture(self.check_monopoly_end_confirm, return_center_coord=True)
+                event = self.comparator.template_in_screen(self.check_monopoly_end_confirm, return_center_coord=True)
                 if event:
                     self.controller.press(event)
 

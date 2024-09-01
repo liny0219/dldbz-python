@@ -243,3 +243,9 @@ def match_pic_coord_k(img, goal,k=4):
     if len(ret) == 0:
         return None
     return ret
+
+def crop_image(image, coord1, coord2):
+    x1, y1 = coord1
+    x2, y2 = coord2
+    cropped_image = image[y1:y2, x1:x2]
+    return cropped_image

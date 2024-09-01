@@ -180,6 +180,7 @@
         "button":{
             "roll_button_coord_x" : [850, 440],
             "roll_button_coords_y": [435, 355, 297, 233],
+            "roll_dice_coord": [850, 440],
             "minus_ticket_coord": [246, 222],
             "add_ticket_coord": [372, 222],
             "add_difficulty_coord": [716, 222],

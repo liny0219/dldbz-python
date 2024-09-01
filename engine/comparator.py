@@ -2,12 +2,14 @@ import cv2
 import numpy as np
 import utils.loger as loger
 from utils.config_loader import config_loader
-from utils.image_process import get_pixel_color ,check_image_similarity, find_target_in_image,\
-    compute_mask, color_match_all, color_match_count, color_in_image
+from utils.image_process import  check_image_similarity, find_target_in_image,\
+     color_match_all, color_match_count, color_in_image, crop_image
 from utils.status import MATCH_CONFIDENCE
 from paddleocr import paddleocr,PaddleOCR, draw_ocr
 import logging
 import threading
+import queue
+
 #关闭paddleocr的debug信息
 paddleocr.logging.disable(logging.DEBUG)
 
@@ -46,6 +48,18 @@ class Comparator:
         else:
             return color_img
     
+    def _cropped_image(self, image, leftup_coordinate = None, rightdown_coordinate = None, convert_gray=True, save_path=''):
+        if(leftup_coordinate and rightdown_coordinate):
+           image = crop_image(image, leftup_coordinate, rightdown_coordinate)
+        
+        if convert_gray:
+            image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+
+        if save_path:
+            cv2.imwrite(save_path, image)
+
+        return image
+    
     def _cropped_screenshot(self, leftup_coordinate = None, rightdown_coordinate = None, convert_gray=True, save_path=''):
         '''
         获取截屏.
@@ -57,19 +71,7 @@ class Comparator:
         '''
 
         color_img = self.controller.capture_screenshot()
-        if(leftup_coordinate and rightdown_coordinate):
-            x1, y1 = leftup_coordinate
-            x2, y2 = rightdown_coordinate    
-            color_img = color_img[y1:y2, x1:x2]
-
-        if save_path:
-            cv2.imwrite(save_path, color_img)
-
-        if convert_gray:
-            gray_img = cv2.cvtColor(color_img, cv2.COLOR_BGR2GRAY)
-            return gray_img
-        else:
-            return color_img
+        return self._cropped_image(color_img, leftup_coordinate, rightdown_coordinate, convert_gray, save_path)
     
 
     def match_color_all(self, coordinates_colors):
@@ -115,7 +117,7 @@ class Comparator:
         cropped_image = self._cropped_screenshot(leftup_coordinate, rightdown_coordinate, convert_gray=False)
         return  color_in_image(cropped_image, expected_color)
      
-    def template_in_picture(self, template_path, leftup_coordinate=None, rightdown_coordinate=None, 
+    def template_in_screen(self, template_path, leftup_coordinate=None, rightdown_coordinate=None, 
                             return_center_coord = False, save_path = '', match_level = MATCH_CONFIDENCE.HIGH):
         '''
         检查指定区域的图像是否存在指定图像模板。
@@ -157,32 +159,49 @@ class Comparator:
                     return get_abs_center_coord((0,0), target_leftup, target_rightdown)
                         
     def detect_template(self, detect_funcs = []):
+        q = queue.Queue()
         # 创建线程列表
-        '''
-        使用多线程来检测多个模板图像.
-
-        参数:
-        - detect_funcs: 一个检测模板的函数列表，每个函数都可以检测一个模板图像。
-
-        返回:
-        - 如果有找到模板图像，则返回
-        '''
+        def worker(func):
+            if func():
+                q.put(func.func.__name__)
+                # return func.__name__
+            
         threads = []
-        image = self._cropped_screenshot()
         # 创建线程来检测
         for detect_func in detect_funcs:
-            t = threading.Thread(target=detect_func, args=(image,))
+            t = threading.Thread(target=worker, args=(detect_func,))
             t.start()
             threads.append(t)
 
         # 等待线程完成
         for t in threads:
             t.join()
-            result = t.result
-            if result is not None:
-                print(result)
-                break
+        if q.qsize() == 1:
+            return q.get()
+        # result = q.get()
+        # if result is not None:
+        #     print(result)
 
+    def template_in_image(self, image, template_path, leftup_coordinate=None, rightdown_coordinate=None,match_level = MATCH_CONFIDENCE.HIGH):
+        
+        if (leftup_coordinate and rightdown_coordinate):
+            image = crop_image(image, leftup_coordinate, rightdown_coordinate)
+        
+        gray_image = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+        
+        template_image = self._template_image(template_path)
+
+        target_leftup, target_rightdown = find_target_in_image(template_image, gray_image)
+
+        gray_image = gray_image[target_leftup[1]: target_rightdown[1], target_leftup[0] : target_rightdown[0]]
+        
+        
+        match_threshold = self.match_thresholds[self.levels[match_level]]
+        
+        is_match = check_image_similarity(gray_image, template_image, match_threshold)
+        
+        return is_match
+    
 def get_abs_center_coord(leftup_coordinate, target_leftup, target_rightdown):
     """
     This function calculates the absolute center coordinates of a target area within a larger image.
