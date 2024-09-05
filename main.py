@@ -25,7 +25,7 @@ stats_label = tk.Label(app, text="开始旅途", font=("Segoe UI", 12))
 stats_label.grid(row=1, column=0, columnspan=2, pady=5)
 
 notebook = ttk.Notebook(app)
-notebook.grid(row=1, column=0, columnspan=2, sticky='nsew', padx=10, pady=10)
+notebook.grid(row=2, column=0, columnspan=2, sticky='nsew', padx=10, pady=10)
 
 
 # 创建游戏盘、追忆之书、设置的Frame

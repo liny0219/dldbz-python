@@ -239,21 +239,19 @@ class Battle:
             self.controller.press(attack_coord)  # 开始战斗
 
     def btn_switch_all(self):
-        start_time = time.time()
         self.front, self.behind = self.behind, self.front
         all_switch_coord = self.comparator.template_in_picture(
             self.all_switch_refs,  return_center_coord=True)
         if all_switch_coord:
             self.controller.press(all_switch_coord, T=0.5)
-        self._log_info(f"前后排切换完成，耗时：{time.time() - start_time:.2f} 秒")
+        self._log_info(f"前后排切换完成")
 
     def btn_all_boost(self):
-        start_time = time.time()
         all_boost_coord = self.comparator.template_in_picture(
             self.all_boost_refs,  return_center_coord=True)
         if all_boost_coord:
             self.controller.press(all_boost_coord, T=0.5)
-        self._log_info(f"全能量提升完成，耗时：{time.time() - start_time:.2f} 秒")
+        self._log_info(f"全能量提升完成")
 
     def _log_info(self, message):
         loger.log_info(message)

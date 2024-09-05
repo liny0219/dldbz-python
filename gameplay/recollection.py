@@ -142,10 +142,10 @@ class Recollection:
 
         # 更新 UI，时间格式为分钟
         self.updateUI(
-            f"追忆之书完成次数：{self.loopNum-1}\n"
+            f"追忆之书完成次数：{self.loopNum}\n"
             f"本次时间：{round_time/60:.2f} 分钟\n"
             f"总运行时间：{total_time/60:.2f} 分钟",
-            stats=f"追忆之书完成次数：{self.loopNum-1} 次 | 本次耗时：{round_time/60:.2f} 分钟 | 总耗时：{total_time/60:.2f} 分钟"
+            stats=f"追忆之书完成次数：{self.loopNum} 次 | 本次耗时：{round_time/60:.2f} 分钟 | 总耗时：{total_time/60:.2f} 分钟"
         )
 
         # 等待确认奖励
