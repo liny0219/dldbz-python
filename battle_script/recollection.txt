@@ -2,7 +2,7 @@ BattleStart
 Role,1,1,0
 Role,2,1,0
 Role,3,3,0
-Role,4,3,0
+Role,4,1,0
 Boost
 Attack
 BattleEnd
@@ -10,7 +10,7 @@ BattleStart
 Role,1,1,0
 Role,2,1,0
 Role,3,3,0
-Role,4,3,0
+Role,4,1,0
 Boost
 Attack
 BattleEnd
