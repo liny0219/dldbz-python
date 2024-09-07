@@ -40,8 +40,8 @@ class Battle:
         self.global_data = global_data
         self.controller = global_data.controller
         self.comparator = global_data.comparator
-        self.updateUI = global_data.updateUI
-        self.battle_dsl = BattleDSL(global_data.updateUI)
+        self.update_ui = global_data.update_ui
+        self.battle_dsl = BattleDSL(global_data.update_ui)
         # 设置 Hook 函数，返回值为 bool 类型，表示是否继续执行
         battle_hook = self.battle_dsl.hook_manager
         battle_hook.set(
@@ -255,5 +255,5 @@ class Battle:
 
     def _log_info(self, message):
         loger.log_info(message)
-        if self.updateUI:
-            self.updateUI(message)
+        if self.update_ui:
+            self.update_ui(message)

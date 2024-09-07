@@ -8,7 +8,6 @@ app.title("旅人休息站")
 app.geometry("800x400")  # 增加窗口宽度
 
 startup = Startup(app)
-
 # 创建样式对象
 style = ttk.Style()
 
@@ -119,6 +118,7 @@ def on_tab_changed(event: tk.Event):
 
 notebook.bind("<<NotebookTabChanged>>", on_tab_changed)
 startup.set_stats_label(stats_label)
+
 
 # 设置关闭事件处理
 app.protocol("WM_DELETE_WINDOW", lambda: startup.on_close())

@@ -4,11 +4,11 @@ from utils.singleton import singleton
 
 @singleton
 class GetCoord:
-    def __init__(self, controller, updateUI):
+    def __init__(self, controller, update_ui):
         self.controller = controller
         self.device = controller.d  # 确保这里正确获取设备实例
         self.img = None
-        self.updateUI = updateUI
+        self.update_ui = update_ui
 
     def capture_screen(self):
         self.img = self.device.screenshot(format='opencv')
@@ -21,7 +21,7 @@ class GetCoord:
         def on_EVENT_LBUTTONDOWN(event, x, y, flags, param):
             if event == cv2.EVENT_LBUTTONDOWN:
                 b, g, r = self.img[y, x, :]
-                self.updateUI(f"点击坐标为 (x={x}, y={y})")
+                self.update_ui(f"点击坐标为 {x},{y},[{r}, {g}, {b}]")
                 # print(f"点击处的BGR颜色值为 ({b}, {g}, {r})")
                 cv2.putText(self.img, f"({x},{y})", (x, y), cv2.FONT_HERSHEY_PLAIN, 1, (0, 0, 255), 2)
                 cv2.imshow(wnd, self.img)

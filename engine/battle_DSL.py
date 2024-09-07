@@ -4,10 +4,10 @@ from utils.singleton import singleton
 
 @singleton
 class BattleDSL:
-    def __init__(self, updateUI=None):
+    def __init__(self, update_ui=None):
         # 使用 BattleHook 单例管理 hooks
         self.hook_manager = BattleHook()
-        self.updateUI = updateUI
+        self.update_ui = update_ui
         self.instructions = []  # 用于存储预读取的指令列表
 
     def load_instructions(self, filename):
@@ -15,11 +15,11 @@ class BattleDSL:
         try:
             with open(filename, 'r', encoding='utf-8') as file:
                 self.instructions = [line.strip() for line in file if line.strip() and not line.startswith('#')]
-            if self.updateUI:
-                self.updateUI("指令加载成功。")
+            if self.update_ui:
+                self.update_ui("指令加载成功。")
         except Exception as e:
-            if self.updateUI:
-                self.updateUI(f"读取指令出错 {filename}. {e}")
+            if self.update_ui:
+                self.update_ui(f"读取指令出错 {filename}. {e}")
 
     def execute_instruction(self, instruction):
         hook_func_cmd_start = self.hook_manager.get('CmdStart')  # 获取对应指令的 hook 函数
@@ -36,8 +36,8 @@ class BattleDSL:
             hook_func(*parts[1:])
         else:
             # 更新 UI
-            if self.updateUI:
-                self.updateUI(f"找不到对应战斗指令 '{command}'.")
+            if self.update_ui:
+                self.update_ui(f"找不到对应战斗指令 '{command}'.")
         return True
 
     def run_script(self):

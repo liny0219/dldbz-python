@@ -10,6 +10,8 @@ from gameplay.recollection import Recollection
 from get_coord import GetCoord
 from global_data import GlobalData
 from utils.stoppable_thread import StoppableThread
+from engine_vee.engine import engine_vee
+from engine_vee.world import world_vee
 from utils.config_loader import cfg_startup
 import psutil
 
@@ -19,10 +21,12 @@ class Startup:
         self.resolution = cfg_startup.get('resolution')
         self.controller = DeviceController(cfg_startup.get('adb_port'))
         self.comparator = Comparator(self.controller)
-        self.global_data = GlobalData(self.controller, self.comparator, updateUI=self.updateUI)
+        self.global_data = GlobalData(self.controller, self.comparator, update_ui=self.update_ui)
         self.app = app
         self.stats_label = None
         self.message_text = None
+        engine_vee.set(self.global_data)
+        world_vee.set(self.global_data)
 
     def set_stats_label(self, stats_label):
         self.stats_label = stats_label
@@ -31,7 +35,7 @@ class Startup:
         self.message_text = message_text
 
     def on_close(self):
-        self.updateUI("正在关闭程序，请稍等...")
+        self.update_ui("正在关闭程序，请稍等...")
         for proc in psutil.process_iter(['pid', 'name']):
             if 'adb' in proc.info['name']:
                 print(f"终止进程: {proc.info['name']} (PID: {proc.info['pid']})")
@@ -47,24 +51,24 @@ class Startup:
 
     def on_monopoly(self):
         if self.global_data.thread is not None and self.global_data.thread.is_alive():
-            self.updateUI("已启动游戏盘，不要重复点击哦！")
+            self.update_ui("已启动游戏盘，不要重复点击哦！")
             return
         self.global_data.thread = StoppableThread(target=self._evt_monopoly)
         self.global_data.thread.start()
 
     def on_recollection(self):
         if self.global_data.thread is not None and self.global_data.thread.is_alive():
-            self.updateUI("已启动追忆之书，不要重复点击哦！")
+            self.update_ui("已启动追忆之书，不要重复点击哦！")
             return
         self.global_data.thread = StoppableThread(target=self._evt_recollection)
         self.global_data.thread.start()
 
     def on_stop(self):
-        self.updateUI("休息一下，停止当前操作...")
+        self.update_ui("休息一下，停止当前操作...")
         if self.global_data.thread is not None:
             self.global_data.thread.stop()
 
-    def updateUI(self, msg, stats=None):
+    def update_ui(self, msg, stats=None):
         if not self.message_text:
             return
         current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -89,17 +93,17 @@ class Startup:
         if os.path.exists(file_path):
             os.startfile(file_path)
         else:
-            self.updateUI("帮助文档(readme.txt)不存在，请检查！")
+            self.update_ui("帮助文档(readme.txt)不存在，请检查！")
 
     def edit_battle_script(self):
         file_path = os.path.join('battle_script', 'recollection.txt')
         if os.path.exists(file_path):
             os.startfile(file_path)
         else:
-            self.updateUI("战斗脚本(recollection.txt)不存在，请检查！")
+            self.update_ui("战斗脚本(recollection.txt)不存在，请检查！")
 
     def get_coord(self):
-        coordinate_getter = GetCoord(self.controller, self.updateUI)
+        coordinate_getter = GetCoord(self.controller, self.update_ui)
         coordinate_getter.show_coordinates_window(self.resolution)
 
     def open_monopoly_config(self):
@@ -111,7 +115,7 @@ class Startup:
             if os.path.exists(file_path):
                 os.startfile(file_path)
             else:
-                self.updateUI("配置文件(monopoly.json)不存在，请检查！")
+                self.update_ui("配置文件(monopoly.json)不存在，请检查！")
 
     def open_startup_config(self):
         # 弹出警告框
@@ -122,7 +126,7 @@ class Startup:
             if os.path.exists(file_path):
                 os.startfile(file_path)
             else:
-                self.updateUI("配置文件(startup.json)不存在，请检查！")
+                self.update_ui("配置文件(startup.json)不存在，请检查！")
 
     def update_message_label(self, text):
         current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
