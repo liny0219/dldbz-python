@@ -17,13 +17,13 @@ import psutil
 
 class Startup:
     def __init__(self, app: tk.Tk):
-        self.global_data = AppData(update_ui=self.update_ui)
+        self.app_data = AppData(update_ui=self.update_ui)
         self.app = app
         self.stats_label = None
         self.message_text = None
-        engine_vee.set(self.global_data)
-        world_vee.set(self.global_data)
-        battle_vee.set(self.global_data)
+        engine_vee.set(self.app_data)
+        world_vee.set(self.app_data)
+        battle_vee.set(self.app_data)
 
     def set_stats_label(self, stats_label):
         self.stats_label = stats_label
@@ -33,6 +33,8 @@ class Startup:
 
     def on_close(self):
         self.update_ui("正在关闭程序，请稍等...")
+        if self.app_data.thread:
+            self.app_data.thread.stop()
         for proc in psutil.process_iter(['pid', 'name']):
             if 'adb' in proc.info['name']:
                 print(f"终止进程: {proc.info['name']} (PID: {proc.info['pid']})")
@@ -47,23 +49,23 @@ class Startup:
         self.app.destroy()
 
     def on_monopoly(self):
-        if self.global_data.thread is not None and self.global_data.thread.is_alive():
+        if self.app_data.thread is not None and self.app_data.thread.is_alive():
             self.update_ui("已启动游戏盘，不要重复点击哦！")
             return
-        self.global_data.thread = StoppableThread(target=self._evt_monopoly)
-        self.global_data.thread.start()
+        self.app_data.thread = StoppableThread(target=self._evt_monopoly)
+        self.app_data.thread.start()
 
     def on_recollection(self):
-        if self.global_data.thread is not None and self.global_data.thread.is_alive():
+        if self.app_data.thread is not None and self.app_data.thread.is_alive():
             self.update_ui("已启动追忆之书，不要重复点击哦！")
             return
-        self.global_data.thread = StoppableThread(target=self._evt_recollection)
-        self.global_data.thread.start()
+        self.app_data.thread = StoppableThread(target=self._evt_recollection)
+        self.app_data.thread.start()
 
     def on_stop(self):
         self.update_ui("休息一下，停止当前操作...")
-        if self.global_data.thread is not None:
-            self.global_data.thread.stop()
+        if self.app_data.thread is not None:
+            self.app_data.thread.stop()
 
     def update_ui(self, msg, type=0):
         if not self.message_text:
@@ -93,7 +95,7 @@ class Startup:
             self.message_text.see(tk.END)
 
     def _evt_monopoly(self):
-        monopoly = Monopoly(self.global_data)
+        monopoly = Monopoly(self.app_data)
         monopoly.start()
 
     def _evt_recollection(self):

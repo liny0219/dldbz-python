@@ -68,10 +68,11 @@ class BattleVee:
             self.log("检测到在战斗准备界面中")
         return result
 
-    def log(self, msg, type=0):
-        if not self.debug:
+    def log(self, msg, type=3):
+        if self.debug:
+            print(msg)
+        if type == 3:
             return
-        print(msg)
         self.update_ui(msg, type)
 
 

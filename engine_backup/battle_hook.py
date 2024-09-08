@@ -29,10 +29,12 @@ class BattleHook:
         # 保留默认行为，用于在自定义 hook 时也执行默认行为
         self.default_hooks = self.hooks.copy()
 
-    def log(self, message):
-        """ 控制日志输出的方法 """
-        if self.log_enabled:
-            print(message)
+    def log(self, msg, type=3):
+        if self.debug:
+            print(msg)
+        if type == 3:
+            return
+        self.update_ui(msg, type)
 
     def set(self, command, hook_func):
         """ 设置自定义 hook 函数，并保留默认行为 """

@@ -4,7 +4,7 @@ from startup_logic import Startup
 
 # 创建主窗口
 app = tk.Tk()
-app.title("旅人休息站")
+app.title("大霸茶馆")
 app.geometry("800x400")  # 增加窗口宽度
 
 startup = Startup(app)

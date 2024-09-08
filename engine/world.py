@@ -67,10 +67,11 @@ class WorldVee:
         engine_vee.device.click(55, 432)
         self.log("返回世界")
 
-    def log(self, msg, type=0):
-        if not self.debug:
+    def log(self, msg, type=3):
+        if self.debug:
+            print(msg)
+        if type == 3:
             return
-        print(msg)
         self.update_ui(msg, type)
 
 

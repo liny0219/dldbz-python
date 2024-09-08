@@ -58,12 +58,16 @@ class EngineVee:
         else:
             return False
 
+    def stop_app(self):
+        self.device.app_stop("com.netease.ma167")
+        self.device.app_stop("com.netease.ma167.bilibili")
+
     def restart_game(self):
-        self.log("重启游戏")
-        self.device.app_stop(self.package_name)
+        self.log("重启游戏", 0)
+        self.stop_app()
         time.sleep(1)
-        self.device.app_start(self.package_name)
-        self.log(f"{self.package_name} 重启成功")
+        self.start_app()
+        self.log(f"重启成功", 0)
 
     def long_press_and_drag(self, start, end, duration=0.5):
         start_x, start_y = start
@@ -72,10 +76,11 @@ class EngineVee:
         time.sleep(0.5)
         self.device.drag(start_x, start_y, end_x, end_y, duration=0.5)  # 滑动操作持续0.5秒
 
-    def log(self, msg, type=0):
-        if not self.debug:
+    def log(self, msg, type=3):
+        if self.debug:
+            print(msg)
+        if type == 3:
             return
-        print(msg)
         self.update_ui(msg, type)
 
 

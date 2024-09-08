@@ -39,6 +39,7 @@ class Monopoly():
         self.set()
         starttime = time.time()
         while not self.thread_stoped():
+            turn_start = time.time()
             isMatch = False
             if world_vee.in_world():
                 isMatch = 'in_world'
@@ -85,7 +86,8 @@ class Monopoly():
                     endtime = time.time()
                     # 计算耗时并将其转换为分钟，保留两位小数
                     elapsed_time_in_minutes = (endtime - starttime) / 60
-                    self.log(f"完成第{looptime}次，耗时{elapsed_time_in_minutes:.2f}分钟", 1)
+                    turn_duration = (endtime - turn_start) / 60
+                    self.log(f"完成第{looptime}次，本轮耗时{turn_duration:.2f}分钟, 总挂机{elapsed_time_in_minutes}", 1)
 
                 if self.check_page_monopoly():
                     isMatch = 'check_play_monopoly'
@@ -101,9 +103,9 @@ class Monopoly():
                 else:
                     count += 1
                     self.btn_trim_confirm()
-                    # world_vee.click_btn_close()  # 尝试返回主界面
             if count > 50:
                 self.error("未能进入游戏")
+                engine_vee.restart_game()
                 return
             else:
                 self.log(f"匹配到的函数：{isMatch}")
@@ -379,10 +381,11 @@ class Monopoly():
     def btn_not_continue(self):
         engine_vee.device.click(362, 362)
 
-    def log(self, msg, type=0):
-        if not self.debug:
+    def log(self, msg, type=3):
+        if self.debug:
+            print(msg)
+        if type == 3:
             return
-        print(msg)
         self.update_ui(msg, type)
 
     def error(self, msg):
