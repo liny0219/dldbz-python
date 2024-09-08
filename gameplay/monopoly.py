@@ -39,7 +39,6 @@ class Monopoly():
         self.set()
         starttime = time.time()
         while not self.thread_stoped():
-            turn_start = time.time()
             isMatch = False
             if world_vee.in_world():
                 isMatch = 'in_world'
@@ -54,6 +53,7 @@ class Monopoly():
             if self.check_set_game_mode():
                 self.set_game_mode()
                 self.btn_play_monopoly()
+                turn_start = time.time()
             in_battle = battle_vee.is_in_battle()
             if in_battle:
                 isMatch = 'is_in_battle'
@@ -84,6 +84,7 @@ class Monopoly():
                     isMatch = 'check_final_confirm'
                     looptime += 1
                     endtime = time.time()
+
                     # 计算耗时并将其转换为分钟，保留两位小数
                     elapsed_time_in_minutes = (endtime - starttime) / 60
                     turn_duration = (endtime - turn_start) / 60
