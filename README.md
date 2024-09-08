@@ -1,24 +1,12 @@
 # dldbz-python
 
 #### 介绍
-{**以下是 Gitee 平台说明，您可以替换此简介**
-Gitee 是 OSCHINA 推出的基于 Git 的代码托管平台（同时支持 SVN）。专为开发者提供稳定、高效、安全的云端软件开发协作平台
-无论是个人、团队、或是企业，都能够用 Gitee 实现代码托管、项目管理、协作开发。企业项目请看 [https://gitee.com/enterprises](https://gitee.com/enterprises)}
-
-#### 软件架构
-软件架构说明
-
-
-#### 安装教程
-
-1.  pip install -r requirements.txt 安装依赖
-2.  python -m uiautomator2 init     初始化uiautomator2
+仅供交流学习用，请勿用于任何商业盈利
 
 #### 使用说明
 
 1.  修改模拟器的分辨率为960x540
-2.  在config.json里修改adb port，雷电模拟器默认为127.0.0.1:5555，mumu模拟器默认为:127.0.0.1:16384
-3.  启动脚本：python dldbz.py
+2.  在启动配置里修改adb port，雷电模拟器默认为127.0.0.1:5555，mumu模拟器默认为:127.0.0.1:16384
 
 #### 战斗指令说明
 - **BattleStart** - 战斗开始
@@ -31,12 +19,3 @@ Gitee 是 OSCHINA 推出的基于 Git 的代码托管平台（同时支持 SVN�
 - **Skip,500** - 跳过500毫秒，用于快速跳过某些动作或等待。
 - **Click,x,y** - 点击某个坐标，用来选中集火某个敌人。
 - **SP,1(角色编号)** - 角色使用必杀技能，`SP,1` 表示第一个角色使用。
-
-#### 参与贡献
-
-1.  Fork 本仓库
-2.  新建 Feat_xxx 分支
-3.  提交代码
-4.  新建 Pull Request
-
-
