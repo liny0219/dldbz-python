@@ -42,6 +42,7 @@ class Monopoly():
         begin_turn = begin_time
         total_duration = 0
         turn_duration = 0
+        reported = False
         finished = True
         while not self.thread_stoped():
             isMatch = False
@@ -53,9 +54,7 @@ class Monopoly():
                 self.btn_not_continue()
             if self.check_page_monopoly():
                 isMatch = 'check_play_monopoly'
-                self.select_monopoly()
-                self.btn_setting_monopoly()
-                if looptime != 0:
+                if looptime != 0 and not reported:
                     now = time.time()
                     total_duration = (now - begin_time) / 60
                     turn_duration = (now - begin_turn) / 60
@@ -63,11 +62,16 @@ class Monopoly():
                         failed += 1
                     self.log(f"完成{looptime}次，翻车{failed}次，本轮耗时{turn_duration:.2f}分钟, 总挂机{
                         total_duration:.2f}分钟", 1)
+                    reported = True
+                self.select_monopoly()
+                self.btn_setting_monopoly()
+
             if self.check_set_game_mode():
                 self.set_game_mode()
                 self.btn_play_monopoly()
                 begin_turn = time.time()
                 finished = False
+                reported = False
                 looptime += 1
 
             in_battle = battle_vee.is_in_battle()
