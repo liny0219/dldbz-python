@@ -1,6 +1,7 @@
 from __future__ import annotations
 import datetime
 import os
+import sys
 import tkinter as tk
 import tkinter.messagebox
 from engine.battle import battle_vee
@@ -47,6 +48,7 @@ class Startup:
         self.on_stop()
         self.app.quit()
         self.app.destroy()
+        sys.exit(0)
 
     def on_monopoly(self):
         if self.app_data.thread is not None and self.app_data.thread.is_alive():

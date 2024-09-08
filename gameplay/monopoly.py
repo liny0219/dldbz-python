@@ -38,6 +38,7 @@ class Monopoly():
         looptime = 0
         self.set()
         starttime = time.time()
+        turn_start = starttime
         while not self.thread_stoped():
             isMatch = False
             if world_vee.in_world():
