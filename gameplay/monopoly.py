@@ -87,7 +87,7 @@ class Monopoly():
                     # 计算耗时并将其转换为分钟，保留两位小数
                     elapsed_time_in_minutes = (endtime - starttime) / 60
                     turn_duration = (endtime - turn_start) / 60
-                    self.log(f"完成第{looptime}次，本轮耗时{turn_duration:.2f}分钟, 总挂机{elapsed_time_in_minutes}", 1)
+                    self.log(f"完成第{looptime}次，本轮耗时{turn_duration:.2f}分钟, 总挂机{elapsed_time_in_minutes:.2f}", 1)
 
                 if self.check_page_monopoly():
                     isMatch = 'check_play_monopoly'
@@ -98,13 +98,13 @@ class Monopoly():
                 self.log("未匹配到任何函数")
                 check_in_app = engine_vee.check_in_app()
                 if not check_in_app:
-                    self.log("未检测到游戏")
+                    self.log("未检测到游戏", 0)
                     engine_vee.start_app()
                 else:
                     count += 1
                     self.btn_trim_confirm()
             if count > 50:
-                self.error("未能进入游戏")
+                self.error("未能进入游戏", 0)
                 engine_vee.restart_game()
                 return
             else:
@@ -118,9 +118,10 @@ class Monopoly():
         if bp > 0:
             offset = 58 * bp
             end_point = (x, y - offset)
-            engine_vee.long_press_and_drag(start_point, end_point, 1)
+            engine_vee.long_press_and_drag(start_point, end_point, 0)
         if bp == 0:
             engine_vee.device.click(x, y)
+        self.log("开始掷骰子", 0)
         time.sleep(0.5)
         self.btn_trim_confirm()
 
@@ -146,14 +147,14 @@ class Monopoly():
             if select:
                 x, y = select
                 engine_vee.device.click(x, y)
-                self.log("选择大富翁")
+                self.log("选择大富翁", 0)
                 break
             if (self.thread_stoped()):
                 return
             if current_y >= end_y:
                 break
             next_y = current_y + 50
-            engine_vee.device.swipe(x, current_y, x, next_y, 0.2)
+            engine_vee.device.swipe(x, current_y, x, next_y, 0.1)
             current_y = next_y
         time.sleep(1)
 
@@ -284,7 +285,7 @@ class Monopoly():
             return None
         for i in range(len(num)):
             if comparator_vee.template_in_picture(f"./assets/monopoly/{strType}_crossing_{num[i]}.png", crood_range):
-                self.log(f"检测到大富翁权利路口{i}")
+                self.log(f"检测到大富翁权利路口{i}", 0)
                 return i
         return None
 
@@ -340,7 +341,7 @@ class Monopoly():
                               (563, 365, [41, 93, 115]), (394, 363, [81, 81, 81]),
                               (327, 363, [81, 81, 81])]
         if comparator_vee.match_point_color(points_with_colors):
-            self.log("检查到是否继续游戏")
+            self.log("检查到是否继续游戏", 0)
             self.btn_final_confirm()
             return True
         return False
