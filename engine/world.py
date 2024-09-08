@@ -50,10 +50,12 @@ class WorldVee:
             return
         self.log("开始检查是否在小剧场中")
         points_with_colors = [
-            (480, 513, [185, 168, 152]),
-            (480, 496, [189, 166, 148])
+            (696, 330, [146, 123, 79]),
+            (634, 350, [156, 133, 83]),
+            (331, 351, [155, 132, 82]),
+            (278, 340, [141, 119, 70]),
         ]
-        if comparator_vee.match_point_color(points_with_colors):
+        if comparator_vee.match_point_color(points_with_colors, 20):
             self.log("检测到在小剧场中")
             return True
         else:
