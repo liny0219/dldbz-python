@@ -12,6 +12,7 @@ if TYPE_CHECKING:
 class WorldVee:
     def __init__(self):
         self.global_data = None
+        self.debug = False
 
     def set(self, global_data: AppData):
         self.global_data = global_data
@@ -19,8 +20,8 @@ class WorldVee:
     def thread_stoped(self) -> bool:
         return self.global_data and self.global_data.thread_stoped()
 
-    def update_ui(self, msg: str):
-        self.global_data and self.global_data.update_ui(msg)
+    def update_ui(self, msg: str, type=0):
+        self.global_data and self.global_data.update_ui(msg, type)
 
     def in_world(self):
         """检查是否在游戏世界中，通过左下角菜单的颜色来判断"""
@@ -44,15 +45,31 @@ class WorldVee:
         engine_vee.device.click(925, 16)
         self.log("点击关闭按钮")
 
+    def check_stage(self):
+        if (self.thread_stoped()):
+            return
+        self.log("开始检查是否在小剧场中")
+        points_with_colors = [
+            (480, 513, [185, 168, 152]),
+            (480, 496, [189, 166, 148])
+        ]
+        if comparator_vee.match_point_color(points_with_colors):
+            self.log("检测到在小剧场中")
+            return True
+        else:
+            return False
+
     def back_world(self):
         if (self.thread_stoped()):
             return
         engine_vee.device.click(55, 432)
         self.log("返回世界")
 
-    def log(self, msg):
+    def log(self, msg, type=0):
+        if not self.debug:
+            return
         print(msg)
-        self.update_ui(msg)
+        self.update_ui(msg, type)
 
 
 world_vee = WorldVee()

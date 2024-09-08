@@ -3,6 +3,7 @@ import datetime
 import os
 import tkinter as tk
 import tkinter.messagebox
+from engine.battle import battle_vee
 from gameplay.monopoly import Monopoly
 # from gameplay.recollection import Recollection
 from tool_get_coord import GetCoord
@@ -22,6 +23,7 @@ class Startup:
         self.message_text = None
         engine_vee.set(self.global_data)
         world_vee.set(self.global_data)
+        battle_vee.set(self.global_data)
 
     def set_stats_label(self, stats_label):
         self.stats_label = stats_label
@@ -63,17 +65,32 @@ class Startup:
         if self.global_data.thread is not None:
             self.global_data.thread.stop()
 
-    def update_ui(self, msg, stats=None):
+    def update_ui(self, msg, type=0):
         if not self.message_text:
             return
-        current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        message = f"[{current_time}] {msg}\n"
-        self.message_text.config(state=tk.NORMAL)
-        self.message_text.insert(tk.END, message)
-        self.message_text.config(state=tk.DISABLED)
-        self.message_text.see(tk.END)
-        if stats:
-            self.stats_label.config(text=stats)
+
+        # 如果是type=1，更新统计信息
+        if type == 1:
+            self.stats_label.config(text=msg)
+        else:
+            # 获取当前时间
+            current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            message = f"[{current_time}] {msg}\n"
+
+            # 允许修改文本框内容
+            self.message_text.config(state=tk.NORMAL)
+
+            # 检查消息行数，超过200条时删除最早的消息
+            num_lines = int(self.message_text.index('end-1c').split('.')[0])  # 获取当前行数
+            if num_lines > 200:
+                self.message_text.delete(1.0, 2.0)  # 删除第一行
+
+            # 插入新的消息
+            self.message_text.insert(tk.END, message)
+
+            # 禁用编辑并滚动到底部
+            self.message_text.config(state=tk.DISABLED)
+            self.message_text.see(tk.END)
 
     def _evt_monopoly(self):
         monopoly = Monopoly(self.global_data)

@@ -6,7 +6,7 @@ from utils.stoppable_thread import StoppableThread
 
 @singleton
 class AppData:
-    def __init__(self, update_ui: Callable[[str], None] = None, thread: StoppableThread = None):
+    def __init__(self, update_ui: Callable[[str, int], None] = None, thread: StoppableThread = None):
         self.thread = thread
         self.update_ui = update_ui
 

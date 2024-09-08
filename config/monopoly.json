@@ -1,4 +1,12 @@
 {
+  "type": "801",
   "ticket": "0",
-  "lv": "5"
+  "lv": "5",
+  "auto_battle":"1",
+  "crossing":
+      {
+        "801": ["left", "right", "up", "left"],
+        "802": ["left", "up", "right"],
+        "803": ["left", "up"]
+      }
 }

@@ -20,7 +20,7 @@ message_label = tk.Label(app, text="歧路旅人休息站", font=("Segoe UI", 18
 message_label.grid(row=0, column=0, columnspan=2, pady=10)
 
 # 统计信息标签，放置在子标题下方
-stats_label = tk.Label(app, text="开始旅途", font=("Segoe UI", 12))
+stats_label = tk.Label(app, text="大霸，启动", font=("Segoe UI", 12))
 stats_label.grid(row=1, column=0, columnspan=2, pady=5)
 
 notebook = ttk.Notebook(app)

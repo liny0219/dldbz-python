@@ -1,7 +1,7 @@
-from engine.comparator import Comparator
-from engine.device_controller import DeviceController
-from utils.config_loader import cfg_startup
+from engine.engine import engine_vee
+from engine.comparator import comparator_vee
 
-controller = DeviceController(cfg_startup.get('adb_port'))
-comparator = Comparator(controller)
-comparator._cropped_screenshot([509, 333], [706, 352], save_path="./assets/monopoly/find_reputation.png")
+comparator_vee.set_device(engine_vee.device)
+comparator_vee._cropped_screenshot([220, 290], [230, 330], save_path="./assets/monopoly/btn_options.png")
+# comparator_vee._cropped_screenshot([563, 468], [591, 498], save_path="./assets/battle/btn_switch.png")
+# comparator_vee._cropped_screenshot([563, 468], [591, 498], save_path="./assets/battle/btn_switch.png")
