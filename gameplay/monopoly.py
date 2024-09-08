@@ -36,9 +36,13 @@ class Monopoly():
     def start(self):
         count = 0
         looptime = 0
+        failed = 0
         self.set()
-        starttime = time.time()
-        turn_start = starttime
+        begin_time = time.time()
+        begin_turn = begin_time
+        total_duration = 0
+        turn_duration = 0
+        finished = True
         while not self.thread_stoped():
             isMatch = False
             if world_vee.in_world():
@@ -51,10 +55,21 @@ class Monopoly():
                 isMatch = 'check_play_monopoly'
                 self.select_monopoly()
                 self.btn_setting_monopoly()
+                if looptime != 0:
+                    now = time.time()
+                    total_duration = (now - begin_time) / 60
+                    turn_duration = (now - begin_turn) / 60
+                    if finished == False:
+                        failed += 1
+                    self.log(f"完成{looptime}次，翻车{failed}次，本轮耗时{turn_duration:.2f}分钟, 总挂机{
+                        total_duration:.2f}分钟", 1)
             if self.check_set_game_mode():
                 self.set_game_mode()
                 self.btn_play_monopoly()
-                turn_start = time.time()
+                begin_turn = time.time()
+                finished = False
+                looptime += 1
+
             in_battle = battle_vee.is_in_battle()
             if in_battle:
                 isMatch = 'is_in_battle'
@@ -83,14 +98,8 @@ class Monopoly():
                     isMatch = 'check_info_confirm'
                 if self.check_final_confirm():
                     isMatch = 'check_final_confirm'
-                    looptime += 1
-                    endtime = time.time()
-
-                    # 计算耗时并将其转换为分钟，保留两位小数
-                    elapsed_time_in_minutes = (endtime - starttime) / 60
-                    turn_duration = (endtime - turn_start) / 60
-                    self.log(f"完成第{looptime}次，本轮耗时{turn_duration:.2f}分钟, 总挂机{elapsed_time_in_minutes:.2f}", 1)
-
+                    self.btn_final_confirm()
+                    finished = True
                 if self.check_page_monopoly():
                     isMatch = 'check_play_monopoly'
                 if self.check_set_game_mode():
@@ -259,14 +268,14 @@ class Monopoly():
         self.log("开始检查大富翁路口")
         if (self.thread_stoped()):
             return False
-        current_crossing = self.check_crossing_80()
+        current_crossing = self.check_crossing_index()
         if current_crossing != None and self.crossing and self.crossing[current_crossing]:
             direction = self.crossing[current_crossing]
             self.turn_crossing(direction)
             return True
         return False
 
-    def check_crossing_80(self):
+    def check_crossing_index(self):
         self.log("开始检查大富翁权利路口")
         if (self.thread_stoped()):
             return None
@@ -279,15 +288,15 @@ class Monopoly():
             strType = "previlege"
         if self.type == "802":
             num = []
-            strType = "treasure"
-        if self.type == "803":
-            num = []
             strType = "reputation"
+        if self.type == "803":
+            num = [41, 20]
+            strType = "treasure"
         if not num or not strType:
             return None
         for i in range(len(num)):
             if comparator_vee.template_in_picture(f"./assets/monopoly/{strType}_crossing_{num[i]}.png", crood_range):
-                self.log(f"检测到大富翁权利路口{i}", 0)
+                self.log(f"检测到大富翁路口{i}", 0)
                 return i
         return None
 
@@ -333,7 +342,6 @@ class Monopoly():
                               (432, 119, [211, 210, 208])]
         if comparator_vee.match_point_color(points_with_colors):
             self.log("检查到最终确认界面")
-            self.btn_final_confirm()
             return True
         return False
 
@@ -344,7 +352,6 @@ class Monopoly():
                               (327, 363, [81, 81, 81])]
         if comparator_vee.match_point_color(points_with_colors):
             self.log("检查到是否继续游戏", 0)
-            self.btn_final_confirm()
             return True
         return False
 
