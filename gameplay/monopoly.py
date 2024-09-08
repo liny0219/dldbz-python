@@ -44,6 +44,7 @@ class Monopoly():
         turn_duration = 0
         reported = False
         finished = True
+        self.log(f"大霸，启动！", 1)
         while not self.thread_stoped():
             isMatch = False
             if world_vee.in_world():
