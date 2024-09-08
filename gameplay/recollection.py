@@ -1,12 +1,12 @@
 from __future__ import annotations
 import time
-from global_data import GlobalData
+from app_data import AppData
 from utils.config_loader import cfg_recollection, cfg_common, cfg_battle
 from utils.wait import wait_until
 
 
 class Recollection:
-    def __init__(self, global_data: GlobalData):
+    def __init__(self, global_data: AppData):
         self.set_config()
         self.loop = int(cfg_recollection.get("common.loop"))
         self.thread = global_data.thread

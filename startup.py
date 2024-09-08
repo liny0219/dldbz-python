@@ -1,140 +1,128 @@
-from __future__ import annotations
-import datetime
-import os
 import tkinter as tk
-import tkinter.messagebox
-from engine.comparator import Comparator
-from engine.device_controller import DeviceController
-from gameplay.monopoly import Monopoly
-from gameplay.recollection import Recollection
-from get_coord import GetCoord
-from global_data import GlobalData
-from utils.stoppable_thread import StoppableThread
-from engine_vee.engine import engine_vee
-from engine_vee.world import world_vee
-from utils.config_loader import cfg_startup
-import psutil
+import tkinter.ttk as ttk
+from startup_logic import Startup
+
+# 创建主窗口
+app = tk.Tk()
+app.title("旅人休息站")
+app.geometry("800x400")  # 增加窗口宽度
+
+startup = Startup(app)
+# 创建样式对象
+style = ttk.Style()
+
+# 配置'TNotebook.Tab'的样式
+style.configure('TNotebook.Tab', font=('Segoe UI', '12', 'bold'), padding=[20, 8])
 
 
-class Startup:
-    def __init__(self, app: tk.Tk):
-        self.resolution = cfg_startup.get('resolution')
-        self.controller = DeviceController(cfg_startup.get('adb_port'))
-        self.comparator = Comparator(self.controller)
-        self.global_data = GlobalData(self.controller, self.comparator, update_ui=self.update_ui)
-        self.app = app
-        self.stats_label = None
-        self.message_text = None
-        engine_vee.set(self.global_data)
-        world_vee.set(self.global_data)
+# 顶部子标题标签居中显示
+message_label = tk.Label(app, text="歧路旅人休息站", font=("Segoe UI", 18, "bold"))
+message_label.grid(row=0, column=0, columnspan=2, pady=10)
 
-    def set_stats_label(self, stats_label):
-        self.stats_label = stats_label
+# 统计信息标签，放置在子标题下方
+stats_label = tk.Label(app, text="开始旅途", font=("Segoe UI", 12))
+stats_label.grid(row=1, column=0, columnspan=2, pady=5)
 
-    def set_message_text(self, message_text):
-        self.message_text = message_text
+notebook = ttk.Notebook(app)
+notebook.grid(row=2, column=0, columnspan=2, sticky='nsew', padx=10, pady=10)
 
-    def on_close(self):
-        self.update_ui("正在关闭程序，请稍等...")
-        for proc in psutil.process_iter(['pid', 'name']):
-            if 'adb' in proc.info['name']:
-                print(f"终止进程: {proc.info['name']} (PID: {proc.info['pid']})")
-                proc.terminate()
-                try:
-                    proc.wait(3)
-                except psutil.TimeoutExpired:
-                    print(f"强制终止进程: {proc.info['name']}")
-                    proc.kill()
-        self.on_stop()
-        self.app.quit()
-        self.app.destroy()
 
-    def on_monopoly(self):
-        if self.global_data.thread is not None and self.global_data.thread.is_alive():
-            self.update_ui("已启动游戏盘，不要重复点击哦！")
-            return
-        self.global_data.thread = StoppableThread(target=self._evt_monopoly)
-        self.global_data.thread.start()
+# 创建游戏盘、追忆之书、设置的Frame
+monopoly_frame = tk.Frame(notebook, name="monopoly_frame")
 
-    def on_recollection(self):
-        if self.global_data.thread is not None and self.global_data.thread.is_alive():
-            self.update_ui("已启动追忆之书，不要重复点击哦！")
-            return
-        self.global_data.thread = StoppableThread(target=self._evt_recollection)
-        self.global_data.thread.start()
+recollection_frame = tk.Frame(notebook, name="recollection_frame")
 
-    def on_stop(self):
-        self.update_ui("休息一下，停止当前操作...")
-        if self.global_data.thread is not None:
-            self.global_data.thread.stop()
+settings_frame = tk.Frame(notebook)
+settings_frame.grid(padx=10, pady=5)
 
-    def update_ui(self, msg, stats=None):
-        if not self.message_text:
-            return
-        current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        message = f"[{current_time}] {msg}\n"
-        self.message_text.config(state=tk.NORMAL)
-        self.message_text.insert(tk.END, message)
-        self.message_text.config(state=tk.DISABLED)
-        self.message_text.see(tk.END)
-        if stats:
-            self.stats_label.config(text=stats)
+# 添加到Notebook
+notebook.add(monopoly_frame, text='游戏盘')
+notebook.add(recollection_frame, text='追忆之书')
+notebook.add(settings_frame, text='设置')
 
-    def _evt_monopoly(self):
-        monopoly = Monopoly(self.global_data)
-        monopoly.start()
 
-    def _evt_recollection(self):
-        recollection = Recollection(self.global_data)
-        recollection.start()
+# 使用 grid 布局管理器
+app.grid_rowconfigure(2, weight=1)
+app.grid_columnconfigure(0, weight=1)
+app.grid_columnconfigure(1, weight=3)
 
-    def open_readme(self):
-        file_path = 'readme.txt'
-        if os.path.exists(file_path):
-            os.startfile(file_path)
-        else:
-            self.update_ui("帮助文档(readme.txt)不存在，请检查！")
 
-    def edit_battle_script(self):
-        file_path = os.path.join('battle_script', 'recollection.txt')
-        if os.path.exists(file_path):
-            os.startfile(file_path)
-        else:
-            self.update_ui("战斗脚本(recollection.txt)不存在，请检查！")
+def create_settings_frame(frame):
+    tk.Button(frame, text="启动设置", command=startup.open_startup_config,
+              font=("Segoe UI", 10), width=10, height=1).grid(row=0, column=0, padx=10, pady=10)
+    tk.Button(frame, text="游戏盘设置", command=startup.open_monopoly_config,
+              font=("Segoe UI", 10), width=10, height=1).grid(row=0, column=1, padx=10, pady=10)
 
-    def get_coord(self):
-        coordinate_getter = GetCoord(self.controller, self.update_ui)
-        coordinate_getter.show_coordinates_window(self.resolution)
 
-    def open_monopoly_config(self):
-        # 弹出警告框
-        response = tk.messagebox.askokcancel("配置修改警告",
-                                             "请注意，修改配置后需要重启程序才能生效。是否继续打开配置文件？")
-        if response:
-            file_path = os.path.join('config', 'monopoly.json')
-            if os.path.exists(file_path):
-                os.startfile(file_path)
-            else:
-                self.update_ui("配置文件(monopoly.json)不存在，请检查！")
+def create_info_button(frame):
+    # 左侧按钮区域框架
+    button_frame = tk.Frame(frame)
+    button_frame.pack(side='left', fill='y', padx=10, pady=10)
 
-    def open_startup_config(self):
-        # 弹出警告框
-        response = tkinter.messagebox.askokcancel("配置修改警告",
-                                                  "请注意，修改配置后需要重启程序才能生效。是否继续打开配置文件？")
-        if response:
-            file_path = os.path.join('config', 'startup.json')
-            if os.path.exists(file_path):
-                os.startfile(file_path)
-            else:
-                self.update_ui("配置文件(startup.json)不存在，请检查！")
+    # 右侧信息展示框架
+    info_frame = tk.Frame(frame)
+    info_frame.pack(side='left', fill='both', expand=True, padx=10, pady=10)
 
-    def update_message_label(self, text):
-        current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        message = f"[{current_time}] {text}\n"
-        self.message_text.config(state=tk.NORMAL)
-        self.message_text.insert(tk.END, message)
-        self.message_text.config(state=tk.DISABLED)
-        self.message_text.see(tk.END)
+    # 定义按钮的配置列表
+    buttons = [
+        {"text": "大霸启动", "command": startup.on_monopoly if frame == monopoly_frame else startup.on_recollection},
+        {"text": "休息一下", "command": startup.on_stop},
+        {"text": "查看帮助", "command": startup.open_readme},
+        {"text": "战斗编辑", "command": startup.edit_battle_script},
+        {"text": "标记坐标", "command": startup.get_coord}
+    ]
 
-    def update_stats_label(self, stats):
-        self.stats_label.config(text=stats)
+    # 创建按钮
+    for button_config in buttons:
+        tk.Button(button_frame, text=button_config["text"], command=button_config["command"],
+                  font=("Segoe UI", 10), width=10, height=1).pack(pady=5)
+
+    # 右侧信息展示区
+    message_text = tk.Text(info_frame, name="info_label", wrap=tk.WORD,
+                           font=("Segoe UI", 12), height=15, state=tk.DISABLED)
+    message_text.pack(expand=True, fill='both')
+
+    # 为右侧信息区添加滚动条
+    message_scrollbar = tk.Scrollbar(info_frame, orient=tk.VERTICAL, command=message_text.yview)
+    message_text.config(yscrollcommand=message_scrollbar.set)
+    message_scrollbar.pack(side='right', fill='y')
+
+
+create_info_button(monopoly_frame)
+create_info_button(recollection_frame)
+create_settings_frame(settings_frame)
+
+
+def find_widget_by_name(parent, widget_name):
+    """递归查找具有指定name的组件"""
+    # 检查当前父组件是否是我们正在查找的组件
+    if str(parent.winfo_name()) == widget_name:
+        return parent
+    # 如果不是，遍历所有子组件
+    for child in parent.winfo_children():
+        result = find_widget_by_name(child, widget_name)
+        if result is not None:
+            return result
+    return None
+
+
+def on_tab_changed(event: tk.Event):
+    notebook: ttk.Notebook = event.widget
+    selected_tab_name = notebook.select()  # 获取当前选中的tab的内部名称
+    selected_tab = notebook.nametowidget(selected_tab_name)  # 从名称获取 widget 对象
+    info_label = find_widget_by_name(selected_tab, "info_label")
+    if info_label is not None:
+        print(f"当前选中的Tab: {info_label}")
+        startup.set_message_text(info_label)
+    else:
+        print("未找到info_label")
+
+
+notebook.bind("<<NotebookTabChanged>>", on_tab_changed)
+startup.set_stats_label(stats_label)
+
+
+# 设置关闭事件处理
+app.protocol("WM_DELETE_WINDOW", lambda: startup.on_close())
+# 运行主循环
+app.mainloop()

@@ -1,5 +1,7 @@
 import json
 # import os
+
+
 class ConfigLoader:
     def __init__(self, config_file):
         self.config_file = config_file
@@ -19,12 +21,14 @@ class ConfigLoader:
         except KeyError:
             return default
 
-
-cfg_startup = ConfigLoader('./config/startup.json')
-cfg_common = ConfigLoader('./config/common.json')
-cfg_world = ConfigLoader('./config/world.json')
-cfg_battle = ConfigLoader('./config/battle.json')
-cfg_monopoly = ConfigLoader('./config/monopoly.json')
-cfg_recollection = ConfigLoader('./config/recollection.json')
+    def reload(self):
+        self.config_data = self._load_config()
 
 
+def reload_config():
+    cfg_startup_vee.reload()
+    cfg_monopoly_vee.reload()
+
+
+cfg_startup_vee = ConfigLoader('./config/startup.json')
+cfg_monopoly_vee = ConfigLoader('./config/monopoly.json')

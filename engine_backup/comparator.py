@@ -1,18 +1,15 @@
-
-
 import os
 import sys
 import cv2
 import utils.loger as loger
-from utils.image_process import check_image_similarity,  \
-    color_match_all, color_match_count, color_in_image, find_target_in_image
-from utils.singleton import singleton
-import uiautomator2 as u2
+from utils.config_loader import cfg_common
+from utils.image_process import get_pixel_color, check_image_similarity, find_target_in_image, \
+    compute_mask, color_match_all, color_match_count, color_in_image
+from utils.status import MATCH_CONFIDENCE
 
 
-@singleton
-class ComparatorVee:
-    def __init__(self):
+class Comparator:
+    def __init__(self, controller=None):
         """
         Initializes a Comparator object.
 
@@ -22,10 +19,10 @@ class ComparatorVee:
         Returns:
         - None
         """
-        self.device: u2.Device = None
-
-    def set_device(self, device):
-        self.device = device
+        self.controller = controller
+        self.match_thresholds = cfg_common.get("comparator.pic_match_similaritys")
+        self.levels = {MATCH_CONFIDENCE.HIGH: 0, MATCH_CONFIDENCE.MID: 1,
+                       MATCH_CONFIDENCE.LOW: 2, MATCH_CONFIDENCE.VERY_LOW: 3}
 
     def _template_image(self, template_path, convert_gray=True):
         '''
@@ -56,7 +53,7 @@ class ComparatorVee:
         - convert_gray: 是否转化为灰度图
         '''
 
-        color_img = self.device.screenshot(format='opencv')
+        color_img = self.controller.capture_screenshot()
         if (leftup_coordinate and rightdown_coordinate):
             x1, y1 = leftup_coordinate
             x2, y2 = rightdown_coordinate
@@ -125,7 +122,7 @@ class ComparatorVee:
         return os.path.join(base_path, relative_path)
 
     def template_in_picture(self, template_path, leftup_coordinate=None, rightdown_coordinate=None,
-                            return_center_coord=False, save_path='', match_threshold=0.9):
+                            return_center_coord=False, save_path='', match_level=MATCH_CONFIDENCE.HIGH):
         '''
         检查指定区域的图像是否存在指定图像模板。
         如果有返回目标坐标
@@ -146,7 +143,10 @@ class ComparatorVee:
         # image_gray中最符合模板template_gray的区域的左上角, 右下角坐标. 且该区域与模板shape一致.
         target_leftup, target_rightdown = find_target_in_image(template_gray, cropped_screenshot_gray)
         # 第二次裁剪, 为了匹配模板template_gray的shape, 此时twice_cropped_screenshot_gray与template_gray有相同shape, 这之后才可调用比较相似度的函数
-        twice_cropped_screenshot_gray = cropped_screenshot_gray[target_leftup[1]                                                                : target_rightdown[1], target_leftup[0]: target_rightdown[0]]
+        twice_cropped_screenshot_gray = cropped_screenshot_gray[target_leftup[1]
+            : target_rightdown[1], target_leftup[0]: target_rightdown[0]]
+
+        match_threshold = self.match_thresholds[self.levels[match_level]]
 
         # 检查是否匹配
         is_match = check_image_similarity(twice_cropped_screenshot_gray, template_gray, match_threshold)
@@ -161,21 +161,6 @@ class ComparatorVee:
                     return get_abs_center_coord(leftup_coordinate, target_leftup, target_rightdown)
                 else:  # 如果未指定背景图片, 默认背景图片就是全图, 返回全屏的绝对坐标
                     return get_abs_center_coord((0, 0), target_leftup, target_rightdown)
-
-    def match_point_color(self, points_with_colors, tolerance=5):
-        """检查屏幕上的多个点的颜色是否与期望颜色全部相匹配。
-        :param points_with_colors: list of tuples, 每个元组包含坐标(x, y)和期望的RGB颜色列表
-        :param tolerance: int, 颜色匹配的容忍度
-        :return: bool, 如果所有给定的点的颜色与相应的期望颜色匹配，返回True
-        """
-        screenshot = self.device.screenshot(format='opencv')  # 返回的是一个numpy.ndarray对象
-        for (x, y, expected_color) in points_with_colors:
-            expected_color = tuple(expected_color)  # 将列表转换为元组
-            # 在numpy数组中使用[y, x]方式获取颜色，并注意BGR到RGB的转换
-            actual_color = screenshot[y, x][::-1]  # 切片[::-1]用于将BGR转换为RGB
-            if not all(abs(actual_color[i] - expected_color[i]) <= tolerance for i in range(3)):
-                return False
-        return True
 
 
 def get_abs_center_coord(leftup_coordinate, target_leftup, target_rightdown):
@@ -193,6 +178,3 @@ def get_abs_center_coord(leftup_coordinate, target_leftup, target_rightdown):
     abs_x_center = int(leftup_coordinate[0] + (target_leftup[0] + target_rightdown[0]) // 2)
     abs_y_center = int(leftup_coordinate[1] + (target_leftup[1] + target_rightdown[1]) // 2)
     return (abs_x_center, abs_y_center)
-
-
-comparator_vee = ComparatorVee()
