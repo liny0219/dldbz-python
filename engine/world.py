@@ -29,7 +29,8 @@ class WorldVee:
             return False
         ponits_with_colors = [
             (55, 432, [243, 243, 243]),
-            (101, 488, [6, 6, 6]),
+            (57, 431, [242, 243, 247]),
+            (87, 464, [80, 80, 78]),
             (68, 487, [164, 150, 149])
         ]
         if comparator_vee.match_point_color(ponits_with_colors):
