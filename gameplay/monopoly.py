@@ -292,11 +292,11 @@ class Monopoly():
             num = [46, 36, 30, 15]
             strType = "previlege"
         if self.type == "802":
-            num = []
-            strType = "reputation"
+            num = [45, 34, 10]
+            strType = "treasure"
         if self.type == "803":
             num = [41, 20]
-            strType = "treasure"
+            strType = "reputation"
         if not num or not strType:
             return None
         for i in range(len(num)):
