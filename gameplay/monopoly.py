@@ -1,6 +1,5 @@
 import time
 import cv2
-from typing import List
 from engine.comparator import comparator_vee
 from engine.world import world_vee
 from engine.engine import engine_vee
@@ -57,23 +56,22 @@ class Monopoly():
         self.global_data and self.global_data.update_ui(msg, type)
 
     def start(self):
-        count = 0
-        looptime = 0
-        failed = 0
+        retry_count = 0
+        started_count = 0
+        finished_count = 0
         self.set()
         begin_time = time.time()
         begin_turn = begin_time
         total_duration = 0
         turn_duration = 0
         restart = 0
-        reported = False
-        finished = True
+        reported_finish = False
+        reported_end = False
         isMatch = "None"
         self.update_ui(f"大霸启动!", 1)
         while not self.thread_stoped():
             try:
                 self.screenshot = engine_vee.device.screenshot(format='opencv')
-
                 isMatch = "None"
                 if world_vee.in_world(self.screenshot):
                     isMatch = 'in_world'
@@ -87,25 +85,26 @@ class Monopoly():
                 is_set_game_mode = self.check_set_game_mode()
                 is_page_monopoly = self.check_page_monopoly()
                 if is_set_game_mode:
-                    self.set_game_mode()
-                    self.btn_play_monopoly()
-                    begin_turn = time.time()
-                    finished = False
-                    reported = False
-                    looptime += 1
-
-                if is_page_monopoly:
-                    isMatch = 'check_play_monopoly'
-                    if looptime != 0 and not reported:
+                    if not reported_end:
                         now = time.time()
                         total_duration = (now - begin_time) / 60
                         turn_duration = (now - begin_turn) / 60
-                        if not finished:
-                            failed += 1
-                        msg1 = f"完成{looptime}次,翻车{failed}次,重启{restart}次"
+                        failed_count = started_count - finished_count
+                        if failed_count < 0:
+                            failed_count = 0
+                        msg1 = f"完成{finished_count}次,翻车{failed_count}次,重启{restart}次"
                         msg2 = f"本轮耗时{turn_duration:.2f}分钟,总耗时{total_duration:.2f}分钟"
                         self.update_ui(f"{msg1},{msg2}", 1)
-                        reported = True
+                        reported_end = True
+                    self.set_game_mode()
+                    self.btn_play_monopoly()
+                    begin_turn = time.time()
+                    reported_end = False
+                    reported_finish = False
+                    started_count += 1
+
+                if is_page_monopoly:
+                    isMatch = 'check_play_monopoly'
                     self.select_monopoly()
                     self.btn_setting_monopoly()
 
@@ -141,19 +140,34 @@ class Monopoly():
                         isMatch = 'check_accept_confirm'
                     if self.check_info_confirm():
                         isMatch = 'check_info_confirm'
+                    if self.check_end():
+                        isMatch = 'check_end'
+                        if not reported_finish:
+                            finished_count += 1
+                            reported_finish = True
                     if self.check_final_confirm():
                         isMatch = 'check_final_confirm'
                         self.btn_final_confirm()
-                        finished = True
+                        if not reported_end:
+                            now = time.time()
+                            total_duration = (now - begin_time) / 60
+                            turn_duration = (now - begin_turn) / 60
+                            failed_count = started_count - finished_count
+                            if failed_count < 0:
+                                failed_count = 0
+                            msg1 = f"完成{finished_count}次,翻车{failed_count}次,重启{restart}次"
+                            msg2 = f"本轮耗时{turn_duration:.2f}分钟,总耗时{total_duration:.2f}分钟"
+                            self.update_ui(f"{msg1},{msg2}", 1)
+                            reported_end = True
                     if self.check_crossing():
                         isMatch = 'check_crossing'
                 if isMatch != 'None':
                     self.update_ui(f"匹配到的函数 {isMatch} ", 3)
-                    count = 0
+                    retry_count = 0
                 else:
-                    if count > 100:
-                        self.error(f"检查{count}次0.1秒未匹配到任何执行函数，重启游戏")
-                        count = 0
+                    if retry_count > 100:
+                        self.error(f"检查{retry_count}次0.1秒未匹配到任何执行函数，重启游戏")
+                        retry_count = 0
                         restart += 1
                         engine_vee.restart_game()
                         continue
@@ -161,12 +175,12 @@ class Monopoly():
                     check_in_app = engine_vee.check_in_app()
                     if not check_in_app:
                         self.update_ui("未检测到游戏")
-                        count = 0
+                        retry_count = 0
                         engine_vee.start_app()
                     else:
                         self.btn_trim_confirm()
-                        count += 1
-                        self.update_ui(f"未匹配到任何函数，第{count}次", 3)
+                        retry_count += 1
+                        self.update_ui(f"未匹配到任何函数，第{retry_count}次", 3)
                 time.sleep(self.cfg_check_interval)
             except Exception as e:
                 self.update_ui(f"出现异常！{e}")
@@ -424,6 +438,21 @@ class Monopoly():
             return True
         return False
 
+    def check_end(self):
+        self.update_ui("开始检查是否结束", 3)
+        points_with_colors = [
+            (486, 111, [233, 232, 228]),
+            (486, 111, [233, 232, 228]),
+            (486, 111, [233, 232, 228]),
+            (486, 111, [233, 232, 228]),
+            (159, 174, [102, 96, 82]),
+            (164, 175, [53, 43, 31]),
+            (442, 113, [236, 235, 233])]
+        if comparator_vee.match_point_color(points_with_colors, screenshot=self.screenshot):
+            self.update_ui("检查到是否结束")
+            return True
+        return False
+
     def check_distance(self, screenshot):
         try:
             time.sleep(self.cfg_check_roll_rule_wait)
@@ -433,7 +462,7 @@ class Monopoly():
             while not number and retry < max_retry:
                 self.update_ui(f"检查距离失败，重试次数{retry}，最大重试次数{max_retry}")
                 time.sleep(self.cfg_check_roll_rule_wait)
-                number = self.ocr_number(screenshot)
+                number = self.ocr_number(screenshot, retry)
                 retry += 1
             return number
         except Exception as e:
@@ -480,11 +509,14 @@ class Monopoly():
         print(f"r_bp1:{r_bp1},r_bp2:{r_bp2},r_bp3:{r_bp3}")
         return 0
 
-    def ocr_number(self, screenshot):
+    def ocr_number(self, screenshot, count=0):
         x, y, width, height = 708, 480, 28, 20
         cropped_image = screenshot[y:y+height, x:x+width]
         cv2.imwrite('cropped_image.png', cropped_image)
-        return comparator_vee.get_num_in_image('cropped_image.png')
+        comparator_vee.bicubic_resize('cropped_image.png', 'cropped_image_resized_image.png', 2.0)
+        comparator_vee.apply_threshold_and_save(cv2.imread(
+            'cropped_image_resized_image.png'), 100, 'cropped_image_resized_image.png')
+        return comparator_vee.get_num_in_image('cropped_image_resized_image.png')
 
     def btn_confirm(self):
         engine_vee.device.click(480, 324)

@@ -3,12 +3,15 @@
 import os
 import sys
 import cv2
+import easyocr
 import utils.loger as loger
 from utils.image_process import check_image_similarity,  \
     color_match_all, color_match_count, color_in_image, find_target_in_image
 from utils.singleton import singleton
 import uiautomator2 as u2
-import easyocr
+from PIL import Image
+import numpy as np
+
 
 reader = easyocr.Reader(['en'])
 
@@ -157,7 +160,8 @@ class ComparatorVee:
         # image_gray中最符合模板template_gray的区域的左上角, 右下角坐标. 且该区域与模板shape一致.
         target_leftup, target_rightdown = find_target_in_image(template_gray, cropped_screenshot_gray)
         # 第二次裁剪, 为了匹配模板template_gray的shape, 此时twice_cropped_screenshot_gray与template_gray有相同shape, 这之后才可调用比较相似度的函数
-        twice_cropped_screenshot_gray = cropped_screenshot_gray[target_leftup[1]: target_rightdown[1], target_leftup[0]: target_rightdown[0]]
+        twice_cropped_screenshot_gray = cropped_screenshot_gray[target_leftup[1]
+            : target_rightdown[1], target_leftup[0]: target_rightdown[0]]
 
         # 检查是否匹配
         is_match = check_image_similarity(twice_cropped_screenshot_gray, template_gray, match_threshold)
@@ -199,6 +203,27 @@ class ComparatorVee:
             return None
         except ValueError:
             return None
+
+    def bicubic_resize(self, image_path, output_path, scale_factor):
+        with Image.open(image_path) as img:
+            # 计算新的尺寸
+            new_width = int(img.width * scale_factor)
+            new_height = int(img.height * scale_factor)
+            # 使用双三次插值方法进行图像放大
+            resized_img = img.resize((new_width, new_height), Image.BICUBIC)
+            # 将PIL图像转换为OpenCV格式
+            # 将PIL图像转换为OpenCV格式
+            open_cv_image = np.array(resized_img)
+            cv2.imwrite(output_path, open_cv_image)
+
+    def apply_threshold_and_save(self, image, threshold_value, output_path):
+        mask = (image[:, :, 0] < threshold_value) & \
+            (image[:, :, 1] < threshold_value) & \
+            (image[:, :, 2] < threshold_value)
+        # 将满足条件的像素设置为黑色
+        image[mask] = [0, 0, 0]
+        # 保存处理后的图像
+        cv2.imwrite(output_path, image)
 
 
 def get_abs_center_coord(leftup_coordinate, target_leftup, target_rightdown):
