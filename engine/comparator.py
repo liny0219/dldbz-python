@@ -8,6 +8,9 @@ from utils.image_process import check_image_similarity,  \
     color_match_all, color_match_count, color_in_image, find_target_in_image
 from utils.singleton import singleton
 import uiautomator2 as u2
+import easyocr
+
+reader = easyocr.Reader(['en'])
 
 
 @singleton
@@ -187,6 +190,13 @@ class ComparatorVee:
             if not all(abs(actual_color[i] - expected_color[i]) <= tolerance for i in range(3)):
                 return False
         return True
+
+    def get_num_in_image(self, image_path):
+        try:
+            result = reader.readtext(image_path)
+            return int(result[0][1])
+        except ValueError:
+            return None
 
 
 def get_abs_center_coord(leftup_coordinate, target_leftup, target_rightdown):

@@ -12,7 +12,8 @@ hiddenimports = []
 
 # 列出所有需要自动处理的依赖库
 packages = [
-    'uiautomator2'
+    'uiautomator2',
+    'easyocr'
 ]
 
 # 使用 collect_all 自动收集每个包的资源
@@ -51,11 +52,11 @@ exe = EXE(pyz,
           a.zipfiles,
           a.datas,
           name='歧路茶馆',
-          debug=False,
+          debug=True,
           bootloader_ignore_signals=False,
           strip=False,
           upx=True,
-          console=False)
+          console=True)
 
 # coll = COLLECT(exe,
 #                a.binaries,

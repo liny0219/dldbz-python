@@ -1,4 +1,5 @@
 import time
+import cv2
 from typing import List
 from engine.comparator import comparator_vee
 from engine.world import world_vee
@@ -56,10 +57,10 @@ class Monopoly():
         finished = True
         isMatch = "None"
         self.update_ui(f"大霸启动!", 1)
-
         while not self.thread_stoped():
             try:
                 self.screenshot = engine_vee.device.screenshot(format='opencv')
+
                 isMatch = "None"
                 if world_vee.in_world(self.screenshot):
                     isMatch = 'in_world'
@@ -107,6 +108,8 @@ class Monopoly():
                 if not in_battle:
                     if self.can_roll_dice():
                         isMatch = 'can_roll_dice'
+                        number = self.ocr_number(self.screenshot)
+                        self.update_ui(f"距离终点：{number}")
                         self.roll_dice()
                     if world_vee.check_stage(self.screenshot):
                         isMatch = 'check_stage'
@@ -263,11 +266,13 @@ class Monopoly():
             return False
         self.update_ui("开始检查是否在大富翁选择界面中", 3)
         p1 = [
-            (815, 451, [49, 100, 121]),
-            (838, 455, [174, 199, 219]),
-            (835, 456, [62, 91, 109]),
-            (851, 444, [134, 156, 167]),
-            (842, 439, [102, 135, 150])
+            (150, 102, [235, 215, 188]),
+            (586, 21, [139, 114, 83]),
+            (471, 198, [134, 126, 107]),
+            (473, 252, [139, 130, 113]),
+            (473, 315, [145, 137, 118]),
+            (24, 16, [231, 231, 231]),
+            (472, 145, [133, 124, 107])
         ]
         ponits_with_colors = [p1]
         for i in ponits_with_colors:
@@ -400,6 +405,13 @@ class Monopoly():
             engine_vee.device.click(x + offfset, y)
             return True
         return False
+
+    def ocr_number(self, screenshot):
+        x, y, width, height = 708, 480, 28, 20
+        cropped_image = screenshot[y:y+height, x:x+width]
+        img_path = 'cropped_image.png'
+        cv2.imwrite(img_path, cropped_image)
+        return comparator_vee.get_num_in_image(img_path)
 
     def btn_confirm(self):
         engine_vee.device.click(480, 324)
