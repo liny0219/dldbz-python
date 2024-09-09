@@ -69,12 +69,11 @@ class EngineVee:
         self.start_app()
         self.update_ui(f"重启成功")
 
-    def long_press_and_drag(self, start, end, duration=0.5):
+    def long_press_and_drag(self, start, end, duration=0.2):
         start_x, start_y = start
         end_x, end_y = end
         self.device.long_click(start_x, start_y, duration / 1000)  # 注意这里duration需要转换为秒
-        time.sleep(0.5)
-        self.device.drag(start_x, start_y, end_x, end_y, duration=0.5)  # 滑动操作持续0.5秒
+        self.device.drag(start_x, start_y, end_x, end_y, duration=0.1)  # 滑动操作持续0.5秒
 
 
 engine_vee = EngineVee()

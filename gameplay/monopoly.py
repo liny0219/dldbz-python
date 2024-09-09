@@ -177,7 +177,7 @@ class Monopoly():
         if bp > 0:
             offset = 58 * bp
             end_point = (x, y - offset)
-            engine_vee.long_press_and_drag(start_point, end_point, 0)
+            engine_vee.long_press_and_drag(start_point, end_point)
         if bp == 0:
             engine_vee.device.click(x, y)
         self.update_ui(f"投骰子, BP: {bp}")
