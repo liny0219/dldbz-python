@@ -6,7 +6,7 @@
   "ticket": "0",
   "lv": "5",
   "auto_battle":"1",
-  "isContinue": "1",
+  "isContinue": "0",
   "check_interval": "0.2",
   "check_roll_dice_time": "2",
   "check_roll_dice_interval": "0.2",
