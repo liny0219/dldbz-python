@@ -151,7 +151,6 @@ class Monopoly():
                 time.sleep(self.check_interval)
             except Exception as e:
                 self.update_ui(f"出现异常！{e}")
-                return
 
     def roll_dice(self, bp=0):
         start_point = (846, 440)
