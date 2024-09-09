@@ -248,9 +248,9 @@ class Monopoly():
         if (self.thread_stoped()):
             return
         if direction == "left":
-            engine_vee.device.click(400, 250)
+            engine_vee.device.click(402, 243)
         if direction == "right":
-            engine_vee.device.click(560, 250)
+            engine_vee.device.click(558, 243)
         if direction == "up":
             engine_vee.device.click(480, 150)
         if direction == "down":
