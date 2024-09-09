@@ -8,7 +8,7 @@ class ConfigLoader:
         self.config_data = self._load_config()
 
     def _load_config(self):
-        with open(self.config_file, 'r') as file:
+        with open(self.config_file, 'r', encoding='utf-8') as file:
             return json.load(file)
 
     def get(self, key_path, default=None):

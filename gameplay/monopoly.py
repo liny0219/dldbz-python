@@ -7,6 +7,7 @@ from engine.engine import engine_vee
 from engine.battle import battle_vee
 from utils.config_loader import cfg_monopoly_vee, reload_config
 from app_data import AppData
+import json
 
 
 class Monopoly():
@@ -14,28 +15,40 @@ class Monopoly():
         self.global_data = global_data
         self.debug = True
         self.crood_range = [(474, 116), (937, 397)]
-        self.type = "801"
-        self.crossing = None
-        self.ticket = 0
-        self.lv = 5
-        self.auto_battle = 1
-        self.isContinue = 1
-        self.check_interval = 0.2
-        self.check_roll_dice_interval = 0.2
-        self.check_roll_dice_time = 2
+        self.cfg_type = "801"
+        self.cfg_crossing = None
+        self.cfg_ticket = 0
+        self.cfg_lv = 5
+        self.cfg_auto_battle = 1
+        self.cfg_isContinue = 1
+        self.cfg_check_interval = 0.2
+        self.cfg_check_roll_dice_interval = 0.2
+        self.cfg_check_roll_dice_time = 2
+        self.cfg_check_roll_rule = 1
+        self.cfg_check_roll_rule_time = 2
+        self.cfg_check_roll_rule_wait = 0.1
         self.screenshot = None
+        self.cfg_r801 = []
+        self.cfg_r802 = []
+        self.cfg_r803 = []
 
     def set(self):
         reload_config()
-        self.ticket = int(cfg_monopoly_vee.get("ticket"))
-        self.lv = int(cfg_monopoly_vee.get("lv"))
-        self.type = cfg_monopoly_vee.get("type")
-        self.crossing = cfg_monopoly_vee.get(f"crossing.{self.type}")
-        self.auto_battle = int(cfg_monopoly_vee.get("auto_battle"))
-        self.isContinue = int(cfg_monopoly_vee.get("isContinue"))
-        self.check_interval = float(cfg_monopoly_vee.get("check_interval"))
-        self.check_roll_dice_interval = float(cfg_monopoly_vee.get("check_roll_dice_interval"))
-        self.check_roll_dice_time = int(cfg_monopoly_vee.get("check_roll_dice_time"))
+        self.cfg_ticket = int(cfg_monopoly_vee.get("ticket"))
+        self.cfg_lv = int(cfg_monopoly_vee.get("lv"))
+        self.cfg_type = cfg_monopoly_vee.get("type")
+        self.cfg_crossing = cfg_monopoly_vee.get(f"crossing.{self.cfg_type}")
+        self.cfg_auto_battle = int(cfg_monopoly_vee.get("auto_battle"))
+        self.cfg_isContinue = int(cfg_monopoly_vee.get("isContinue"))
+        self.cfg_check_interval = float(cfg_monopoly_vee.get("check_interval"))
+        self.cfg_check_roll_dice_interval = float(cfg_monopoly_vee.get("check_roll_dice_interval"))
+        self.cfg_check_roll_dice_time = int(cfg_monopoly_vee.get("check_roll_dice_time"))
+        self.cfg_check_roll_rule = int(cfg_monopoly_vee.get("check_roll_rule"))
+        self.cfg_check_roll_rule_time = int(cfg_monopoly_vee.get("check_roll_rule_time"))
+        self.cfg_check_roll_rule_wait = float(cfg_monopoly_vee.get("check_roll_rule_wait"))
+        self.cfg_r801 = cfg_monopoly_vee.get("bp.801")
+        self.cfg_r802 = cfg_monopoly_vee.get("bp.802")
+        self.cfg_r803 = cfg_monopoly_vee.get("bp.803")
 
     def thread_stoped(self) -> bool:
         return self.global_data and self.global_data.thread_stoped()
@@ -67,7 +80,7 @@ class Monopoly():
                     self.btn_menu_monopoly()
                 if self.check_continue():
                     isMatch = 'check_continue'
-                    if self.isContinue == 0:
+                    if self.cfg_isContinue == 0:
                         self.btn_not_continue()
                     else:
                         self.btn_continue()
@@ -101,16 +114,22 @@ class Monopoly():
                     isMatch = 'is_in_battle'
                 if battle_vee.is_in_battle_ready():
                     isMatch = 'is_in_battle_ready'
-                    if self.auto_battle == 1:
+                    if self.cfg_auto_battle == 1:
                         battle_vee.btn_auto_battle()
                     else:
                         battle_vee.btn_attack()
                 if not in_battle:
                     if self.can_roll_dice():
                         isMatch = 'can_roll_dice'
-                        number = self.ocr_number(self.screenshot)
-                        self.update_ui(f"距离终点：{number}")
-                        self.roll_dice()
+                        input_bp = 0
+                        if self.cfg_check_roll_rule == 1:
+                            number = self.check_distance(self.screenshot)
+                            input_bp = self.check_roll_rule(number)
+                            max_bp = self.check_bp_number(self.screenshot)
+                            self.update_ui(f"距离终点：{number}，当前BP：{max_bp}")
+                            if input_bp > max_bp:
+                                input_bp = max_bp
+                        self.roll_dice(input_bp)
                     if world_vee.check_stage(self.screenshot):
                         isMatch = 'check_stage'
                         battle_vee.cmd_skip()
@@ -148,7 +167,7 @@ class Monopoly():
                         self.btn_trim_confirm()
                         count += 1
                         self.update_ui(f"未匹配到任何函数，第{count}次", 3)
-                time.sleep(self.check_interval)
+                time.sleep(self.cfg_check_interval)
             except Exception as e:
                 self.update_ui(f"出现异常！{e}")
 
@@ -161,9 +180,9 @@ class Monopoly():
             engine_vee.long_press_and_drag(start_point, end_point, 0)
         if bp == 0:
             engine_vee.device.click(x, y)
-        self.update_ui("开始掷骰子")
-        for i in range(self.check_roll_dice_time):
-            time.sleep(self.check_roll_dice_interval)
+        self.update_ui(f"开始掷骰子, BP：{bp}")
+        for i in range(self.cfg_check_roll_dice_time):
+            time.sleep(self.cfg_check_roll_dice_interval)
             self.btn_trim_confirm()
 
     def can_roll_dice(self):
@@ -201,11 +220,11 @@ class Monopoly():
     def find_monopoly(self):
         if (self.thread_stoped()):
             return False
-        if self.type == "801":
+        if self.cfg_type == "801":
             return self.find_previlege()
-        if self.type == "802":
+        if self.cfg_type == "802":
             return self.find_treasure()
-        if self.type == "803":
+        if self.cfg_type == "803":
             return self.find_reputation()
 
     def find_reputation(self):
@@ -223,16 +242,16 @@ class Monopoly():
     def set_game_mode(self):
         init_ticket = 1
         init_lv = 0
-        while self.ticket < init_ticket and not self.thread_stoped():
+        while self.cfg_ticket < init_ticket and not self.thread_stoped():
             self.reduce_ticket()
             init_ticket -= 1
-        while self.ticket > init_ticket and not self.thread_stoped():
+        while self.cfg_ticket > init_ticket and not self.thread_stoped():
             self.add_ticket()
             init_ticket += 1
-        while self.lv > init_lv and not self.thread_stoped():
+        while self.cfg_lv > init_lv and not self.thread_stoped():
             self.add_lv()
             init_lv += 1
-        while self.lv < init_lv and not self.thread_stoped():
+        while self.cfg_lv < init_lv and not self.thread_stoped():
             self.reduce_lv()
             init_lv -= 1
 
@@ -309,8 +328,8 @@ class Monopoly():
         if (self.thread_stoped()):
             return False
         current_crossing = self.check_crossing_index()
-        if current_crossing != None and self.crossing and self.crossing[current_crossing]:
-            direction = self.crossing[current_crossing]
+        if current_crossing != None and self.cfg_crossing and self.cfg_crossing[current_crossing]:
+            direction = self.cfg_crossing[current_crossing]
             self.turn_crossing(direction)
             return True
         return False
@@ -322,13 +341,13 @@ class Monopoly():
         strType = None
         crood_range = [(708, 480), (750, 500)]
 
-        if self.type == "801":
+        if self.cfg_type == "801":
             num = [46, 36, 30, 15]
             strType = "previlege"
-        if self.type == "802":
+        if self.cfg_type == "802":
             num = [45, 34, 10]
             strType = "treasure"
-        if self.type == "803":
+        if self.cfg_type == "803":
             num = [41, 20]
             strType = "reputation"
         if not num or not strType:
@@ -405,12 +424,62 @@ class Monopoly():
             return True
         return False
 
+    def check_distance(self, screenshot):
+        try:
+            time.sleep(self.cfg_check_roll_rule_wait)
+            number = self.ocr_number(screenshot)
+            retry = 0
+            if not number and retry < self.cfg_check_roll_rule_time:
+                time.sleep(self.cfg_check_roll_rule_wait)
+                number = self.ocr_number(screenshot)
+                retry += 1
+            return number
+        except Exception as e:
+            self.update_ui(f"检查距离出现异常{e}")
+            return None
+
+    def check_roll_rule(self, number):
+        try:
+            rules_map = {
+                "801": self.cfg_r801,
+                "802": self.cfg_r802,
+                "803": self.cfg_r803
+            }
+            rule = rules_map.get(self.cfg_type, "")
+            if not rule:
+                return 0
+            rule_json = f"[{rule}]"
+            ranges = json.loads(rule_json)
+            for start, end, bp in ranges:
+                if start >= number > end:
+                    return bp
+            return 0
+        except Exception as e:
+            self.update_ui(f"检查自定义扔骰子规则出现异常：{str(e)}")
+            return 0
+
+    def check_bp_number(self, screenshot):
+        bp3 = [865, 456]
+        bp2 = [848, 456]
+        bp1 = [832, 456]
+        r_bp1 = screenshot[bp1[1], bp1[0]][2]  # 获取 R 通道
+        r_bp2 = screenshot[bp2[1], bp2[0]][2]  # 获取 R 通道
+        r_bp3 = screenshot[bp3[1], bp3[0]][2]  # 获取 R 通道
+        limit = 80
+        if r_bp3 > limit:
+            return 3
+        if r_bp2 > limit:
+            return 2
+        if r_bp1 > limit:
+            return 1
+        print(f"r_bp1:{r_bp1},r_bp2:{r_bp2},r_bp3:{r_bp3}")
+        return 0
+
     def ocr_number(self, screenshot):
         x, y, width, height = 708, 480, 28, 20
         cropped_image = screenshot[y:y+height, x:x+width]
-        img_path = 'cropped_image.png'
-        cv2.imwrite(img_path, cropped_image)
-        return comparator_vee.get_num_in_image(img_path)
+        cv2.imwrite('cropped_image.png', cropped_image)
+        return comparator_vee.get_num_in_image('cropped_image.png')
 
     def btn_confirm(self):
         engine_vee.device.click(480, 324)
