@@ -51,6 +51,7 @@ class Monopoly():
         begin_turn = begin_time
         total_duration = 0
         turn_duration = 0
+        restart = 0
         reported = False
         finished = True
         isMatch = "None"
@@ -87,9 +88,9 @@ class Monopoly():
                         turn_duration = (now - begin_turn) / 60
                         if not finished:
                             failed += 1
-                        msg1 = f"完成{looptime}次，翻车{failed}次，本轮耗时{turn_duration:.2f}分钟"
-                        msg2 = f"总耗时{total_duration:.2f}分钟"
-                        self.update_ui(f"{msg1},{msg2} ", 1)
+                        msg1 = f"完成{looptime}次,翻车{failed}次,重启{restart}次"
+                        msg2 = f"本轮耗时{turn_duration:.2f}分钟,总耗时{total_duration:.2f}分钟"
+                        self.update_ui(f"{msg1},{msg2}", 1)
                         reported = True
                     self.select_monopoly()
                     self.btn_setting_monopoly()
@@ -131,6 +132,7 @@ class Monopoly():
                     if count > 100:
                         self.error(f"检查{count}次0.1秒未匹配到任何执行函数，重启游戏")
                         count = 0
+                        restart += 1
                         engine_vee.restart_game()
                         continue
                     self.update_ui("未匹配到任何函数", 3)
