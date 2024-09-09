@@ -38,12 +38,12 @@ class EngineVee:
         self.device = u2.connect(addr)
         comparator_vee.set_device(self.device)
         # // 连接设备
-        self.log("连接设备")
+        self.update_ui("连接设备")
 
     def check_in_app(self):
         current_app = self.device.app_current()
         self.package_name = current_app['package']
-        self.log(f"当前应用包名: {self.package_name}")
+        self.update_ui(f"当前应用包名: {self.package_name}", 3)
         return self.package_name == appName or self.package_name == appNameBilibili
 
     def start_app(self):
@@ -63,11 +63,11 @@ class EngineVee:
         self.device.app_stop("com.netease.ma167.bilibili")
 
     def restart_game(self):
-        self.log("重启游戏", 0)
+        self.update_ui("重启游戏")
         self.stop_app()
         time.sleep(1)
         self.start_app()
-        self.log(f"重启成功", 0)
+        self.update_ui(f"重启成功")
 
     def long_press_and_drag(self, start, end, duration=0.5):
         start_x, start_y = start
@@ -75,13 +75,6 @@ class EngineVee:
         self.device.long_click(start_x, start_y, duration / 1000)  # 注意这里duration需要转换为秒
         time.sleep(0.5)
         self.device.drag(start_x, start_y, end_x, end_y, duration=0.5)  # 滑动操作持续0.5秒
-
-    def log(self, msg, type=3):
-        if self.debug:
-            print(msg)
-        if type == 3:
-            return
-        self.update_ui(msg, type)
 
 
 engine_vee = EngineVee()

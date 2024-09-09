@@ -22,6 +22,7 @@ class Startup:
         self.app = app
         self.stats_label = None
         self.message_text = None
+        self.debug = cfg_startup_vee.get('debug')
         engine_vee.set(self.app_data)
         world_vee.set(self.app_data)
         battle_vee.set(self.app_data)
@@ -71,6 +72,10 @@ class Startup:
 
     def update_ui(self, msg, type=0):
         if not self.message_text:
+            return
+        if self.debug == 1:
+            print(msg)
+        if type == 3 and self.debug == 0:
             return
 
         # 如果是type=1，更新统计信息

@@ -5,8 +5,8 @@ from utils.singleton import singleton
 class BattleHook:
     def __init__(self, log_enabled=False):
         # 控制日志输出的属性
-        self.log_enabled = log_enabled
-
+        self.update_ui_enabled = log_enabled
+        self.update_ui = print if log_enabled else lambda x: None
         # 初始化默认的 hook 函数，包含所有可能的指令
         self.hooks = {
             "Role": self.default_role_hook,         # 普通攻击
@@ -29,13 +29,6 @@ class BattleHook:
         # 保留默认行为，用于在自定义 hook 时也执行默认行为
         self.default_hooks = self.hooks.copy()
 
-    def log(self, msg, type=3):
-        if self.debug:
-            print(msg)
-        if type == 3:
-            return
-        self.update_ui(msg, type)
-
     def set(self, command, hook_func):
         """ 设置自定义 hook 函数，并保留默认行为 """
         if command in self.hooks:
@@ -55,49 +48,49 @@ class BattleHook:
     # 以下是各指令的默认行为
 
     def default_role_hook(self, role_id, skill_id, energy_level, x=None, y=None):
-        self.log(f"Default Role Hook: Role {role_id}, Skill {skill_id}, Energy {energy_level}, 敌人坐标: {x},{y}")
+        self.update_ui(f"Default Role Hook: Role {role_id}, Skill {skill_id}, Energy {energy_level}, 敌人坐标: {x},{y}")
 
     def default_xrole_hook(self, role_id, skill_id, energy_level):
-        self.log(f"Default XRole Hook: Role {role_id}, Skill {skill_id}, Energy {energy_level}")
+        self.update_ui(f"Default XRole Hook: Role {role_id}, Skill {skill_id}, Energy {energy_level}")
 
     def default_boost_hook(self):
-        self.log("Default Boost Hook: Set Boost to Full.")
+        self.update_ui("Default Boost Hook: Set Boost to Full.")
 
     def default_attack_hook(self):
-        self.log("Default Attack Hook: Executed Attack.")
+        self.update_ui("Default Attack Hook: Executed Attack.")
 
     def default_switch_all_hook(self):
-        self.log("Default SwitchAll Hook: Switched all roles between front and back rows.")
+        self.update_ui("Default SwitchAll Hook: Switched all roles between front and back rows.")
 
     def default_sp_hook(self, role_id):
-        self.log(f"Default SP Hook: Role {role_id} used special skill.")
+        self.update_ui(f"Default SP Hook: Role {role_id} used special skill.")
 
     def default_reset_hook(self):
-        self.log("Default Reset Hook: All characters' skills and energy have been reset to 0.")
+        self.update_ui("Default Reset Hook: All characters' skills and energy have been reset to 0.")
 
     def default_switch_hook(self, role_id):
-        self.log(f"Default Switch Hook: Switched role {role_id} to a different position.")
+        self.update_ui(f"Default Switch Hook: Switched role {role_id} to a different position.")
 
     def default_wait_hook(self, duration):
-        self.log(f"Default Wait Hook: Waiting for {duration} milliseconds.")
+        self.update_ui(f"Default Wait Hook: Waiting for {duration} milliseconds.")
 
     def default_skip_hook(self, duration):
-        self.log(f"Default Skip Hook: Skipping {duration} milliseconds (placeholder).")
+        self.update_ui(f"Default Skip Hook: Skipping {duration} milliseconds (placeholder).")
 
     def default_clk_hook(self, x, y):
-        self.log(f"Default Click Hook: Clicking at ({x}, {y}).")
+        self.update_ui(f"Default Click Hook: Clicking at ({x}, {y}).")
 
     def default_battle_start_hook(self):
-        self.log("Default BattleStart Hook: Battle has started.")
+        self.update_ui("Default BattleStart Hook: Battle has started.")
 
     def default_battle_end_hook(self):
-        self.log("Default BattleEnd Hook: Battle has ended.")
+        self.update_ui("Default BattleEnd Hook: Battle has ended.")
 
     def default_cmd_start_hook(self):
-        self.log("Default CmdStart Hook: cmd has started.")
+        self.update_ui("Default CmdStart Hook: cmd has started.")
 
     def default_cmd_end_hook(self):
-        self.log("Default CmdEnd Hook: cmd has ended.")
+        self.update_ui("Default CmdEnd Hook: cmd has ended.")
 
     def default_finish_hook(self):
-        self.log("Default Finish Hook: Script execution has finished.")
+        self.update_ui("Default Finish Hook: Script execution has finished.")

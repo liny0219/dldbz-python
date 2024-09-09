@@ -45,7 +45,7 @@ class BattleVee:
         engine_vee.device.long_click(480, 254, duration)
 
     def is_in_battle(self):
-        self.log("开始检查是否在战斗界面中")
+        self.update_ui("开始检查是否在战斗界面中", 3)
         isR1 = [(788, 71, [145, 144, 142]), (791, 49, [243, 240, 233]), (784, 58, [0, 1, 0])]
         isR2 = [(787, 178, [223, 228, 224]), (791, 157, [245, 244, 242]), (784, 168, [1, 0, 0])]
         isR3 = [(786, 285, [226, 222, 219]), (790, 264, [237, 231, 231]), (784, 273, [0, 2, 1])]
@@ -57,23 +57,16 @@ class BattleVee:
             if self.thread_stoped():
                 return False
             if comparator_vee.match_point_color(i):
-                self.log("检测到在战斗界面中")
+                self.update_ui("检测到在战斗界面中", 3)
                 return True
         return False
 
     def is_in_battle_ready(self):
-        self.log("开始检查是否在战斗准备界面中")
+        self.update_ui("开始检查是否在战斗准备界面中", 3)
         result = comparator_vee.template_in_picture("./assets/battle/btn_bp.png", [(632, 469), (663, 498)], True)
         if result:
-            self.log("检测到在战斗准备界面中")
+            self.update_ui("检测到在战斗准备界面中", 3)
         return result
-
-    def log(self, msg, type=3):
-        if self.debug:
-            print(msg)
-        if type == 3:
-            return
-        self.update_ui(msg, type)
 
 
 battle_vee = BattleVee()

@@ -21,7 +21,7 @@ class GetCoord:
         def on_EVENT_LBUTTONDOWN(event, x, y, flags, param):
             if event == cv2.EVENT_LBUTTONDOWN:
                 b, g, r = self.img[y, x, :]
-                self.update_ui(f"点击坐标：({x},{y},[{r}, {g}, {b}])")
+                self.update_ui(f"点击坐标：({x},{y},[{r}, {g}, {b}])", 0)
                 # print(f"点击处的BGR颜色值为 ({b}, {g}, {r})")
                 cv2.putText(self.img, f"({x},{y})", (x, y), cv2.FONT_HERSHEY_PLAIN, 1, (0, 0, 255), 2)
                 cv2.imshow(wnd, self.img)
