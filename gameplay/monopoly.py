@@ -511,6 +511,8 @@ class Monopoly():
 
     def ocr_number(self, screenshot, count=0):
         x, y, width, height = 708, 480, 28, 20
+        if count > 0:
+            screenshot = engine_vee.device.screenshot(format='opencv')
         cropped_image = screenshot[y:y+height, x:x+width]
         cv2.imwrite('cropped_image.png', cropped_image)
         comparator_vee.bicubic_resize('cropped_image.png', 'cropped_image_resized_image.png', 2.0)
