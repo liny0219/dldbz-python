@@ -38,7 +38,7 @@ class Recollection:
 
     def log_time(self, start_time, action_description):
         elapsed_time = time.time() - start_time
-        self.update_ui(f"{action_description} 完成，耗时：{elapsed_time:.2f} 秒")
+        self.update_ui(f"{action_description} 完成，耗时: {elapsed_time:.2f} 秒")
 
     def on_read(self):
         ui_read = cfg_recollection.get("check.check_read_ui_refs")
@@ -128,7 +128,7 @@ class Recollection:
             self.battle.run('./battle_script/recollection.txt')
             self.finish()
         except Exception as e:
-            self.update_ui(f"发生错误：{e}", stats="发生错误，请检查。")
+            self.update_ui(f"发生错误: {e}", stats="发生错误，请检查。")
 
     def finish(self):
         self.loopNum += 1
@@ -142,10 +142,10 @@ class Recollection:
 
         # 更新 UI，时间格式为分钟
         self.update_ui(
-            f"追忆之书完成次数：{self.loopNum}\n"
-            f"本次时间：{round_time/60:.2f} 分钟\n"
-            f"总运行时间：{total_time/60:.2f} 分钟",
-            stats=f"追忆之书完成次数：{self.loopNum} 次 | 本次耗时：{round_time/60:.2f} 分钟 | 总耗时：{total_time/60:.2f} 分钟"
+            f"追忆之书完成次数: {self.loopNum}\n"
+            f"本次时间: {round_time/60:.2f} 分钟\n"
+            f"总运行时间: {total_time/60:.2f} 分钟",
+            stats=f"追忆之书完成次数: {self.loopNum} 次 | 本次耗时: {round_time/60:.2f} 分钟 | 总耗时: {total_time/60:.2f} 分钟"
         )
 
         # 等待确认奖励
@@ -162,13 +162,13 @@ class Recollection:
                                     timeout=20)
         # 输出状态关闭结果
         if not runStateStatus:
-            self.update_ui(f"状态关闭失败：{self.loop}")
+            self.update_ui(f"状态关闭失败: {self.loop}")
             return
         if self.loop != 0 and self.loopNum >= self.loop:
             self.update_ui(
-                f"追忆之书已达到设定次数：{self.loop}\n"
-                f"总运行时间：{total_time/60:.2f} 分钟",
-                stats=f"已完成 {self.loopNum} 次 | 本次耗时：{round_time/60:.2f} 分钟 | 总耗时：{total_time/60:.2f} 分钟"
+                f"追忆之书已达到设定次数: {self.loop}\n"
+                f"总运行时间: {total_time/60:.2f} 分钟",
+                stats=f"已完成 {self.loopNum} 次 | 本次耗时: {round_time/60:.2f} 分钟 | 总耗时: {total_time/60:.2f} 分钟"
             )
             return
         self.run()

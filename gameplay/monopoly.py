@@ -126,7 +126,7 @@ class Monopoly():
                             number = self.check_distance(self.screenshot)
                             input_bp = self.check_roll_rule(number)
                             max_bp = self.check_bp_number(self.screenshot)
-                            self.update_ui(f"距离终点：{number}，当前BP：{max_bp}")
+                            self.update_ui(f"距离终点 {number}，当前BP: {max_bp}")
                             if input_bp > max_bp:
                                 input_bp = max_bp
                         self.roll_dice(input_bp)
@@ -148,7 +148,7 @@ class Monopoly():
                     if self.check_crossing():
                         isMatch = 'check_crossing'
                 if isMatch != 'None':
-                    self.update_ui(f"匹配到的函数：{isMatch} ", 3)
+                    self.update_ui(f"匹配到的函数 {isMatch} ", 3)
                     count = 0
                 else:
                     if count > 100:
@@ -180,7 +180,7 @@ class Monopoly():
             engine_vee.long_press_and_drag(start_point, end_point, 0)
         if bp == 0:
             engine_vee.device.click(x, y)
-        self.update_ui(f"开始掷骰子, BP：{bp}")
+        self.update_ui(f"投骰子, BP: {bp}")
         for i in range(self.cfg_check_roll_dice_time):
             time.sleep(self.cfg_check_roll_dice_interval)
             self.btn_trim_confirm()
@@ -439,6 +439,9 @@ class Monopoly():
             return None
 
     def check_roll_rule(self, number):
+        if not number:
+            self.update_ui("检查距离失败", 3)
+            return 0
         try:
             rules_map = {
                 "801": self.cfg_r801,
@@ -455,7 +458,7 @@ class Monopoly():
                     return bp
             return 0
         except Exception as e:
-            self.update_ui(f"检查自定义扔骰子规则出现异常：{str(e)}")
+            self.update_ui(f"检查自定义扔骰子规则出现异常 {str(e)}")
             return 0
 
     def check_bp_number(self, screenshot):
