@@ -25,7 +25,7 @@ class Monopoly():
         self.cfg_check_roll_dice_interval = 0.2
         self.cfg_check_roll_dice_time = 2
         self.cfg_check_roll_rule = 1
-        self.cfg_check_roll_rule_time = 2
+        self.cfg_check_roll_rule_time = 5
         self.cfg_check_roll_rule_wait = 0.1
         self.screenshot = None
         self.cfg_r801 = []
@@ -429,7 +429,9 @@ class Monopoly():
             time.sleep(self.cfg_check_roll_rule_wait)
             number = self.ocr_number(screenshot)
             retry = 0
-            if not number and retry < self.cfg_check_roll_rule_time:
+            max_retry = self.cfg_check_roll_rule_time
+            while not number and retry < max_retry:
+                self.update_ui(f"检查距离失败，重试次数{retry}，最大重试次数{max_retry}")
                 time.sleep(self.cfg_check_roll_rule_wait)
                 number = self.ocr_number(screenshot)
                 retry += 1
