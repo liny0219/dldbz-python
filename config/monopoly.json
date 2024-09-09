@@ -7,6 +7,9 @@
   "lv": "5",
   "auto_battle":"1",
   "isContinue": "1",
+  "check_interval": "0.2",
+  "check_roll_dice_time": "2",
+  "check_roll_dice_interval": "0.2",
   "crossing":
       {
         "801": ["left", "right", "up", "left"],

@@ -154,8 +154,7 @@ class ComparatorVee:
         # image_gray中最符合模板template_gray的区域的左上角, 右下角坐标. 且该区域与模板shape一致.
         target_leftup, target_rightdown = find_target_in_image(template_gray, cropped_screenshot_gray)
         # 第二次裁剪, 为了匹配模板template_gray的shape, 此时twice_cropped_screenshot_gray与template_gray有相同shape, 这之后才可调用比较相似度的函数
-        twice_cropped_screenshot_gray = cropped_screenshot_gray[target_leftup[1]
-            : target_rightdown[1], target_leftup[0]: target_rightdown[0]]
+        twice_cropped_screenshot_gray = cropped_screenshot_gray[target_leftup[1]                                                                : target_rightdown[1], target_leftup[0]: target_rightdown[0]]
 
         # 检查是否匹配
         is_match = check_image_similarity(twice_cropped_screenshot_gray, template_gray, match_threshold)
@@ -171,13 +170,14 @@ class ComparatorVee:
                 else:  # 如果未指定背景图片, 默认背景图片就是全图, 返回全屏的绝对坐标
                     return get_abs_center_coord((0, 0), target_leftup, target_rightdown)
 
-    def match_point_color(self, points_with_colors, tolerance=10, debug=0):
+    def match_point_color(self, points_with_colors, tolerance=20, debug=0, screenshot=None):
         """检查屏幕上的多个点的颜色是否与期望颜色全部相匹配。
         :param points_with_colors: list of tuples, 每个元组包含坐标(x, y)和期望的RGB颜色列表
         :param tolerance: int, 颜色匹配的容忍度
         :return: bool, 如果所有给定的点的颜色与相应的期望颜色匹配，返回True
         """
-        screenshot = self.device.screenshot(format='opencv')  # 返回的是一个numpy.ndarray对象
+        if screenshot is None:
+            screenshot = self.device.screenshot(format='opencv')  # 返回的是一个numpy.ndarray对象
         for (x, y, expected_color) in points_with_colors:
             expected_color = tuple(expected_color)  # 将列表转换为元组
             # 在numpy数组中使用[y, x]方式获取颜色，并注意BGR到RGB的转换

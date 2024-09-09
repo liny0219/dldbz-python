@@ -44,7 +44,7 @@ class BattleVee:
     def cmd_skip(self, duration=2):
         engine_vee.device.long_click(480, 254, duration)
 
-    def is_in_battle(self):
+    def is_in_battle(self, screenshot=None):
         self.update_ui("开始检查是否在战斗界面中", 3)
         isR1 = [(788, 71, [145, 144, 142]), (791, 49, [243, 240, 233]), (784, 58, [0, 1, 0])]
         isR2 = [(787, 178, [223, 228, 224]), (791, 157, [245, 244, 242]), (784, 168, [1, 0, 0])]
@@ -56,7 +56,7 @@ class BattleVee:
         for i in Role:
             if self.thread_stoped():
                 return False
-            if comparator_vee.match_point_color(i):
+            if comparator_vee.match_point_color(i, screenshot=screenshot):
                 self.update_ui("检测到在战斗界面中", 3)
                 return True
         return False

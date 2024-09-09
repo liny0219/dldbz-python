@@ -23,7 +23,7 @@ class WorldVee:
     def update_ui(self, msg: str, type=0):
         self.global_data and self.global_data.update_ui(msg, type)
 
-    def in_world(self):
+    def in_world(self, screenshot=None):
         """检查是否在游戏世界中，通过左下角菜单的颜色来判断"""
         if (self.thread_stoped()):
             return False
@@ -34,7 +34,7 @@ class WorldVee:
             (87, 464, [80, 80, 78]),
             (68, 487, [164, 150, 149])
         ]
-        if comparator_vee.match_point_color(ponits_with_colors, tolerance=20):
+        if comparator_vee.match_point_color(ponits_with_colors, tolerance=20, screenshot=screenshot):
             self.update_ui("检测到在世界中", 3)
             return True
         else:
@@ -46,7 +46,7 @@ class WorldVee:
         engine_vee.device.click(925, 16)
         self.update_ui("点击关闭按钮", 3)
 
-    def check_stage(self):
+    def check_stage(self, screenshot=None):
         if (self.thread_stoped()):
             return
         self.update_ui("开始检查是否在小剧场中", 3)
@@ -56,7 +56,7 @@ class WorldVee:
             (331, 351, [155, 132, 82]),
             (278, 340, [141, 119, 70]),
         ]
-        if comparator_vee.match_point_color(points_with_colors, 20):
+        if comparator_vee.match_point_color(points_with_colors, 20, screenshot=screenshot):
             self.update_ui("检测到在小剧场中", 3)
             return True
         else:
