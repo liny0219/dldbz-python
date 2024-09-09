@@ -26,7 +26,7 @@ class Monopoly():
         self.cfg_check_roll_dice_time = 2
         self.cfg_check_roll_rule = 1
         self.cfg_check_roll_rule_time = 5
-        self.cfg_check_roll_rule_wait = 0.1
+        self.cfg_check_roll_rule_wait = 0.2
         self.screenshot = None
         self.cfg_r801 = []
         self.cfg_r802 = []
