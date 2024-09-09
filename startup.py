@@ -65,7 +65,7 @@ def create_info_button(frame):
 
     # 定义按钮的配置列表
     buttons = [
-        {"text": "大霸启动", "command": startup.on_monopoly if frame == monopoly_frame else startup.on_recollection},
+        {"text": "大霸启动!", "command": startup.on_monopoly if frame == monopoly_frame else startup.on_recollection},
         {"text": "休息一下", "command": startup.on_stop},
         {"text": "查看帮助", "command": startup.open_readme},
         {"text": "战斗编辑", "command": startup.edit_battle_script},

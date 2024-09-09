@@ -47,96 +47,98 @@ class Monopoly():
         reported = False
         finished = True
         isMatch = "None"
-        self.update_ui(f"大霸，启动！", 1)
+        self.update_ui(f"大霸启动!", 1)
 
         while not self.thread_stoped():
-            isMatch = "None"
-            if world_vee.in_world():
-                isMatch = 'in_world'
-                self.btn_menu_monopoly()
-            if self.check_continue():
-                isMatch = 'check_continue'
-                if self.isContinue == "0":
-                    self.btn_not_continue()
-                else:
-                    self.btn_continue()
-            if self.check_page_monopoly():
-                isMatch = 'check_play_monopoly'
-                if looptime != 0 and not reported:
-                    now = time.time()
-                    total_duration = (now - begin_time) / 60
-                    turn_duration = (now - begin_turn) / 60
-                    if finished == False:
-                        failed += 1
-                    self.update_ui(f"完成{looptime}次，翻车{failed}次，本轮耗时{turn_duration:.2f}分钟, 总挂机{
-                        total_duration:.2f}分钟", 1)
-                    reported = True
-                self.select_monopoly()
-                self.btn_setting_monopoly()
+            try:
+                isMatch = "None"
+                if world_vee.in_world():
+                    isMatch = 'in_world'
+                    self.btn_menu_monopoly()
+                if self.check_continue():
+                    isMatch = 'check_continue'
+                    if self.isContinue == "0":
+                        self.btn_not_continue()
+                    else:
+                        self.btn_continue()
+                is_set_game_mode = self.check_set_game_mode()
+                is_page_monopoly = self.check_page_monopoly()
+                if is_set_game_mode:
+                    self.set_game_mode()
+                    self.btn_play_monopoly()
+                    begin_turn = time.time()
+                    finished = False
+                    reported = False
+                    looptime += 1
 
-            if self.check_set_game_mode():
-                self.set_game_mode()
-                self.btn_play_monopoly()
-                begin_turn = time.time()
-                finished = False
-                reported = False
-                looptime += 1
-
-            in_battle = battle_vee.is_in_battle()
-            if in_battle:
-                isMatch = 'is_in_battle'
-            if battle_vee.is_in_battle_ready():
-                isMatch = 'is_in_battle_ready'
-                if self.auto_battle == 1:
-                    battle_vee.btn_auto_battle()
-                else:
-                    battle_vee.btn_attack()
-            if not in_battle:
-                if world_vee.check_stage():
-                    isMatch = 'check_stage'
-                    battle_vee.cmd_skip()
-                if self.can_roll_dice():
-                    isMatch = 'can_roll_dice'
-                    self.roll_dice()
-                if self.check_crossing():
-                    isMatch = 'check_crossing'
-                if self.check_evtent():
-                    isMatch = 'check_evt'
-                if self.check_confirm():
-                    isMatch = 'check_confirm'
-                if self.check_accept_confirm():
-                    isMatch = 'check_accept_confirm'
-                if self.check_info_confirm():
-                    isMatch = 'check_info_confirm'
-                if self.check_final_confirm():
-                    isMatch = 'check_final_confirm'
-                    self.btn_final_confirm()
-                    finished = True
-                if self.check_page_monopoly():
+                if is_page_monopoly:
                     isMatch = 'check_play_monopoly'
-                if self.check_set_game_mode():
-                    isMatch = 'check_set_game_mode'
+                    if looptime != 0 and not reported:
+                        now = time.time()
+                        total_duration = (now - begin_time) / 60
+                        turn_duration = (now - begin_turn) / 60
+                        if not finished:
+                            failed += 1
+                        msg1 = f"完成{looptime}次，翻车{failed}次，本轮耗时{turn_duration:.2f}分钟"
+                        msg2 = f"总耗时{total_duration:.2f}分钟"
+                        self.update_ui(f"{msg1},{msg2} ", 1)
+                        reported = True
+                    self.select_monopoly()
+                    self.btn_setting_monopoly()
 
-            if isMatch != 'None':
-                self.update_ui(f"匹配到的函数：{isMatch} ", 3)
-                count = 0
-            else:
-                if count > 100:
-                    self.error(f"检查{count}次0.1秒未匹配到任何执行函数，重启游戏")
+                in_battle = battle_vee.is_in_battle()
+                if in_battle:
+                    isMatch = 'is_in_battle'
+                if battle_vee.is_in_battle_ready():
+                    isMatch = 'is_in_battle_ready'
+                    if self.auto_battle == 1:
+                        battle_vee.btn_auto_battle()
+                    else:
+                        battle_vee.btn_attack()
+                if not in_battle:
+                    if world_vee.check_stage():
+                        isMatch = 'check_stage'
+                        battle_vee.cmd_skip()
+                    if self.can_roll_dice():
+                        isMatch = 'can_roll_dice'
+                        self.roll_dice()
+                    if self.check_crossing():
+                        isMatch = 'check_crossing'
+                    if self.check_evtent():
+                        isMatch = 'check_evt'
+                    if self.check_confirm():
+                        isMatch = 'check_confirm'
+                    if self.check_accept_confirm():
+                        isMatch = 'check_accept_confirm'
+                    if self.check_info_confirm():
+                        isMatch = 'check_info_confirm'
+                    if self.check_final_confirm():
+                        isMatch = 'check_final_confirm'
+                        self.btn_final_confirm()
+                        finished = True
+                if isMatch != 'None':
+                    self.update_ui(f"匹配到的函数：{isMatch} ", 3)
                     count = 0
-                    engine_vee.restart_game()
-                    continue
-                self.update_ui("未匹配到任何函数", 3)
-                check_in_app = engine_vee.check_in_app()
-                if not check_in_app:
-                    self.update_ui("未检测到游戏")
-                    count = 0
-                    engine_vee.start_app()
                 else:
-                    self.btn_trim_confirm()
-                    count += 1
-                    self.update_ui(f"未匹配到任何函数，第{count}次", 3)
-            time.sleep(0.1)
+                    if count > 100:
+                        self.error(f"检查{count}次0.1秒未匹配到任何执行函数，重启游戏")
+                        count = 0
+                        engine_vee.restart_game()
+                        continue
+                    self.update_ui("未匹配到任何函数", 3)
+                    check_in_app = engine_vee.check_in_app()
+                    if not check_in_app:
+                        self.update_ui("未检测到游戏")
+                        count = 0
+                        engine_vee.start_app()
+                    else:
+                        self.btn_trim_confirm()
+                        count += 1
+                        self.update_ui(f"未匹配到任何函数，第{count}次", 3)
+                time.sleep(0.1)
+            except Exception as e:
+                self.update_ui(f"出现异常！{e}")
+                return
 
     def roll_dice(self, bp=0):
         start_point = (846, 440)
@@ -257,13 +259,7 @@ class Monopoly():
             (851, 444, [134, 156, 167]),
             (842, 439, [102, 135, 150])
         ]
-        p2 = [
-            (437, 116, [235, 231, 228]),
-            (466, 112, [134, 133, 131]),
-            (496, 117, [224, 223, 221]),
-            (518, 119, [214, 213, 211])
-        ]
-        ponits_with_colors = [p1, p2]
+        ponits_with_colors = [p1]
         for i in ponits_with_colors:
             if comparator_vee.match_point_color(i):
                 self.update_ui("检测到在大富翁选择界面中", 3)
@@ -274,17 +270,25 @@ class Monopoly():
         if (self.thread_stoped()):
             return False
         self.update_ui("开始检查是否在大富翁选择模式界面中", 3)
-        ponits_with_colors = [
+        p1 = [
             (393, 426, [84, 84, 84]),
             (357, 293, [130, 113, 83]),
             (351, 295, [188, 177, 157]),
             (360, 298, [23, 6, 0])
         ]
-        if comparator_vee.match_point_color(ponits_with_colors):
-            self.update_ui("检测到在大富翁选择模式界面中", 3)
-            return True
-        else:
-            return False
+        p2 = [
+            (437, 116, [235, 231, 228]),
+            (466, 112, [134, 133, 131]),
+            (496, 117, [224, 223, 221]),
+            (518, 119, [214, 213, 211])
+        ]
+        ponits_with_colors = [p1, p2]
+
+        for i in ponits_with_colors:
+            if comparator_vee.match_point_color(i):
+                self.update_ui("检测到在大富翁选择模式界面中", 3)
+                return True
+        return False
 
     def check_crossing(self):
         self.update_ui("开始检查大富翁路口", 3)

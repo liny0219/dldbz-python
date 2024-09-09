@@ -171,7 +171,7 @@ class ComparatorVee:
                 else:  # 如果未指定背景图片, 默认背景图片就是全图, 返回全屏的绝对坐标
                     return get_abs_center_coord((0, 0), target_leftup, target_rightdown)
 
-    def match_point_color(self, points_with_colors, tolerance=10):
+    def match_point_color(self, points_with_colors, tolerance=10, debug=0):
         """检查屏幕上的多个点的颜色是否与期望颜色全部相匹配。
         :param points_with_colors: list of tuples, 每个元组包含坐标(x, y)和期望的RGB颜色列表
         :param tolerance: int, 颜色匹配的容忍度
@@ -182,7 +182,8 @@ class ComparatorVee:
             expected_color = tuple(expected_color)  # 将列表转换为元组
             # 在numpy数组中使用[y, x]方式获取颜色，并注意BGR到RGB的转换
             actual_color = screenshot[y, x][::-1]  # 切片[::-1]用于将BGR转换为RGB
-            print(f"actual_color: {actual_color}, expected_color: {expected_color}")
+            if debug == 1:
+                print(f"actual_color: {actual_color}, expected_color: {expected_color}")
             if not all(abs(actual_color[i] - expected_color[i]) <= tolerance for i in range(3)):
                 return False
         return True

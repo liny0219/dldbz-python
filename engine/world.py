@@ -34,7 +34,7 @@ class WorldVee:
             (87, 464, [80, 80, 78]),
             (68, 487, [164, 150, 149])
         ]
-        if comparator_vee.match_point_color(ponits_with_colors):
+        if comparator_vee.match_point_color(ponits_with_colors, tolerance=20):
             self.update_ui("检测到在世界中", 3)
             return True
         else:
