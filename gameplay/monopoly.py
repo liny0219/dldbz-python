@@ -456,7 +456,7 @@ class Monopoly():
             (164, 175, [53, 43, 31]),
             (442, 113, [236, 235, 233])]
         if comparator_vee.match_point_color(points_with_colors, screenshot=self.screenshot):
-            self.update_ui("检查到是否结束")
+            self.update_ui("检查到结算")
             return True
         return False
 
