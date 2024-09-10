@@ -41,8 +41,6 @@ class EngineVee:
         addr = cfg_startup_vee.get('adb_port')
         self.device = u2.connect(addr)
         comparator_vee.set_device(self.device)
-        # // 连接设备
-        self.update_ui("连接设备")
 
     def check_in_app(self):
         current_app = self.device.app_current()

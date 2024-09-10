@@ -68,6 +68,7 @@ class Monopoly():
         reported_finish = False
         reported_end = False
         isMatch = "None"
+        roll_time = 0
         self.update_ui(f"大霸启动!", 1)
         while not self.thread_stoped():
             try:
@@ -99,6 +100,7 @@ class Monopoly():
                     self.set_game_mode()
                     self.btn_play_monopoly()
                     begin_turn = time.time()
+                    roll_time = 0
                     reported_end = False
                     reported_finish = False
                     started_count += 1
@@ -128,7 +130,8 @@ class Monopoly():
                             self.update_ui(f"距离终点 {number}，当前BP: {max_bp}")
                             if input_bp > max_bp:
                                 input_bp = max_bp
-                        self.roll_dice(input_bp)
+                        self.roll_dice(input_bp, roll_time)
+                        roll_time += 1
                     if world_vee.check_stage(self.screenshot):
                         isMatch = 'check_stage'
                         battle_vee.cmd_skip()
@@ -185,7 +188,7 @@ class Monopoly():
             except Exception as e:
                 self.update_ui(f"出现异常！{e}")
 
-    def roll_dice(self, bp=0):
+    def roll_dice(self, bp=0, roll_time=None):
         start_point = (846, 440)
         x, y = start_point
         if bp > 0:
@@ -194,7 +197,7 @@ class Monopoly():
             engine_vee.long_press_and_drag(start_point, end_point)
         if bp == 0:
             engine_vee.device.click(x, y)
-        self.update_ui(f"投骰子, BP: {bp}")
+        self.update_ui(f"第{roll_time}次投骰子, BP: {bp}")
         for i in range(self.cfg_check_roll_dice_time):
             time.sleep(self.cfg_check_roll_dice_interval)
             self.btn_trim_confirm()

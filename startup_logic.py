@@ -12,6 +12,7 @@ from app_data import AppData
 from utils.stoppable_thread import StoppableThread
 from engine.engine import engine_vee
 from engine.world import world_vee
+from engine.comparator import comparator_vee
 from utils.config_loader import cfg_startup_vee
 import psutil
 
@@ -23,9 +24,42 @@ class Startup:
         self.stats_label = None
         self.message_text = None
         self.debug = cfg_startup_vee.get('debug')
-        engine_vee.set(self.app_data)
-        world_vee.set(self.app_data)
-        battle_vee.set(self.app_data)
+        self.inited = False
+        self.is_busy = False
+        self.callback_after_init = None
+
+    def init_engine_thread(self):
+        if self.inited:
+            return
+        try:
+            engine_vee.set(self.app_data)
+            world_vee.set(self.app_data)
+            battle_vee.set(self.app_data)
+            engine_vee.connect()
+            try:
+                comparator_vee.init_ocr()
+                self.update_ui("初始化OCR成功", 0)
+            except Exception as e:
+                self.update_ui(f"初始化OCR失败: {e}")
+                print(f"初始化OCR失败: {e}")
+            self.update_ui("初始化引擎成功", 0)
+            self.inited = True
+        except Exception as e:
+            self.update_ui(f"初始化引擎失败: {e}")
+        finally:
+            self.is_busy = False  # 重置忙碌状态
+
+    def init_engine(self):
+        if self.inited:
+            return
+        if self.is_busy:
+            return
+        self.is_busy = True
+        self.update_ui("正在初始化...")
+        # 创建线程执行初始化操作
+        thread = StoppableThread(target=self.init_engine_thread)
+        thread.start()
+        thread.join()
 
     def set_stats_label(self, stats_label):
         self.stats_label = stats_label
@@ -61,6 +95,11 @@ class Startup:
     def on_recollection(self):
         if self.app_data.thread is not None and self.app_data.thread.is_alive():
             self.update_ui("已启动追忆之书，不要重复点击哦！")
+            return
+        if not self.inited:
+            self.init_engine()
+        if not self.inited:
+            self.update_ui("初始化引擎失败，请检查设备连接！")
             return
         self.app_data.thread = StoppableThread(target=self._evt_recollection)
         self.app_data.thread.start()
@@ -102,10 +141,18 @@ class Startup:
             self.message_text.see(tk.END)
 
     def _evt_monopoly(self):
+        self.init_engine()
+        if not self.inited:
+            self.update_ui("初始化引擎失败，请检查设备连接！")
+            return
         monopoly = Monopoly(self.app_data)
         monopoly.start()
 
     def _evt_recollection(self):
+        self.init_engine()
+        if not self.inited:
+            self.update_ui("初始化引擎失败，请检查设备连接！")
+            return
         # recollection = Recollection(self.global_data)
         # recollection.start()
         pass
