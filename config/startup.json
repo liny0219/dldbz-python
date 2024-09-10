@@ -1,5 +1,9 @@
 {
-  "debug": 0,
-  "adb_port": "127.0.0.1:5555",
-  "resolution": [960, 540]
+    "version": "1.8.0",
+    "debug": 0,
+    "adb_port": "127.0.0.1:5555",
+    "resolution": [
+        960,
+        540
+    ]
 }
