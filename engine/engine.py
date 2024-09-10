@@ -22,10 +22,14 @@ class EngineVee:
         self.package_name = None
         self.global_data = None
         self.debug = False
-        self.connect()
 
     def set(self, global_data: AppData):
         self.global_data = global_data
+        try:
+            self.connect()
+            self.update_ui("连接设备成功", 0)
+        except Exception as e:
+            self.update_ui(f"连接设备失败: {e}")
 
     def thread_stoped(self) -> bool:
         return self.global_data and self.global_data.thread_stoped()
