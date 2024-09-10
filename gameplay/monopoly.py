@@ -91,10 +91,12 @@ class Monopoly():
                         total_duration = (now - begin_time) / 60
                         turn_duration = (now - begin_turn) / 60
                         failed_count = started_count - finished_count
+                        if finished_count == 0 and started_count == 0:
+                            turn_duration = 0
                         if failed_count < 0:
                             failed_count = 0
-                        msg1 = f"完成{finished_count}次,翻车{failed_count}次,重启{restart}次"
-                        msg2 = f"本轮耗时{turn_duration:.2f}分钟,总耗时{total_duration:.2f}分钟"
+                        msg1 = f"完成{finished_count}次, 翻车{failed_count}次, 重启{restart}次"
+                        msg2 = f"本轮耗时{turn_duration:.2f}分钟, 扔骰子{roll_time}次, 总耗时{total_duration:.2f}分钟"
                         self.update_ui(f"{msg1},{msg2}", 1)
                         reported_end = True
                     self.set_game_mode()
@@ -156,10 +158,12 @@ class Monopoly():
                             total_duration = (now - begin_time) / 60
                             turn_duration = (now - begin_turn) / 60
                             failed_count = started_count - finished_count
+                            if finished_count == 0 and started_count == 0:
+                                turn_duration = 0
                             if failed_count < 0:
                                 failed_count = 0
-                            msg1 = f"完成{finished_count}次,翻车{failed_count}次,重启{restart}次"
-                            msg2 = f"本轮耗时{turn_duration:.2f}分钟,总耗时{total_duration:.2f}分钟"
+                            msg1 = f"完成{finished_count}次, 翻车{failed_count}次, 重启{restart}次"
+                            msg2 = f"本轮耗时{turn_duration:.2f}分钟, 扔骰子{roll_time}次, 总耗时{total_duration:.2f}分钟"
                             self.update_ui(f"{msg1},{msg2}", 1)
                             reported_end = True
                     if self.check_crossing():
@@ -169,7 +173,7 @@ class Monopoly():
                     retry_count = 0
                 else:
                     if retry_count > 100:
-                        self.error(f"检查{retry_count}次0.1秒未匹配到任何执行函数，重启游戏")
+                        self.error(f"检查{retry_count}次{self.cfg_check_interval}秒未匹配到任何执行函数，重启游戏")
                         retry_count = 0
                         restart += 1
                         engine_vee.restart_game()

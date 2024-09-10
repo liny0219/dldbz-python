@@ -35,7 +35,7 @@ class ComparatorVee:
 
     def init_ocr(self):
         global reader
-        reader = easyocr.Reader(['en'], model_storage_directory='assets/ocr')
+        reader = easyocr.Reader(['en'], model_storage_directory='data/ocr')
 
     def _template_image(self, template_path, convert_gray=True):
         '''

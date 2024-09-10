@@ -52,11 +52,11 @@ exe = EXE(pyz,
           a.zipfiles,
           a.datas,
           name='歧路茶馆',
-          debug=True,
+          debug=False,
           bootloader_ignore_signals=False,
           strip=False,
           upx=True,
-          console=True)
+          console=False)
 
 # coll = COLLECT(exe,
 #                a.binaries,

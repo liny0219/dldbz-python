@@ -70,7 +70,8 @@ def main():
     exe_dir = dist_dir  # EXE 文件名默认放在 dist 目录中
     items_to_copy = [
         ('./battle_script', 'battle_script'),
-        ('./config', 'config')
+        ('./config', 'config'),
+        ('./data', 'data'),
     ]
 
     copy_files_and_directories(exe_dir, items_to_copy)
