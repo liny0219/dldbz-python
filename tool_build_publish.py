@@ -5,14 +5,24 @@ import json
 import zipfile
 
 
-def zip_directory(source_dir, output_zip):
-    """将指定目录压缩成 ZIP 文件."""
+def zip_directory(source_dir, output_dir, output_zip_name):
+    """将指定目录压缩成 ZIP 文件并输出到指定目录."""
+    # 创建输出目录（如果不存在）
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
+    # 生成输出 ZIP 文件的完整路径
+    output_zip = os.path.join(output_dir, output_zip_name)
+
+    # 压缩目录为 ZIP 文件
     with zipfile.ZipFile(output_zip, 'w', zipfile.ZIP_DEFLATED) as zipf:
         for root, dirs, files in os.walk(source_dir):
             for file in files:
+                # 将文件写入 ZIP，并保持相对路径
                 zipf.write(os.path.join(root, file),
                            os.path.relpath(os.path.join(root, file),
                                            os.path.join(source_dir, '..')))
+    print(f"压缩完成，ZIP 文件已保存到: {output_zip}")
 
 
 def run_pyinstaller(spec_file):
@@ -117,7 +127,7 @@ def main():
 
     copy_files_and_directories(exe_dir, items_to_copy)
     copy_md_as_txt('readme.md', exe_dir, 'readme.txt')
-    zip_directory(dist_dir, zip_filename)
+    zip_directory(dist_dir, dist_dir, zip_filename)
 
 
 if __name__ == '__main__':
