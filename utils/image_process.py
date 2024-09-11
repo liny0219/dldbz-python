@@ -114,7 +114,7 @@ def color_in_image(img, expected_color):
 
 def check_image_similarity(gray_image1, gray_image2, threshold):
     '''
-    检测两个图像是否匹配。
+    检查两个图像是否匹配。
 
     参数:
     - gray_image1, gray_image2: 需要比较的灰度图像

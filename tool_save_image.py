@@ -1,5 +1,5 @@
-from engine.engine import engine_vee
-from engine.comparator import comparator_vee
+from engine.engine import engine
+from engine.comparator import comparator
 
-comparator_vee.set_device(engine_vee.device)
-comparator_vee._cropped_screenshot([718, 480], [736, 500], save_path="./assets/monopoly/test.png")
+comparator.set_device(engine.device)
+comparator._cropped_screenshot([718, 480], [736, 500], save_path="./assets/monopoly/test.png")

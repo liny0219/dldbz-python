@@ -26,9 +26,11 @@ class ConfigLoader:
 
 
 def reload_config():
-    cfg_startup_vee.reload()
-    cfg_monopoly_vee.reload()
+    cfg_startup.reload()
+    cfg_monopoly.reload()
 
 
-cfg_startup_vee = ConfigLoader('./config/startup.json')
-cfg_monopoly_vee = ConfigLoader('./config/monopoly.json')
+cfg_engine = ConfigLoader('./config/engine.json')
+cfg_startup = ConfigLoader('./config/startup.json')
+cfg_monopoly = ConfigLoader('./config/monopoly.json')
+cfg_recollection = ConfigLoader('./config/recollection.json')

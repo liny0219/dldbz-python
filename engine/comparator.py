@@ -17,7 +17,7 @@ reader = None
 
 
 @singleton
-class ComparatorVee:
+class Comparator:
     def __init__(self):
         """
         Initializes a Comparator object.
@@ -256,4 +256,4 @@ def get_abs_center_coord(leftup_coordinate, target_leftup, target_rightdown):
     return (abs_x_center, abs_y_center)
 
 
-comparator_vee = ComparatorVee()
+comparator = Comparator()

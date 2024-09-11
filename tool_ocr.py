@@ -1,13 +1,13 @@
 import easyocr
 import cv2
-from engine.engine import engine_vee
+from engine.engine import engine
 
 # 初始化 EasyOCR 读者对象
 reader = easyocr.Reader(['en'])
 
 
 # 获取截图 (假设 self.screenshot 是 OpenCV 格式)
-screenshot = engine_vee.device.screenshot(format='opencv')
+screenshot = engine.device.screenshot(format='opencv')
 
 # 定义要提取的区域 (x, y, width, height)
 x, y, width, height = 720, 480, 10, 20

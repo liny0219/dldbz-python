@@ -1,9 +1,9 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 from utils.singleton import singleton
-from engine.engine import engine_vee
+from engine.engine import engine
 from utils.stoppable_thread import StoppableThread
-from utils.config_loader import cfg_startup_vee
+from utils.config_loader import cfg_startup
 import cv2
 if TYPE_CHECKING:
     from app_data import AppData
@@ -12,8 +12,8 @@ if TYPE_CHECKING:
 @singleton
 class GetCoord:
     def __init__(self, app_data: AppData):
-        self.device = engine_vee.device  # 确保这里正确获取设备实例
-        self.app_data = engine_vee.app_data
+        self.device = engine.device  # 确保这里正确获取设备实例
+        self.app_data = engine.app_data
         self.img = None
         self.app_data = app_data
         self.update_ui = app_data.update_ui
@@ -27,16 +27,16 @@ class GetCoord:
         if not self.isClosed:
             self.update_ui("坐标窗口已经打开", 0)
             return
-        thread = StoppableThread(target=self.show_coordinates_window_thread, args=(cfg_startup_vee.get('resolution'),))
+        thread = StoppableThread(target=self.show_coordinates_window_thread, args=(cfg_startup.get('resolution'),))
         thread.start()
 
     def show_coordinates_window_thread(self, resolution=None):
         self.isClosed = False
         wnd = "ClickWnd"
         if self.device is None:
-            engine_vee.set(self.app_data)
-            engine_vee.connect()
-            self.device = engine_vee.device
+            engine.set(self.app_data)
+            engine.connect()
+            self.device = engine.device
         self.img = self.capture_screen()
 
         def on_EVENT_LBUTTONDOWN(event, x, y, flags, param):

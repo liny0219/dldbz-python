@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
-from engine.engine import engine_vee
-from engine.comparator import comparator_vee
+from engine.engine import engine
+from engine.comparator import comparator
 from utils.singleton import singleton
 
 if TYPE_CHECKING:
@@ -9,7 +9,7 @@ if TYPE_CHECKING:
 
 
 @singleton
-class WorldVee:
+class World:
     def __init__(self):
         self.global_data = None
         self.debug = False
@@ -34,8 +34,8 @@ class WorldVee:
             (87, 464, [80, 80, 78]),
             (68, 487, [164, 150, 149])
         ]
-        if comparator_vee.match_point_color(ponits_with_colors, tolerance=20, screenshot=screenshot):
-            self.update_ui("检测到在世界中", 'debug')
+        if comparator.match_point_color(ponits_with_colors, tolerance=20, screenshot=screenshot):
+            self.update_ui("检查到在世界中", 'debug')
             return True
         else:
             return False
@@ -43,7 +43,7 @@ class WorldVee:
     def click_btn_close(self):
         if (self.thread_stoped()):
             return
-        engine_vee.device.click(925, 16)
+        engine.device.click(925, 16)
         self.update_ui("点击关闭按钮", 'debug')
 
     def check_stage(self, screenshot=None):
@@ -56,8 +56,8 @@ class WorldVee:
             (331, 351, [155, 132, 82]),
             (278, 340, [141, 119, 70]),
         ]
-        if comparator_vee.match_point_color(points_with_colors, 20, screenshot=screenshot):
-            self.update_ui("检测到在小剧场中", 'debug')
+        if comparator.match_point_color(points_with_colors, 20, screenshot=screenshot):
+            self.update_ui("检查到在小剧场中", 'debug')
             return True
         else:
             return False
@@ -65,8 +65,8 @@ class WorldVee:
     def back_world(self):
         if (self.thread_stoped()):
             return
-        engine_vee.device.click(55, 432)
+        engine.device.click(55, 432)
         self.update_ui("返回世界")
 
 
-world_vee = WorldVee()
+world = World()

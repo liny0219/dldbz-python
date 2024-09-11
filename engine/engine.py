@@ -2,10 +2,10 @@
 from __future__ import annotations
 import os
 from typing import TYPE_CHECKING
-from engine.comparator import comparator_vee
+from engine.comparator import comparator
 from utils.singleton import singleton
 import uiautomator2 as u2
-from utils.config_loader import cfg_startup_vee
+from utils.config_loader import cfg_startup, cfg_engine
 import time
 
 if TYPE_CHECKING:
@@ -17,12 +17,18 @@ game_activity = "com.epicgames.ue4.GameActivity"
 
 
 @singleton
-class EngineVee:
+class Engine:
     def __init__(self):
         self.device = None
         self.package_name = None
         self.app_data = None
         self.debug = False
+
+        self.rand_press_px = 5
+        self.press_duration = 300
+        self.swipe_duration = 50
+        self.operate_latency = 500
+        self.default_sleep_ms = 10
 
     def set(self, app_data: AppData):
         self.app_data = app_data
@@ -31,6 +37,13 @@ class EngineVee:
             self.update_ui("连接设备成功", 0)
         except Exception as e:
             self.update_ui(f"连接设备失败: {e}")
+
+    def set_config(self):
+        self.press_duration = cfg_engine.get('common.press_duration')
+        self.default_sleep_ms = cfg_engine.get('common.default_sleep_ms')
+        self.operate_latency = cfg_engine.get('common.operate_latency')
+        self.rand_press_px = cfg_engine.get('common.rand_press_px')
+        self.swipe_duration = cfg_engine.get('common.swipe_duration')
 
     def thread_stoped(self) -> bool:
         return self.app_data and self.app_data.thread_stoped()
@@ -41,9 +54,9 @@ class EngineVee:
     def connect(self):
         if self.device:
             return
-        addr = cfg_startup_vee.get('adb_port')
+        addr = cfg_startup.get('adb_port')
         self.device = u2.connect(addr)
-        comparator_vee.set_device(self.device)
+        comparator.set_device(self.device)
 
     def check_in_app(self):
         current_app = self.device.app_current()
@@ -135,5 +148,32 @@ class EngineVee:
         except Exception as e:
             print(f"处理文件时出错: {e}")
 
+    def press(self, coordinate, T=None, operate_latency=500):
+        if not T:
+            T = self.press_duration
+        if self.device:
+            x = coordinate[0]
+            y = coordinate[1]
+            self.device.long_click(x, y, duration=T / 1000.)
+            self.sleep_ms(operate_latency)
 
-engine_vee = EngineVee()
+    def light_swipe(self, start_coordinate, end_coordinate, T=None):
+        if not T:
+            T = self.swipe_duration
+        if self.device:
+            x_start, y_start = start_coordinate
+            x_end, y_end = end_coordinate
+            self.device.swipe(x_start, y_start, x_end, y_end, duration=T / 1000.)
+            self.sleep_ms(100)
+
+    def light_press(self, coordinate, T=None):
+        self.press(coordinate, T=T, operate_latency=100)
+
+    def sleep_ms(self, T=None):
+        if not T:
+            T = self.default_sleep_ms
+        sleep_time_s = T / 1000.
+        time.sleep(sleep_time_s)
+
+
+engine = Engine()

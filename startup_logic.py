@@ -4,16 +4,16 @@ import os
 import sys
 import tkinter as tk
 import tkinter.messagebox
-from engine.battle import battle_vee
+from engine.battle import battle
 from gameplay.monopoly import Monopoly
-# from gameplay.recollection import Recollection
+from gameplay.recollection import Recollection
 from tool_get_coord import GetCoord
 from app_data import AppData
 from utils.stoppable_thread import StoppableThread
-from engine.engine import engine_vee
-from engine.world import world_vee
-from engine.comparator import comparator_vee
-from utils.config_loader import cfg_startup_vee
+from engine.engine import engine
+from engine.world import world
+from engine.comparator import comparator
+from utils.config_loader import cfg_startup
 import psutil
 
 
@@ -24,7 +24,7 @@ class Startup:
         self.stats_label = None
         self.award_label = None
         self.message_text = None
-        self.debug = cfg_startup_vee.get('debug')
+        self.debug = cfg_startup.get('debug')
         self.inited = False
         self.is_busy = False
         self.log_file = 'log.txt'
@@ -33,15 +33,16 @@ class Startup:
         self.log_update_data = []
 
     def init_engine_thread(self):
+        engine.set_config()
         if self.inited:
             return
         try:
-            engine_vee.set(self.app_data)
-            world_vee.set(self.app_data)
-            battle_vee.set(self.app_data)
-            engine_vee.connect()
+            engine.set(self.app_data)
+            world.set(self.app_data)
+            battle.set(self.app_data)
+            engine.connect()
             try:
-                comparator_vee.init_ocr()
+                comparator.init_ocr()
                 self.update_ui("初始化OCR成功", 0)
             except Exception as e:
                 self.update_ui(f"初始化OCR失败: {e}")
@@ -103,11 +104,6 @@ class Startup:
         if self.app_data.thread is not None and self.app_data.thread.is_alive():
             self.update_ui("已启动追忆之书，不要重复点击哦！")
             return
-        if not self.inited:
-            self.init_engine()
-        if not self.inited:
-            self.update_ui("初始化引擎失败，请检查设备连接！")
-            return
         self.app_data.thread = StoppableThread(target=self._evt_recollection)
         self.app_data.thread.start()
 
@@ -152,7 +148,7 @@ class Startup:
 
     def write_to_file(self):
         for award in self.log_update_data:
-            engine_vee.write_to_file(award, self.log_file)
+            engine.write_to_file(award, self.log_file)
         self.log_update_data = []
 
     def _evt_monopoly(self):
@@ -160,10 +156,10 @@ class Startup:
         if not self.inited:
             self.update_ui("初始化引擎失败，请检查设备连接！")
             return
-        engine_vee.delete_if_larger_than(self.log_file, 10)
+        engine.delete_if_larger_than(self.log_file, 10)
         current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         message = f"[{current_time}] 游戏盘开始\n"
-        engine_vee.write_to_file("message", self.log_file)
+        engine.write_to_file(message, self.log_file)
         self.monopoly = Monopoly(self.app_data)
         self.monopoly.start()
 
@@ -172,10 +168,9 @@ class Startup:
         if not self.inited:
             self.update_ui("初始化引擎失败，请检查设备连接！")
             return
-        # recollection = Recollection(self.global_data)
-        # recollection.start()
-        engine_vee.delete_file(self.log_file)
-        pass
+        recollection = Recollection(self.app_data)
+        recollection.start()
+        engine.delete_file(self.log_file)
 
     def open_log(self):
         if os.path.exists(self.log_file):
