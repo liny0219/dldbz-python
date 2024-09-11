@@ -30,8 +30,11 @@ class Monopoly():
         self.cfg_r801 = []
         self.cfg_r802 = []
         self.cfg_r803 = []
+        self.award_map = {}
+        self.log_award_file = None
+        self.reset(True)
 
-    def set(self):
+    def set_config(self):
         reload_config()
         self.cfg_ticket = int(cfg_monopoly_vee.get("ticket"))
         self.cfg_lv = int(cfg_monopoly_vee.get("lv"))
@@ -49,27 +52,89 @@ class Monopoly():
         self.cfg_r802 = cfg_monopoly_vee.get("bp.802")
         self.cfg_r803 = cfg_monopoly_vee.get("bp.803")
 
+    def reset(self, init=False):
+        self.retry_count = 0
+        self.started_count = 0
+        self.finished_count = 0
+        self.begin_time = time.time()
+        self.begin_turn = self.begin_time
+        self.total_duration = 0
+        self.turn_duration = 0
+        self.restart = 0
+        self.reported_finish = False
+        self.reported_end = False
+        self.isMatch = "None"
+        self.roll_time = 0
+        self.award_map = {}
+        if init:
+            return
+        # if self.log_award_file:
+        #     engine_vee.delete_files_with_prefix("./", 'monopoly_award_')
+        # self.log_award_file = f"monopoly_award_{self.cfg_type}_{time.strftime('%Y%m%d%H%M%S')}.txt"
+
+    def new_trun(self):
+        self.begin_turn = time.time()
+        self.roll_time = 0
+        self.reported_end = False
+        self.reported_finish = False
+        self.started_count += 1
+
+    def report_end(self):
+        if not self.reported_finish:
+            self.finished_count += 1
+            self.reported_finish = True
+
+    def report_finish(self):
+        if not self.reported_end:
+            now = time.time()
+            total_duration = (now - self.begin_time) / 60
+            turn_duration = (now - self.begin_turn) / 60
+            failed_count = self.started_count - self.finished_count
+            if self.finished_count == 0 and self.started_count == 0:
+                turn_duration = 0
+                total_duration = 0
+            if failed_count < 0:
+                failed_count = 0
+            msg1 = f"完成{self.finished_count}次, 翻车{failed_count}次, 重启{self.restart}次"
+            msg2 = f"本轮耗时{turn_duration:.2f}分钟, 扔骰子{self.roll_time}次, 总耗时{total_duration:.2f}分钟"
+            self.update_ui(f"{msg1},{msg2}", 'stats')
+            self.reported_end = True
+
+    def report_award(self):
+        try:
+            award = self.ocr_award(self.screenshot)
+            self.accumulate_awards(award)
+            self.write_awards_with_timestamp(award, self.log_award_file)
+            result_str = ''
+            for key, value in self.award_map.items():
+                # 将 key 和 value 拼接为字符串格式，并加入换行符
+                result_str += f"{key}: {value}, "
+            self.update_ui(f"奖励: {result_str}", 'award')
+        except Exception as e:
+            self.update_ui(f"解析奖励时出错: {e}")
+
+    def accumulate_awards(self, award_list):
+        for award in award_list:
+            key = award[0]  # 第一个元素作为 key
+            value = int(award[1])  # 第二个元素转换为整数进行累加
+
+            # 如果 key 已经存在，累加值；如果不存在，初始化为当前值
+            if key in self.award_map:
+                self.award_map[key] += value
+            else:
+                self.award_map[key] = value
+
     def thread_stoped(self) -> bool:
         return self.global_data and self.global_data.thread_stoped()
 
-    def update_ui(self, msg: str, type=0):
+    def update_ui(self, msg: str, type='info'):
         self.global_data and self.global_data.update_ui(msg, type)
 
     def start(self):
-        retry_count = 0
-        started_count = 0
-        finished_count = 0
-        self.set()
-        begin_time = time.time()
-        begin_turn = begin_time
-        total_duration = 0
-        turn_duration = 0
-        restart = 0
-        reported_finish = False
-        reported_end = False
+        self.set_config()
+        self.reset()
         isMatch = "None"
-        roll_time = 0
-        self.update_ui(f"大霸启动!", 1)
+        self.update_ui(f"大霸启动!", 'stats')
         while not self.thread_stoped():
             try:
                 self.screenshot = engine_vee.device.screenshot(format='opencv')
@@ -86,26 +151,10 @@ class Monopoly():
                 is_set_game_mode = self.check_set_game_mode()
                 is_page_monopoly = self.check_page_monopoly()
                 if is_set_game_mode:
-                    if not reported_end:
-                        now = time.time()
-                        total_duration = (now - begin_time) / 60
-                        turn_duration = (now - begin_turn) / 60
-                        failed_count = started_count - finished_count
-                        if finished_count == 0 and started_count == 0:
-                            turn_duration = 0
-                        if failed_count < 0:
-                            failed_count = 0
-                        msg1 = f"完成{finished_count}次, 翻车{failed_count}次, 重启{restart}次"
-                        msg2 = f"本轮耗时{turn_duration:.2f}分钟, 扔骰子{roll_time}次, 总耗时{total_duration:.2f}分钟"
-                        self.update_ui(f"{msg1},{msg2}", 1)
-                        reported_end = True
+                    self.report_finish()
                     self.set_game_mode()
                     self.btn_play_monopoly()
-                    begin_turn = time.time()
-                    roll_time = 0
-                    reported_end = False
-                    reported_finish = False
-                    started_count += 1
+                    self.new_trun()
 
                 if is_page_monopoly:
                     isMatch = 'check_play_monopoly'
@@ -132,8 +181,8 @@ class Monopoly():
                             self.update_ui(f"距离终点 {number}，当前BP: {max_bp}")
                             if input_bp > max_bp:
                                 input_bp = max_bp
-                        self.roll_dice(input_bp, roll_time)
-                        roll_time += 1
+                        self.roll_dice(input_bp, self.roll_time)
+                        self.roll_time += 1
                     if world_vee.check_stage(self.screenshot):
                         isMatch = 'check_stage'
                         battle_vee.cmd_skip()
@@ -147,50 +196,87 @@ class Monopoly():
                         isMatch = 'check_info_confirm'
                     if self.check_end():
                         isMatch = 'check_end'
-                        if not reported_finish:
-                            finished_count += 1
-                            reported_finish = True
+                        self.report_end()
                     if self.check_final_confirm():
                         isMatch = 'check_final_confirm'
                         self.btn_final_confirm()
-                        if not reported_end:
-                            now = time.time()
-                            total_duration = (now - begin_time) / 60
-                            turn_duration = (now - begin_turn) / 60
-                            failed_count = started_count - finished_count
-                            if finished_count == 0 and started_count == 0:
-                                turn_duration = 0
-                            if failed_count < 0:
-                                failed_count = 0
-                            msg1 = f"完成{finished_count}次, 翻车{failed_count}次, 重启{restart}次"
-                            msg2 = f"本轮耗时{turn_duration:.2f}分钟, 扔骰子{roll_time}次, 总耗时{total_duration:.2f}分钟"
-                            self.update_ui(f"{msg1},{msg2}", 1)
-                            reported_end = True
+                        self.report_finish()
                     if self.check_crossing():
                         isMatch = 'check_crossing'
                 if isMatch != 'None':
-                    self.update_ui(f"匹配到的函数 {isMatch} ", 3)
-                    retry_count = 0
+                    self.update_ui(f"匹配到的函数 {isMatch} ", 'debug')
+                    self.retry_count = 0
                 else:
-                    if retry_count > 100:
-                        self.error(f"检查{retry_count}次{self.cfg_check_interval}秒未匹配到任何执行函数，重启游戏")
-                        retry_count = 0
-                        restart += 1
+                    if self.retry_count > 100:
+                        self.error(f"检查{self.retry_count}次{self.cfg_check_interval}秒未匹配到任何执行函数，重启游戏")
+                        self.retry_count = 0
+                        self.restart += 1
                         engine_vee.restart_game()
                         continue
-                    self.update_ui("未匹配到任何函数", 3)
+                    self.update_ui("未匹配到任何函数", 'debug')
                     check_in_app = engine_vee.check_in_app()
                     if not check_in_app:
                         self.update_ui("未检测到游戏")
-                        retry_count = 0
+                        self.retry_count = 0
                         engine_vee.start_app()
                     else:
                         self.btn_trim_confirm()
-                        retry_count += 1
-                        self.update_ui(f"未匹配到任何函数，第{retry_count}次", 3)
+                        self.retry_count += 1
+                        self.update_ui(f"未匹配到任何函数，第{self.retry_count}次", 'debug')
                 time.sleep(self.cfg_check_interval)
             except Exception as e:
                 self.update_ui(f"出现异常！{e}")
+
+    def ocr_award(self, screenshot):
+        try:
+            x, y, width, height = 295, 175, 688-295, 369-175
+            cropped_image = screenshot[y:y+height, x:x+width]
+            img_path = 'award_cropped_image.png'
+            cv2.imwrite(img_path, cropped_image)
+            comparator_vee.apply_threshold_and_save(cv2.imread(
+                img_path), 100, img_path)
+            comparator_vee.bicubic_resize(img_path, img_path, 3.0)
+            results = comparator_vee.get_award_in_image(img_path)
+            str_results = ''
+            for result in results:
+                # 分别是边框坐标、识别的文本和置信度
+                bounding_box, text, confidence = result
+                str_results += f"识别文本: {text} 置信度: {confidence}:.2f\n"
+            self.update_ui(f"ocr奖励文字: {str_results}")
+            paired_results = []
+            # 遍历结果，每两个数据组成一对 [a, b]
+            for i in range(0, len(results), 2):
+                # 取两个数据，确保不会越界
+                if i + 1 < len(results):
+                    paired_results.append([results[i][1], results[i+1][1]])
+                else:
+                    paired_results.append([results[i][1], None])  # 如果最后一个是单个，放入 None
+            return paired_results
+        except Exception as e:
+            print(f"解析奖励时出错: {e}")
+
+    def ocr_number(self, screenshot, count=0):
+        x, y, width, height = 708, 480, 28, 20
+        if count > 0:
+            screenshot = engine_vee.device.screenshot(format='opencv')
+        cropped_image = screenshot[y:y+height, x:x+width]
+        img_path = 'cropped_image.png'
+        cv2.imwrite(img_path, cropped_image)
+        comparator_vee.bicubic_resize(img_path, img_path, 3.0)
+        comparator_vee.apply_threshold_and_save(cv2.imread(
+            img_path), 100, img_path)
+        return comparator_vee.get_num_in_image(img_path)
+
+    def write_awards_with_timestamp(self, award_list, file_path):
+        try:
+            with open(file_path, 'a', encoding='utf-8') as file:
+                # 获取当前时间，格式化为 YYYY-MM-DD HH:MM:SS
+                current_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
+                strAward = json.dumps(award_list, ensure_ascii=False)
+                file.write(f"{current_time}: {strAward}\n")
+            print(f"成功写入文件：{file_path}")
+        except Exception as e:
+            print(f"写入文件时出错: {e}")
 
     def roll_dice(self, bp=0, roll_time=None):
         start_point = (846, 440)
@@ -207,12 +293,12 @@ class Monopoly():
             self.btn_trim_confirm()
 
     def can_roll_dice(self):
-        self.update_ui("开始检查是否可以掷骰子", 3)
+        self.update_ui("开始检查是否可以掷骰子", 'debug')
         if (self.thread_stoped()):
             return False
         crood_range = [(809, 428), (889, 442)]
         if comparator_vee.template_in_picture("./assets/monopoly/roll_dice.png", crood_range, True):
-            self.update_ui("检测到可以掷骰子", 3)
+            self.update_ui("检测到可以掷骰子", 'debug')
             return True
         else:
             return False
@@ -303,7 +389,7 @@ class Monopoly():
     def check_page_monopoly(self):
         if (self.thread_stoped()):
             return False
-        self.update_ui("开始检查是否在大富翁选择界面中", 3)
+        self.update_ui("开始检查是否在大富翁选择界面中", 'debug')
         p1 = [
             (150, 102, [235, 215, 188]),
             (586, 21, [139, 114, 83]),
@@ -316,14 +402,14 @@ class Monopoly():
         ponits_with_colors = [p1]
         for i in ponits_with_colors:
             if comparator_vee.match_point_color(i, screenshot=self.screenshot):
-                self.update_ui("检测到在大富翁选择界面中", 3)
+                self.update_ui("检测到在大富翁选择界面中", 'debug')
                 return True
         return False
 
     def check_set_game_mode(self):
         if (self.thread_stoped()):
             return False
-        self.update_ui("开始检查是否在大富翁选择模式界面中", 3)
+        self.update_ui("开始检查是否在大富翁选择模式界面中", 'debug')
         p1 = [
             (393, 426, [84, 84, 84]),
             (357, 293, [130, 113, 83]),
@@ -340,12 +426,12 @@ class Monopoly():
 
         for i in ponits_with_colors:
             if comparator_vee.match_point_color(i, screenshot=self.screenshot):
-                self.update_ui("检测到在大富翁选择模式界面中", 3)
+                self.update_ui("检测到在大富翁选择模式界面中", 'debug')
                 return True
         return False
 
     def check_crossing(self):
-        self.update_ui("开始检查大富翁路口", 3)
+        self.update_ui("开始检查大富翁路口", 'debug')
         if (self.thread_stoped()):
             return False
         current_crossing = self.check_crossing_index()
@@ -380,27 +466,27 @@ class Monopoly():
         return None
 
     def check_confirm(self):
-        self.update_ui("开始检查奖励确认界面", 3)
+        self.update_ui("开始检查奖励确认界面", 'debug')
         points_with_colors = [(524, 212, [255, 255, 253]), (441, 203, [255, 255, 253]), (413, 205, [255, 255, 251]),
                               (413, 209, [255, 253, 250]), (413, 209, [255, 253, 250]), (445, 209, [255, 255, 253])]
         if comparator_vee.match_point_color(points_with_colors, screenshot=self.screenshot):
-            self.update_ui("检查到奖励确认界面", 3)
+            self.update_ui("检查到奖励确认界面", 'debug')
             self.btn_confirm()
             return True
         return False
 
     def check_accept_confirm(self):
-        self.update_ui("开始检查奖励入账确认界面", 3)
+        self.update_ui("开始检查奖励入账确认界面", 'debug')
         points_with_colors = [(688, 55, [253, 251, 252]), (528, 59, [244, 243, 241]),
                               (533, 74, [233, 229, 226]), (513, 80, [198, 194, 191])]
         if comparator_vee.match_point_color(points_with_colors, screenshot=self.screenshot):
-            self.update_ui("检查到奖励入账确认界面", 3)
+            self.update_ui("检查到奖励入账确认界面", 'debug')
             self.btn_accept_confirm()
             return True
         return False
 
     def check_info_confirm(self):
-        self.update_ui("开始检查信息确认界面", 3)
+        self.update_ui("开始检查信息确认界面", 'debug')
         flod = [(68, 483, [98, 97, 95]), (61, 472, [170, 165, 161]),
                 (61, 493, [171, 170, 168]), (51, 482, [172, 171, 166])]
         unflod = [(72, 483, [183, 180, 175]), (57, 483, [149, 146, 141]),
@@ -408,24 +494,24 @@ class Monopoly():
         check_list = [flod, unflod]
         for check in check_list:
             if comparator_vee.match_point_color(check, screenshot=self.screenshot):
-                self.update_ui("检查到信息确认界面", 3)
+                self.update_ui("检查到信息确认界面", 'debug')
                 self.btn_trim_confirm()
                 return True
         return False
 
     def check_final_confirm(self):
-        self.update_ui("开始检查最终确认界面", 3)
+        self.update_ui("开始检查最终确认界面", 'debug')
         points_with_colors = [(533, 102, [168, 167, 165]), (533, 111, [168, 167, 165]),
                               (533, 121, [180, 179, 177]), (487, 106, [243, 242, 238]),
                               (487, 115, [236, 235, 233]), (441, 112, [236, 235, 233]),
                               (432, 119, [211, 210, 208])]
         if comparator_vee.match_point_color(points_with_colors, screenshot=self.screenshot):
-            self.update_ui("检查到最终确认界面", 3)
+            self.update_ui("检查到最终确认界面", 'debug')
             return True
         return False
 
     def check_continue(self):
-        self.update_ui("开始检查是否继续游戏", 3)
+        self.update_ui("开始检查是否继续游戏", 'debug')
         points_with_colors = [(468, 140, [90, 94, 95]), (638, 366, [34, 90, 113]),
                               (563, 365, [41, 93, 115]), (394, 363, [81, 81, 81]),
                               (327, 363, [81, 81, 81])]
@@ -435,10 +521,10 @@ class Monopoly():
         return False
 
     def check_evtent(self):
-        self.update_ui("开始检查事件", 3)
+        self.update_ui("开始检查事件", 'debug')
         coord = comparator_vee.template_in_picture(f"./assets/monopoly/btn_options.png", return_center_coord=True)
         if coord:
-            self.update_ui("检查到事件", 3)
+            self.update_ui("检查到事件", 'debug')
             x, y = coord
             offfset = 120
             engine_vee.device.click(x + offfset, y)
@@ -446,7 +532,7 @@ class Monopoly():
         return False
 
     def check_end(self):
-        self.update_ui("开始检查是否结束", 3)
+        self.update_ui("开始检查是否结束", 'debug')
         points_with_colors = [
             (486, 111, [233, 232, 228]),
             (486, 111, [233, 232, 228]),
@@ -478,7 +564,7 @@ class Monopoly():
 
     def check_roll_rule(self, number):
         if not number:
-            self.update_ui("检查距离失败", 3)
+            self.update_ui("检查距离失败", 'debug')
             return 0
         try:
             rules_map = {
@@ -515,17 +601,6 @@ class Monopoly():
             return 1
         print(f"r_bp1:{r_bp1},r_bp2:{r_bp2},r_bp3:{r_bp3}")
         return 0
-
-    def ocr_number(self, screenshot, count=0):
-        x, y, width, height = 708, 480, 28, 20
-        if count > 0:
-            screenshot = engine_vee.device.screenshot(format='opencv')
-        cropped_image = screenshot[y:y+height, x:x+width]
-        cv2.imwrite('cropped_image.png', cropped_image)
-        comparator_vee.bicubic_resize('cropped_image.png', 'cropped_image_resized_image.png', 2.0)
-        comparator_vee.apply_threshold_and_save(cv2.imread(
-            'cropped_image_resized_image.png'), 100, 'cropped_image_resized_image.png')
-        return comparator_vee.get_num_in_image('cropped_image_resized_image.png')
 
     def btn_confirm(self):
         engine_vee.device.click(480, 324)

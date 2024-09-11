@@ -5,7 +5,7 @@ from startup_logic import Startup
 # 创建主窗口
 app = tk.Tk()
 app.title("歧路茶馆")
-app.geometry("800x400")  # 增加窗口宽度
+app.geometry("800x600")  # 增加窗口宽度
 
 startup = Startup(app)
 # 创建样式对象
@@ -23,6 +23,10 @@ message_label.grid(row=0, column=0, columnspan=2, pady=10)
 stats_label = tk.Label(app, text="大霸，启动", font=("Segoe UI", 12))
 stats_label.grid(row=1, column=0, columnspan=2, pady=5)
 
+# # 统计奖励信息标签
+# award_label = tk.Label(app, text="奖励-等待结算", font=("Segoe UI", 12))
+# award_label.grid(row=2, column=0, columnspan=2, pady=5, sticky="n")
+
 notebook = ttk.Notebook(app)
 notebook.grid(row=2, column=0, columnspan=2, sticky='nsew', padx=10, pady=10)
 
@@ -35,23 +39,35 @@ recollection_frame = tk.Frame(notebook, name="recollection_frame")
 settings_frame = tk.Frame(notebook)
 settings_frame.grid(padx=10, pady=5)
 
+log_frame = tk.Frame(notebook)
+log_frame.grid(padx=10, pady=5)
+
 # 添加到Notebook
 notebook.add(monopoly_frame, text='游戏盘')
 notebook.add(recollection_frame, text='追忆之书')
 notebook.add(settings_frame, text='设置')
+notebook.add(log_frame, text='日志')
 
 
 # 使用 grid 布局管理器
-app.grid_rowconfigure(2, weight=1)
+app.grid_rowconfigure(3, weight=1)
 app.grid_columnconfigure(0, weight=1)
-app.grid_columnconfigure(1, weight=3)
+app.grid_columnconfigure(1, weight=1)
+app.grid_columnconfigure(2, weight=3)
+
+
+def create_log_frame(frame):
+    tk.Button(frame, text="执行信息", command=startup.open_log,
+              font=("Segoe UI", 10), width=10, height=1).grid(row=0, column=0, padx=10, pady=10)
+    # tk.Button(frame, text="游戏盘奖励", command=startup.open_monopoly_log,
+    #           font=("Segoe UI", 10), width=10, height=1).grid(row=0, column=1, padx=10, pady=10)
 
 
 def create_settings_frame(frame):
     tk.Button(frame, text="启动设置", command=startup.open_startup_config,
-              font=("Segoe UI", 10), width=10, height=1).grid(row=0, column=0, padx=10, pady=10)
+              font=("Segoe UI", 10), width=30, height=1).grid(row=0, column=0, padx=10, pady=10)
     tk.Button(frame, text="游戏盘设置", command=startup.open_monopoly_config,
-              font=("Segoe UI", 10), width=10, height=1).grid(row=0, column=1, padx=10, pady=10)
+              font=("Segoe UI", 10), width=30, height=1).grid(row=0, column=1, padx=10, pady=10)
 
 
 def create_info_button(frame):
@@ -65,7 +81,7 @@ def create_info_button(frame):
 
     # 定义按钮的配置列表
     buttons = [
-        {"text": "大霸启动!", "command": startup.on_monopoly if frame == monopoly_frame else startup.on_recollection},
+        {"text": "大霸启动", "command": startup.on_monopoly if frame == monopoly_frame else startup.on_recollection},
         {"text": "休息一下", "command": startup.on_stop},
         {"text": "查看帮助", "command": startup.open_readme},
         {"text": "战斗编辑", "command": startup.edit_battle_script},
@@ -91,6 +107,7 @@ def create_info_button(frame):
 create_info_button(monopoly_frame)
 create_info_button(recollection_frame)
 create_settings_frame(settings_frame)
+create_log_frame(log_frame)
 
 
 def find_widget_by_name(parent, widget_name):
@@ -120,6 +137,7 @@ def on_tab_changed(event: tk.Event):
 
 notebook.bind("<<NotebookTabChanged>>", on_tab_changed)
 startup.set_stats_label(stats_label)
+# startup.set_award_label(award_label)
 
 
 # 设置关闭事件处理

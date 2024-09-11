@@ -21,7 +21,7 @@ class BattleVee:
     def thread_stoped(self) -> bool:
         return self.global_data and self.global_data.thread_stoped()
 
-    def update_ui(self, msg: str, type=0):
+    def update_ui(self, msg: str, type='info'):
         self.global_data and self.global_data.update_ui(msg, type)
 
     def btn_auto_battle(self):
@@ -45,7 +45,7 @@ class BattleVee:
         engine_vee.device.long_click(480, 254, duration)
 
     def is_in_battle(self, screenshot=None):
-        self.update_ui("开始检查是否在战斗界面中", 3)
+        self.update_ui("开始检查是否在战斗界面中", 'debug')
         isR1 = [(788, 71, [145, 144, 142]), (791, 49, [243, 240, 233]), (784, 58, [0, 1, 0])]
         isR2 = [(787, 178, [223, 228, 224]), (791, 157, [245, 244, 242]), (784, 168, [1, 0, 0])]
         isR3 = [(786, 285, [226, 222, 219]), (790, 264, [237, 231, 231]), (784, 273, [0, 2, 1])]
@@ -57,15 +57,15 @@ class BattleVee:
             if self.thread_stoped():
                 return False
             if comparator_vee.match_point_color(i, screenshot=screenshot):
-                self.update_ui("检测到在战斗界面中", 3)
+                self.update_ui("检测到在战斗界面中", 'debug')
                 return True
         return False
 
     def is_in_battle_ready(self):
-        self.update_ui("开始检查是否在战斗准备界面中", 3)
+        self.update_ui("开始检查是否在战斗准备界面中", 'debug')
         result = comparator_vee.template_in_picture("./assets/battle/btn_bp.png", [(632, 469), (663, 498)], True)
         if result:
-            self.update_ui("检测到在战斗准备界面中", 3)
+            self.update_ui("检测到在战斗准备界面中", 'debug')
         return result
 
 

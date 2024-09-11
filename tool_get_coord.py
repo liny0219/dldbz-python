@@ -1,21 +1,42 @@
-import cv2
+from __future__ import annotations
+from typing import TYPE_CHECKING
 from utils.singleton import singleton
 from engine.engine import engine_vee
+from utils.stoppable_thread import StoppableThread
+from utils.config_loader import cfg_startup_vee
+import cv2
+if TYPE_CHECKING:
+    from app_data import AppData
 
 
 @singleton
 class GetCoord:
-    def __init__(self, update_ui):
+    def __init__(self, app_data: AppData):
         self.device = engine_vee.device  # 确保这里正确获取设备实例
+        self.app_data = engine_vee.app_data
         self.img = None
-        self.update_ui = update_ui
+        self.app_data = app_data
+        self.update_ui = app_data.update_ui
+        self.isClosed = True
 
     def capture_screen(self):
         self.img = self.device.screenshot(format='opencv')
         return self.img
 
-    def show_coordinates_window(self, resolution=None):
+    def show_coordinates_window(self):
+        if not self.isClosed:
+            self.update_ui("坐标窗口已经打开", 0)
+            return
+        thread = StoppableThread(target=self.show_coordinates_window_thread, args=(cfg_startup_vee.get('resolution'),))
+        thread.start()
+
+    def show_coordinates_window_thread(self, resolution=None):
+        self.isClosed = False
         wnd = "ClickWnd"
+        if self.device is None:
+            engine_vee.set(self.app_data)
+            engine_vee.connect()
+            self.device = engine_vee.device
         self.img = self.capture_screen()
 
         def on_EVENT_LBUTTONDOWN(event, x, y, flags, param):
@@ -33,3 +54,4 @@ class GetCoord:
             cv2.resizeWindow(wnd, resolution[0], resolution[1])
         cv2.waitKey(0)
         cv2.destroyAllWindows()
+        self.isClosed = True

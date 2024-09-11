@@ -35,6 +35,7 @@ class ComparatorVee:
 
     def init_ocr(self):
         global reader
+        # reader = easyocr.Reader(['ch_sim', 'en'], gpu=False, model_storage_directory='data/ocr')
         reader = easyocr.Reader(['en'], model_storage_directory='data/ocr')
 
     def _template_image(self, template_path, convert_gray=True):
@@ -198,6 +199,14 @@ class ComparatorVee:
             if not all(abs(actual_color[i] - expected_color[i]) <= tolerance for i in range(3)):
                 return False
         return True
+
+    def get_award_in_image(self, image_path):
+        try:
+            # 使用 EasyOCR 读取图像中的文本
+            results = reader.readtext(image_path)
+            return results
+        except ValueError:
+            return None
 
     def get_num_in_image(self, image_path):
         try:

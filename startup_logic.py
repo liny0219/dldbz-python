@@ -22,11 +22,15 @@ class Startup:
         self.app_data = AppData(update_ui=self.update_ui)
         self.app = app
         self.stats_label = None
+        self.award_label = None
         self.message_text = None
         self.debug = cfg_startup_vee.get('debug')
         self.inited = False
         self.is_busy = False
-        self.callback_after_init = None
+        self.log_file = 'log.txt'
+        self.monopoly = None
+        self.log_update_count_max = 10
+        self.log_update_data = []
 
     def init_engine_thread(self):
         if self.inited:
@@ -63,6 +67,9 @@ class Startup:
 
     def set_stats_label(self, stats_label):
         self.stats_label = stats_label
+
+    def set_award_label(self, award_label):
+        self.award_label = award_label
 
     def set_message_text(self, message_text):
         self.message_text = message_text
@@ -108,23 +115,27 @@ class Startup:
         self.update_ui("休息一下，停止当前操作...")
         if self.app_data.thread is not None:
             self.app_data.thread.stop()
+        self.write_to_file()
 
-    def update_ui(self, msg, type=0):
+    def update_ui(self, msg, type='info'):
         if not self.message_text:
             return
         if self.debug == 1:
             print(msg)
-        if type == 3 and self.debug == 0:
+        if type == 'debug' and self.debug == 0:
             return
-
         # 如果是type=1，更新统计信息
-        if type == 1:
+        if type == 'stats':
             self.stats_label.config(text=msg)
+        if type == 'award':
+            self.award_label.config(text=msg)
         else:
             # 获取当前时间
             current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
             message = f"[{current_time}] {msg}\n"
-
+            self.log_update_data.append(message)
+            if len(self.log_update_data) >= self.log_update_count_max:
+                self.write_to_file()
             # 允许修改文本框内容
             self.message_text.config(state=tk.NORMAL)
 
@@ -135,18 +146,26 @@ class Startup:
 
             # 插入新的消息
             self.message_text.insert(tk.END, message)
-
             # 禁用编辑并滚动到底部
             self.message_text.config(state=tk.DISABLED)
             self.message_text.see(tk.END)
+
+    def write_to_file(self):
+        for award in self.log_update_data:
+            engine_vee.write_to_file(award, self.log_file)
+        self.log_update_data = []
 
     def _evt_monopoly(self):
         self.init_engine()
         if not self.inited:
             self.update_ui("初始化引擎失败，请检查设备连接！")
             return
-        monopoly = Monopoly(self.app_data)
-        monopoly.start()
+        engine_vee.delete_if_larger_than(self.log_file, 10)
+        current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        message = f"[{current_time}] 游戏盘开始\n"
+        engine_vee.write_to_file("message", self.log_file)
+        self.monopoly = Monopoly(self.app_data)
+        self.monopoly.start()
 
     def _evt_recollection(self):
         self.init_engine()
@@ -155,7 +174,25 @@ class Startup:
             return
         # recollection = Recollection(self.global_data)
         # recollection.start()
+        engine_vee.delete_file(self.log_file)
         pass
+
+    def open_log(self):
+        if os.path.exists(self.log_file):
+            os.startfile(self.log_file)
+        else:
+            self.update_ui(f"日志文件{self.log_file}不存在，请检查！")
+            tkinter.messagebox.askokcancel("提示", f"日志文件{self.log_file}不存在，请检查！")
+
+    def open_monopoly_log(self):
+        if not self.monopoly:
+            tkinter.messagebox.askokcancel("提示", f"游戏盘未启动，请先启动！")
+            return
+        file_path = self.monopoly.log_award_file
+        if os.path.exists(file_path):
+            os.startfile(file_path)
+        else:
+            tkinter.messagebox.askokcancel("提示", f"日志文件{self.monopoly.log_award_file}不存在，请检查！")
 
     def open_readme(self):
         file_path = 'readme.txt'
@@ -172,8 +209,8 @@ class Startup:
             self.update_ui("战斗脚本(recollection.txt)不存在，请检查！")
 
     def get_coord(self):
-        coordinate_getter = GetCoord(self.update_ui)
-        coordinate_getter.show_coordinates_window(cfg_startup_vee.get('resolution'))
+        coordinate_getter = GetCoord(self.app_data)
+        coordinate_getter.show_coordinates_window()
 
     def open_monopoly_config(self):
         file_path = os.path.join('config', 'monopoly.json')
