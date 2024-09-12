@@ -26,7 +26,8 @@ class BattleVee:
 
     def btn_auto_battle(self):
         engine.device.click(368, 482)
-        time.sleep(0.4)
+
+    def btn_auto_battle_start(self):
         engine.device.click(825, 482)
 
     def btn_quit_battle(self):
@@ -61,12 +62,27 @@ class BattleVee:
                 return True
         return False
 
-    def is_in_battle_ready(self):
+    def is_in_round(self):
         self.update_ui("开始检查是否在战斗准备界面中", 'debug')
         result = comparator.template_in_picture("./assets/battle/btn_bp.png", [(632, 469), (663, 498)], True)
         if result:
             self.update_ui("检测到在战斗准备界面中", 'debug')
         return result
+
+    def is_auto_battle_stay(self, screenshot=None):
+        self.update_ui("开始检查是否在自动战斗停留界面中", 'debug')
+        ck = [(882, 481, [196, 229, 218]), (857, 479, [237, 255, 239]), (857, 487, [237, 255, 240]),
+              (838, 484, [244, 255, 243]), (838, 484, [244, 255, 243]), (820, 487, [242, 255, 243]),
+              (792, 480, [200, 229, 201]),  (791, 486, [238, 255, 255]), (777, 481, [251, 255, 251]),
+              (828, 505, [205, 235, 235])]
+        cks = [ck]
+        for i in cks:
+            if self.thread_stoped():
+                return False
+            if comparator.match_point_color(i, screenshot=screenshot):
+                self.update_ui("检测到在自动战斗停留界面中", 'debug')
+                return True
+        return False
 
 
 battle_pix = BattleVee()

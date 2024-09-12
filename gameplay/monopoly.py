@@ -164,12 +164,15 @@ class Monopoly():
                 in_battle = battle_pix.is_in_battle(self.screenshot)
                 if in_battle:
                     isMatch = 'is_in_battle'
-                if battle_pix.is_in_battle_ready():
+                if battle_pix.is_in_round():
                     isMatch = 'is_in_battle_ready'
                     if self.cfg_auto_battle == 1:
                         battle_pix.btn_auto_battle()
                     else:
                         battle_pix.btn_attack()
+                if battle_pix.is_auto_battle_stay():
+                    isMatch = 'is_auto_battle_stay'
+                    battle_pix.btn_auto_battle_start()
                 if not in_battle:
                     if self.can_roll_dice():
                         isMatch = 'can_roll_dice'
@@ -255,17 +258,27 @@ class Monopoly():
         except Exception as e:
             print(f"解析奖励时出错: {e}")
 
-    def ocr_number(self, screenshot, count=0):
+    def ocr_number(self, screenshot, count=0, is_crop=False):
         x, y, width, height = 708, 480, 28, 20
-        if count > 0:
-            screenshot = engine.device.screenshot(format='opencv')
-        cropped_image = screenshot[y:y+height, x:x+width]
+        currentshot = screenshot
+        cropped_image = None
+        if count > 0 and not is_crop:
+            currentshot = engine.device.screenshot(format='opencv')
+        if not is_crop:
+            cropped_image = currentshot[y:y+height, x:x+width]
+        else:
+            cropped_image = screenshot
         img_path = 'cropped_image.png'
         cv2.imwrite(img_path, cropped_image)
         comparator.bicubic_resize(img_path, img_path, 3.0)
         comparator.apply_threshold_and_save(cv2.imread(
             img_path), 100, img_path)
-        return comparator.get_num_in_image(img_path)
+        result = comparator.get_num_in_image(img_path)
+        if not result and not is_crop:
+            self.update_ui("未识别到数字，裁剪重试")
+            crop_img = cropped_image[:, int(0.28 * width):]
+            self.ocr_number(crop_img, count, True)
+        return result
 
     def write_awards_with_timestamp(self, award_list, file_path):
         try:
@@ -552,7 +565,7 @@ class Monopoly():
             number = self.ocr_number(screenshot)
             retry = 1
             max_retry = self.cfg_check_roll_rule_time
-            while not number and retry < max_retry:
+            while not number and retry < max_retry+1:
                 self.update_ui(f"检查距离失败，重试次数{retry}，最大重试次数{max_retry}")
                 time.sleep(self.cfg_check_roll_rule_wait)
                 number = self.ocr_number(screenshot, retry)
