@@ -7,6 +7,8 @@ from engine.battle_pix import battle_pix
 from utils.config_loader import cfg_monopoly, reload_config
 from app_data import AppData
 import json
+import ast
+import numpy as np
 
 
 class Monopoly():
@@ -31,6 +33,8 @@ class Monopoly():
         self.cfg_r802 = []
         self.cfg_r803 = []
         self.award_map = {}
+        self.cfg_enemy_map = {}
+        self.cfg_action_map = {}
         self.log_award_file = None
         self.reset(True)
 
@@ -51,6 +55,8 @@ class Monopoly():
         self.cfg_r801 = cfg_monopoly.get("bp.801")
         self.cfg_r802 = cfg_monopoly.get("bp.802")
         self.cfg_r803 = cfg_monopoly.get("bp.803")
+        self.cfg_enemy_map = cfg_monopoly.get("enemy")
+        self.cfg_action_map = cfg_monopoly.get("action")
 
     def reset(self, init=False):
         self.retry_count = 0
@@ -144,10 +150,7 @@ class Monopoly():
                     self.btn_menu_monopoly()
                 if self.check_continue():
                     isMatch = 'check_continue'
-                    if self.cfg_isContinue == 0:
-                        self.btn_not_continue()
-                    else:
-                        self.btn_continue()
+                    self.on_continue()
                 is_set_game_mode = self.check_set_game_mode()
                 is_page_monopoly = self.check_page_monopoly()
                 if is_set_game_mode:
@@ -166,10 +169,7 @@ class Monopoly():
                     isMatch = 'is_in_battle'
                 if battle_pix.is_in_round():
                     isMatch = 'is_in_battle_ready'
-                    if self.cfg_auto_battle == 1:
-                        battle_pix.btn_auto_battle()
-                    else:
-                        battle_pix.btn_attack()
+                    self.on_battle()
                 if battle_pix.is_auto_battle_stay():
                     isMatch = 'is_auto_battle_stay'
                     battle_pix.btn_auto_battle_start()
@@ -258,26 +258,35 @@ class Monopoly():
         except Exception as e:
             print(f"解析奖励时出错: {e}")
 
-    def ocr_number(self, screenshot, count=0, is_crop=False):
+    def ocr_number(self, screenshot, count=0, type='origin'):
         x, y, width, height = 708, 480, 28, 20
         currentshot = screenshot
-        cropped_image = None
-        if count > 0 and not is_crop:
+        current_image = None
+        if count > 0 and type == 'origin':
             currentshot = engine.device.screenshot(format='opencv')
-        if not is_crop:
-            cropped_image = currentshot[y:y+height, x:x+width]
+        if type == 'origin':
+            current_image = currentshot[y:y+height, x:x+width]
         else:
-            cropped_image = screenshot
+            current_image = screenshot
         img_path = 'cropped_image.png'
-        cv2.imwrite(img_path, cropped_image)
+        cv2.imwrite(img_path, current_image)
         comparator.bicubic_resize(img_path, img_path, 3.0)
         comparator.apply_threshold_and_save(cv2.imread(
             img_path), 100, img_path)
         result = comparator.get_num_in_image(img_path)
-        if not result and not is_crop:
+        if not result and type == 'crop':
             self.update_ui("未识别到数字，裁剪重试")
-            crop_img = cropped_image[:, int(0.28 * width):]
-            self.ocr_number(crop_img, count, True)
+            crop_img = current_image[:, int(0.28 * width):]
+            self.ocr_number(crop_img, count, 'crop')
+        if not result and type == 'scale':
+            self.update_ui("未识别到数字，缩小重试")
+            top = 10
+            bottom = 10
+            left = 10
+            right = 10
+            scale_image = cv2.copyMakeBorder(current_image, top, bottom, left, right,
+                                             cv2.BORDER_CONSTANT, value=[0, 0, 0])
+            self.ocr_number(scale_image, count, 'scale')
         return result
 
     def write_awards_with_timestamp(self, award_list, file_path):
@@ -614,6 +623,60 @@ class Monopoly():
             return 1
         print(f"r_bp1:{r_bp1},r_bp2:{r_bp2},r_bp3:{r_bp3}")
         return 0
+
+    def check_enmeys(self, points_with_colors):
+        if comparator.match_point_color(points_with_colors, screenshot=self.screenshot):
+            return True
+        return False
+
+    def on_battle(self):
+        self.on_get_enmey()
+        if self.cfg_auto_battle == 1:
+            battle_pix.btn_auto_battle()
+            pass
+        else:
+            battle_pix.btn_attack()
+
+    def on_get_enmey(self):
+        enemy = self.cfg_enemy_map.get(self.cfg_type)
+        action = self.cfg_action_map.get(self.cfg_type)
+        current_enemy = None
+
+        if not enemy or not action:
+            return
+
+        for key, value in enemy.items():
+            if not value:
+                continue
+            data_tuples = [ast.literal_eval(item) for item in value]
+            result = self.check_enmeys(data_tuples)
+            if result:
+                current_enemy = key
+                self.update_ui(f"检查到敌人{current_enemy}")
+                break
+        if not current_enemy:
+            return
+
+        current_action = action.get(current_enemy)
+        if not current_action:
+            return
+        for value in current_action:
+            if len(value) == 0:
+                continue
+            parts = value.split(',')
+            command = parts[0]
+            self.update_ui(f"执行命令{command}")
+            if command == "Click":
+                x = int(parts[1])
+                y = int(parts[2])
+                engine.device.click(x, y)
+                time.sleep(0.2)
+
+    def on_continue(self):
+        if self.cfg_isContinue == 0:
+            self.btn_not_continue()
+        else:
+            self.btn_continue()
 
     def btn_confirm(self):
         engine.device.click(480, 324)
