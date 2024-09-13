@@ -143,6 +143,7 @@ def main():
         ('./battle_script', 'battle_script'),
         ('./config', 'config'),
         ('./data', 'data'),
+        ('./image', 'image'),
     ]
 
     copy_files_and_directories(exe_dir, items_to_copy)

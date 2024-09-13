@@ -7,8 +7,7 @@ from engine.battle_pix import battle_pix
 from utils.config_loader import cfg_monopoly, reload_config
 from app_data import AppData
 import json
-import ast
-from functools import partial
+import os
 
 
 class Monopoly():
@@ -35,7 +34,7 @@ class Monopoly():
         self.award_map = {}
         self.cfg_enemy_map = {}
         self.cfg_action_map = {}
-        self.cfg_enemy_check_tolerance = 30
+        self.cfg_enemy_match_threshold = 0.5
         self.cfg_enemy_check_debug = 0
         self.log_award_file = None
         self.reset(True)
@@ -59,7 +58,7 @@ class Monopoly():
         self.cfg_r803 = cfg_monopoly.get("bp.803")
         self.cfg_enemy_map = cfg_monopoly.get("enemy")
         self.cfg_action_map = cfg_monopoly.get("action")
-        self.cfg_enemy_check_tolerance = int(cfg_monopoly.get("enemy_check_tolerance"))
+        self.cfg_enemy_match_threshold = float(cfg_monopoly.get("enemy_match_threshold"))
         self.cfg_enemy_check_debug = int(cfg_monopoly.get("enemy_check_debug"))
 
     def reset(self, init=False):
@@ -172,7 +171,7 @@ class Monopoly():
                 if in_battle:
                     isMatch = 'is_in_battle'
                 if battle_pix.is_in_round():
-                    isMatch = 'is_in_battle_ready'
+                    isMatch = 'is_in_round'
                     self.on_battle()
                 if battle_pix.is_auto_battle_stay():
                     isMatch = 'is_auto_battle_stay'
@@ -641,19 +640,20 @@ class Monopoly():
         action = self.cfg_action_map.get(self.cfg_type)
         current_enemy = None
 
-        def cb(x, y, actual_color, expected_color, tolerance, key):
-            if self.cfg_enemy_check_debug == 1:
-                self.update_ui(f"{key},识别失败:({x},{y})实际颜色{actual_color},期望颜色{expected_color},容差{tolerance}")
         if not enemy or not action:
             return
 
         for key, value in enemy.items():
             if not value:
                 continue
-            data_tuples = [ast.literal_eval(item) for item in value]
             self.update_ui(f"开始匹配敌人{key}")
-            result = comparator.match_point_color(
-                data_tuples, tolerance=self.cfg_enemy_check_tolerance, debug=self.cfg_enemy_check_debug, cb=partial(cb, key=key))
+            try:
+                normalized_path = os.path.normpath(value)
+                result = comparator.template_in_picture(
+                    normalized_path, return_center_coord=True, match_threshold=self.cfg_enemy_match_threshold)
+            except Exception as e:
+                self.update_ui(f"匹配敌人{key}出现异常{e}")
+                continue
             if result:
                 current_enemy = key
                 self.update_ui(f"匹配到敌人{current_enemy}")

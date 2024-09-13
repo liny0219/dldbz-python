@@ -64,7 +64,7 @@ class BattleVee:
 
     def is_in_round(self):
         self.update_ui("开始检查是否在战斗准备界面中", 'debug')
-        result = comparator.template_in_picture("./assets/battle/btn_bp.png", [(632, 469), (663, 498)], True)
+        result = comparator.template_in_picture("./assets/battle/attack.png", [[784, 470], [857, 498]], True)
         if result:
             self.update_ui("检测到在战斗准备界面中", 'debug')
         return result
