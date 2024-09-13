@@ -8,7 +8,7 @@ from utils.config_loader import cfg_monopoly, reload_config
 from app_data import AppData
 import json
 import ast
-import numpy as np
+from functools import partial
 
 
 class Monopoly():
@@ -35,6 +35,8 @@ class Monopoly():
         self.award_map = {}
         self.cfg_enemy_map = {}
         self.cfg_action_map = {}
+        self.cfg_enemy_check_tolerance = 30
+        self.cfg_enemy_check_debug = 0
         self.log_award_file = None
         self.reset(True)
 
@@ -57,6 +59,8 @@ class Monopoly():
         self.cfg_r803 = cfg_monopoly.get("bp.803")
         self.cfg_enemy_map = cfg_monopoly.get("enemy")
         self.cfg_action_map = cfg_monopoly.get("action")
+        self.cfg_enemy_check_tolerance = int(cfg_monopoly.get("enemy_check_tolerance"))
+        self.cfg_enemy_check_debug = int(cfg_monopoly.get("enemy_check_debug"))
 
     def reset(self, init=False):
         self.retry_count = 0
@@ -274,11 +278,11 @@ class Monopoly():
         comparator.apply_threshold_and_save(cv2.imread(
             img_path), 100, img_path)
         result = comparator.get_num_in_image(img_path)
-        if not result and type == 'crop':
+        if not result and type == 'origin':
             self.update_ui("未识别到数字，裁剪重试")
             crop_img = current_image[:, int(0.28 * width):]
-            self.ocr_number(crop_img, count, 'crop')
-        if not result and type == 'scale':
+            result = self.ocr_number(crop_img, count, 'crop')
+        if not result and type == 'origin':
             self.update_ui("未识别到数字，缩小重试")
             top = 10
             bottom = 10
@@ -286,7 +290,7 @@ class Monopoly():
             right = 10
             scale_image = cv2.copyMakeBorder(current_image, top, bottom, left, right,
                                              cv2.BORDER_CONSTANT, value=[0, 0, 0])
-            self.ocr_number(scale_image, count, 'scale')
+            result = self.ocr_number(scale_image, count, 'scale')
         return result
 
     def write_awards_with_timestamp(self, award_list, file_path):
@@ -624,11 +628,6 @@ class Monopoly():
         print(f"r_bp1:{r_bp1},r_bp2:{r_bp2},r_bp3:{r_bp3}")
         return 0
 
-    def check_enmeys(self, points_with_colors):
-        if comparator.match_point_color(points_with_colors, screenshot=self.screenshot):
-            return True
-        return False
-
     def on_battle(self):
         self.on_get_enmey()
         if self.cfg_auto_battle == 1:
@@ -642,6 +641,9 @@ class Monopoly():
         action = self.cfg_action_map.get(self.cfg_type)
         current_enemy = None
 
+        def cb(x, y, actual_color, expected_color, tolerance, key):
+            if self.cfg_enemy_check_debug == 1:
+                self.update_ui(f"{key},识别失败:({x},{y})实际颜色{actual_color},期望颜色{expected_color},容差{tolerance}")
         if not enemy or not action:
             return
 
@@ -649,16 +651,22 @@ class Monopoly():
             if not value:
                 continue
             data_tuples = [ast.literal_eval(item) for item in value]
-            result = self.check_enmeys(data_tuples)
+            self.update_ui(f"开始匹配敌人{key}")
+            result = comparator.match_point_color(
+                data_tuples, tolerance=self.cfg_enemy_check_tolerance, debug=self.cfg_enemy_check_debug, cb=partial(cb, key=key))
             if result:
                 current_enemy = key
-                self.update_ui(f"检查到敌人{current_enemy}")
+                self.update_ui(f"匹配到敌人{current_enemy}")
                 break
+            else:
+                self.update_ui(f"未匹配到敌人{key}")
         if not current_enemy:
+            self.update_ui("未匹配到任何敌人")
             return
 
         current_action = action.get(current_enemy)
         if not current_action:
+            self.update_ui(f"未找到敌人{current_enemy}的行动")
             return
         for value in current_action:
             if len(value) == 0:

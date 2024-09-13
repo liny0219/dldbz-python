@@ -26,7 +26,9 @@
       "up"
     ]
   },
-  "info_enemy": "设置识别敌人坐标和颜色",
+  "info_enemy": "设置识别敌人坐标和颜色,enemy_check_tolerance-识别敌人的容差,enemy-敌人坐标和颜色,",
+  "enemy_check_tolerance": "50",
+  "enemy_check_debug": "1",
   "enemy": {
     "802": {
       "赫尔米尼亚": [
