@@ -23,28 +23,27 @@ class World:
     def update_ui(self, msg: str, type='info'):
         self.global_data and self.global_data.update_ui(msg, type)
 
-    def in_world(self, screenshot=None):
+    def check_in_world(self, screenshot=None):
         """检查是否在游戏世界中，通过左下角菜单的颜色来判断"""
         if (self.thread_stoped()):
             return False
         self.update_ui("开始检查是否在世界中", 'debug')
-        ponits_with_colors = [
-            (55, 432, [243, 243, 243]),
-            (57, 431, [242, 243, 247]),
-            (87, 464, [80, 80, 78]),
-            (68, 487, [164, 150, 149])
-        ]
-        if comparator.match_point_color(ponits_with_colors, tolerance=20, screenshot=screenshot):
-            self.update_ui("检查到在世界中", 'debug')
+        if comparator.template_compare(f"./assets/world/world_menu_main.png",  match_threshold=0.8, screenshot=screenshot):
+            self.update_ui("检查到在大富翁选择界面中", 'debug')
             return True
         else:
             return False
 
-    def click_btn_close(self):
+    def check_game_title(self, screenshot=None):
+        """检查是否在游戏开始界面"""
         if (self.thread_stoped()):
-            return
-        engine.device.click(925, 16)
-        self.update_ui("点击关闭按钮", 'debug')
+            return False
+        self.update_ui("开始检查是否在游戏开始界面", 'debug')
+        if comparator.template_compare(f"./assets/world/game_title.png", [(557, 5), (651, 25)], screenshot=screenshot):
+            self.update_ui("检查到在游戏开始界面", 'debug')
+            return True
+        else:
+            return False
 
     def check_stage(self, screenshot=None):
         if (self.thread_stoped()):
@@ -67,6 +66,12 @@ class World:
             return
         engine.device.click(55, 432)
         self.update_ui("返回世界")
+
+    def click_btn_close(self):
+        if (self.thread_stoped()):
+            return
+        engine.device.click(925, 16)
+        self.update_ui("点击关闭按钮", 'debug')
 
 
 world = World()

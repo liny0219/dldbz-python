@@ -18,10 +18,10 @@ def zip_directory(source_dir, output_dir, output_zip_name):
     with zipfile.ZipFile(output_zip, 'w', zipfile.ZIP_DEFLATED) as zipf:
         for root, dirs, files in os.walk(source_dir):
             for file in files:
-                # 将文件写入 ZIP，并保持相对路径
-                zipf.write(os.path.join(root, file),
-                           os.path.relpath(os.path.join(root, file),
-                                           os.path.join(source_dir, '..')))
+                # 获取文件的完整路径
+                file_path = os.path.join(root, file)
+                # 将文件写入 ZIP，保持相对路径（去掉源目录根目录部分）
+                zipf.write(file_path, os.path.relpath(file_path, source_dir))
     print(f"压缩完成，ZIP 文件已保存到: {output_zip}")
 
 
@@ -127,9 +127,11 @@ def main():
     spec_file = 'startup.spec'
     dist_dir = 'dist'
     json_file = 'config/startup.json'
+    publish_dir = 'publish'
     tmp_spec_file = 'tmp.spec'
 
     clean_dist_directory(dist_dir)
+    clean_dist_directory(publish_dir)
 
     # new_version = update_version_in_json(json_file, "minor")  # 更新 JSON 文件中的版本号并获取新版本
     new_version = update_version_in_json(json_file, "patch")  # 更新 JSON 文件中的版本号并获取新版本
@@ -148,7 +150,7 @@ def main():
 
     copy_files_and_directories(exe_dir, items_to_copy)
     copy_md_as_txt('readme.md', exe_dir, 'readme.txt')
-    zip_directory(dist_dir, dist_dir, zip_filename)
+    zip_directory(dist_dir, publish_dir, zip_filename)
 
 
 if __name__ == '__main__':

@@ -57,7 +57,7 @@ class Comparator:
         else:
             return color_img
 
-    def _cropped_screenshot(self, leftup_coordinate=None, rightdown_coordinate=None, convert_gray=True, save_path=''):
+    def _screenshot_cropped_image(self,  leftup_coordinate=None, rightdown_coordinate=None, convert_gray=True, save_path=''):
         '''
         获取截屏.
 
@@ -66,8 +66,31 @@ class Comparator:
         - rightdown_coordinate = (x2, y2): 区域的右下角坐标。
         - convert_gray: 是否转化为灰度图
         '''
-
         color_img = self.device.screenshot(format='opencv')
+        if (leftup_coordinate and rightdown_coordinate):
+            x1, y1 = leftup_coordinate
+            x2, y2 = rightdown_coordinate
+            color_img = color_img[y1:y2, x1:x2]
+
+        if save_path:
+            cv2.imwrite(save_path, color_img)
+
+        if convert_gray:
+            gray_img = cv2.cvtColor(color_img, cv2.COLOR_BGR2GRAY)
+            return gray_img
+        else:
+            return color_img
+
+    def _cropped_image(self,  leftup_coordinate=None, rightdown_coordinate=None, convert_gray=True, save_path='', screenshot=None):
+        '''
+        获取截屏.
+
+        参数：
+        - leftup_coordinate = (x1, y1): 区域的左上角坐标。
+        - rightdown_coordinate = (x2, y2): 区域的右下角坐标。
+        - convert_gray: 是否转化为灰度图
+        '''
+        color_img = screenshot
         if (leftup_coordinate and rightdown_coordinate):
             x1, y1 = leftup_coordinate
             x2, y2 = rightdown_coordinate
@@ -94,7 +117,7 @@ class Comparator:
         返回:
         - 如果所有指定的像素点颜色都匹配，则返回 True, 否则返回 False
         """
-        image = self._cropped_screenshot()
+        image = self._screenshot_cropped_image()
         return color_match_all(image, coordinates_colors)
 
     def match_color_count(self, coordinates_colors):
@@ -106,7 +129,7 @@ class Comparator:
         返回:
         - 匹配的像素点的个数
         """
-        image = self._cropped_screenshot()
+        image = self._screenshot_cropped_image()
         return color_match_count(image, coordinates_colors)
 
     def match_color_any_in_area(self, leftup_coordinate, rightdown_coordinate, expected_color):
@@ -121,7 +144,7 @@ class Comparator:
         返回:
         - 如果区域内有像素点与指定颜色匹配，则返回 True, 否则返回 False
         """
-        cropped_image = self._cropped_screenshot(leftup_coordinate, rightdown_coordinate, convert_gray=False)
+        cropped_image = self._screenshot_cropped_image(leftup_coordinate, rightdown_coordinate, convert_gray=False)
         return color_in_image(cropped_image, expected_color)
 
     def resource_path(slef, relative_path):
@@ -160,10 +183,65 @@ class Comparator:
         asset_path = self.resource_path(template_path)
         template_gray = self._template_image(asset_path)
 
-        cropped_screenshot_gray = self._cropped_screenshot(leftup_coordinate, rightdown_coordinate, save_path=save_path)
+        cropped_screenshot_gray = self._screenshot_cropped_image(
+            leftup_coordinate, rightdown_coordinate, save_path=save_path)
 
         # image_gray中最符合模板template_gray的区域的左上角, 右下角坐标. 且该区域与模板shape一致.
         target_leftup, target_rightdown = find_target_in_image(template_gray, cropped_screenshot_gray)
+        # 第二次裁剪, 为了匹配模板template_gray的shape, 此时twice_cropped_screenshot_gray与template_gray有相同shape, 这之后才可调用比较相似度的函数
+        twice_cropped_screenshot_gray = cropped_screenshot_gray[target_leftup[1]: target_rightdown[1], target_leftup[0]: target_rightdown[0]]
+
+        # 检查是否匹配
+        is_match = check_image_similarity(twice_cropped_screenshot_gray, template_gray, match_threshold)
+
+        if not return_center_coord:  # 如果不需要返回目标中心坐标
+            return is_match
+        else:  # 如果需要返回目标中心坐标
+            if not is_match:  # 如果不匹配, 说明没找到图像
+                return None
+            else:  # 如果匹配
+                if leftup_coordinate:  # 如果指定了背景图片, 返回全屏的绝对坐标
+                    return get_abs_center_coord(leftup_coordinate, target_leftup, target_rightdown)
+                else:  # 如果未指定背景图片, 默认背景图片就是全图, 返回全屏的绝对坐标
+                    return get_abs_center_coord((0, 0), target_leftup, target_rightdown)
+
+    def template_compare(self, template_path, coordinate=None,
+                         return_center_coord=False, save_path='', match_threshold=0.9, screenshot=None, pack=True):
+        '''
+        检查指定区域的图像是否存在指定图像模板。
+        如果有返回目标坐标
+
+        参数:
+        - leftup_coordinate    = (x1, y1): 区域的左上角坐标。默认全屏
+        - rightdown_coordinate = (x2, y2): 区域的右下角坐标。默认全屏
+        - template_path: 预期匹配的图像路径。
+
+        返回：
+        - 如果存在指定图像模板，则返回图像模板在指定区域中心点的坐标, 否则返回 None
+        '''
+        leftup_coordinate = None,
+        rightdown_coordinate = None
+        if coordinate:
+            leftup_coordinate = coordinate[0]
+            rightdown_coordinate = coordinate[1]
+        else:
+            leftup_coordinate = (0, 0)
+            rightdown_coordinate = (self.device.info['displayWidth'], self.device.info['displayHeight'])
+        asset_path = template_path
+
+        if pack:
+            asset_path = self.resource_path(template_path)
+
+        template_gray = self._template_image(asset_path)
+
+        cropped_screenshot_gray = self._cropped_image(
+            leftup_coordinate, rightdown_coordinate, save_path=save_path, screenshot=screenshot)
+
+        # image_gray中最符合模板template_gray的区域的左上角, 右下角坐标. 且该区域与模板shape一致.
+        target_leftup, target_rightdown = find_target_in_image(template_gray, cropped_screenshot_gray)
+
+        # print(f"template_path:{template_path} target_leftup: {target_leftup}, target_rightdown: {target_rightdown}")
+
         # 第二次裁剪, 为了匹配模板template_gray的shape, 此时twice_cropped_screenshot_gray与template_gray有相同shape, 这之后才可调用比较相似度的函数
         twice_cropped_screenshot_gray = cropped_screenshot_gray[target_leftup[1]
             : target_rightdown[1], target_leftup[0]: target_rightdown[0]]
@@ -214,33 +292,12 @@ class Comparator:
 
     def get_num_in_image(self, image_path):
         try:
-            result = reader.readtext(image_path)
-            if len(result) == 1 and len(result[0]) == 3:
-                return int(result[0][1])
+            result = reader.readtext(image_path, detail=0)
+            if len(result) == 1:
+                return int(result[0])
             return None
         except ValueError:
             return None
-
-    def bicubic_resize(self, image_path, output_path, scale_factor):
-        with Image.open(image_path) as img:
-            # 计算新的尺寸
-            new_width = int(img.width * scale_factor)
-            new_height = int(img.height * scale_factor)
-            # 使用双三次插值方法进行图像放大
-            resized_img = img.resize((new_width, new_height), Image.BICUBIC)
-            # 将PIL图像转换为OpenCV格式
-            # 将PIL图像转换为OpenCV格式
-            open_cv_image = np.array(resized_img)
-            cv2.imwrite(output_path, open_cv_image)
-
-    def apply_threshold_and_save(self, image, threshold_value, output_path):
-        mask = (image[:, :, 0] < threshold_value) & \
-            (image[:, :, 1] < threshold_value) & \
-            (image[:, :, 2] < threshold_value)
-        # 将满足条件的像素设置为黑色
-        image[mask] = [0, 0, 0]
-        # 保存处理后的图像
-        cv2.imwrite(output_path, image)
 
 
 def get_abs_center_coord(leftup_coordinate, target_leftup, target_rightdown):

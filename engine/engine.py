@@ -66,6 +66,7 @@ class Engine:
 
     def start_app(self):
         # 启动应用程序，需要确保已安装并可通过此包名启动
+        self.update_ui("启动游戏")
         self.device.app_start("com.netease.ma167")
         self.device.app_start("com.netease.ma167.bilibili")
 

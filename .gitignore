@@ -1,4 +1,10 @@
 # Build and Release Folders
+log.txt
+cropped_image.png
+threshold_image.png
+tmp.spec
+__MACOSX/
+publish/
 bin-debug/
 bin-release/
 [Oo]bj/
@@ -8,6 +14,9 @@ bin-release/
 .settings/
 build
 dist
+log.txt
+cropped_image.png
+
 
 # Executables
 *.swf

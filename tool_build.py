@@ -1,6 +1,28 @@
 import subprocess
 import shutil
 import os
+import json
+import zipfile
+
+
+def zip_directory(source_dir, output_dir, output_zip_name):
+    """将指定目录压缩成 ZIP 文件并输出到指定目录."""
+    # 创建输出目录（如果不存在）
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
+    # 生成输出 ZIP 文件的完整路径
+    output_zip = os.path.join(output_dir, output_zip_name)
+
+    # 压缩目录为 ZIP 文件
+    with zipfile.ZipFile(output_zip, 'w', zipfile.ZIP_DEFLATED) as zipf:
+        for root, dirs, files in os.walk(source_dir):
+            for file in files:
+                # 获取文件的完整路径
+                file_path = os.path.join(root, file)
+                # 将文件写入 ZIP，保持相对路径（去掉源目录根目录部分）
+                zipf.write(file_path, os.path.relpath(file_path, source_dir))
+    print(f"压缩完成，ZIP 文件已保存到: {output_zip}")
 
 
 def run_pyinstaller(spec_file):
@@ -60,22 +82,75 @@ def copy_md_as_txt(source_md, dest_dir, output_name):
         print(f"复制文件失败: {e}")
 
 
+def update_version_in_json(json_file, part='patch'):
+    """根据提供的部分来更新 JSON 文件中的版本号."""
+    with open(json_file, 'r', encoding='utf-8') as file:
+        data = json.load(file)
+    version_parts = data['version'].split('.')
+
+    if part == 'major':
+        index = 0
+    elif part == 'minor':
+        index = 1
+    elif part == 'patch':
+        index = 2
+    else:
+        raise ValueError("无效的版本号部分，只能是 'major', 'minor', 或 'patch'.")
+
+    # 更新指定部分的版本号
+    version_parts[index] = str(int(version_parts[index]) + 1)
+
+    # 如果增加了主要或次要版本号，则将更低级别的版本号重置为0
+    if part == 'major':
+        version_parts[1] = '0'  # 重置次要版本号
+        version_parts[2] = '0'  # 重置小版本号
+    elif part == 'minor':
+        version_parts[2] = '0'  # 重置小版本号
+
+    new_version = '.'.join(version_parts)
+    data['version'] = new_version
+    # with open(json_file, 'w', encoding='utf-8') as file:
+    #     json.dump(data, file, indent=4)
+    return new_version
+
+
+def replace_version_in_spec(spec_file, new_version, output_file):
+    """在 spec 文件中替换版本号，并输出到新文件."""
+    with open(spec_file, 'r', encoding='utf-8') as file:
+        content = file.read()
+    updated_content = content.replace('${version}', new_version)
+    with open(output_file, 'w', encoding='utf-8') as file:
+        file.write(updated_content)
+
+
 def main():
-    spec_file = 'startup.spec'
+    spec_file = 'startup.spec.debug'
     dist_dir = 'dist'
+    json_file = 'config/startup.json'
+    tmp_spec_file = 'tmp.spec'
+    publish_dir = 'publish'
 
     clean_dist_directory(dist_dir)
-    run_pyinstaller(spec_file)
+    clean_dist_directory(publish_dir)
+
+    # new_version = update_version_in_json(json_file, "minor")  # 更新 JSON 文件中的版本号并获取新版本
+    new_version = update_version_in_json(json_file, "patch")  # 更新 JSON 文件中的版本号并获取新版本
+    zip_filename = f'大霸茶馆v{new_version}.zip'
+    replace_version_in_spec(spec_file, new_version, tmp_spec_file)  # 替换 spec 文件中的版本号并保存到 tmp.spec
+
+    run_pyinstaller(tmp_spec_file)  # 使用更新后的 tmp.spec 进行打包
 
     exe_dir = dist_dir  # EXE 文件名默认放在 dist 目录中
     items_to_copy = [
         ('./battle_script', 'battle_script'),
         ('./config', 'config'),
         ('./data', 'data'),
+        ('./image', 'image'),
     ]
 
     copy_files_and_directories(exe_dir, items_to_copy)
     copy_md_as_txt('readme.md', exe_dir, 'readme.txt')
+    zip_directory(dist_dir, publish_dir, zip_filename)
 
 
 if __name__ == '__main__':
