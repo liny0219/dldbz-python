@@ -7,8 +7,8 @@ from engine.battle_pix import battle_pix
 from utils.config_loader import cfg_monopoly, reload_config
 from app_data import AppData
 import json
-import os
-
+from utils.wait import wait_until, wait_until_not,wait_until_img
+from functools import partial
 
 class Monopoly():
     def __init__(self, global_data: AppData):
@@ -32,10 +32,6 @@ class Monopoly():
         self.cfg_r802 = []
         self.cfg_r803 = []
         self.award_map = {}
-        self.cfg_enemy_map = {}
-        self.cfg_action_map = {}
-        self.cfg_enemy_match_threshold = 0.5
-        self.cfg_enemy_check_debug = 0
         self.log_award_file = None
         self.reset(True)
 
@@ -56,10 +52,6 @@ class Monopoly():
         self.cfg_r801 = cfg_monopoly.get("bp.801")
         self.cfg_r802 = cfg_monopoly.get("bp.802")
         self.cfg_r803 = cfg_monopoly.get("bp.803")
-        self.cfg_enemy_map = cfg_monopoly.get("enemy")
-        self.cfg_action_map = cfg_monopoly.get("action")
-        self.cfg_enemy_match_threshold = float(cfg_monopoly.get("enemy_match_threshold"))
-        self.cfg_enemy_check_debug = int(cfg_monopoly.get("enemy_check_debug"))
 
     def reset(self, init=False):
         self.retry_count = 0
@@ -146,6 +138,7 @@ class Monopoly():
         self.update_ui(f"大霸启动!", 'stats')
         while not self.thread_stoped():
             try:
+                print("进入循环")
                 self.screenshot = engine.device.screenshot(format='opencv')
                 isMatch = "None"
                 if world.in_world(self.screenshot):
@@ -153,7 +146,10 @@ class Monopoly():
                     self.btn_menu_monopoly()
                 if self.check_continue():
                     isMatch = 'check_continue'
-                    self.on_continue()
+                    if self.cfg_isContinue == 0:
+                        self.btn_not_continue()
+                    else:
+                        self.btn_continue()
                 is_set_game_mode = self.check_set_game_mode()
                 is_page_monopoly = self.check_page_monopoly()
                 if is_set_game_mode:
@@ -171,8 +167,11 @@ class Monopoly():
                 if in_battle:
                     isMatch = 'is_in_battle'
                 if battle_pix.is_in_round():
-                    isMatch = 'is_in_round'
-                    self.on_battle()
+                    isMatch = 'is_in_battle_ready'
+                    if self.cfg_auto_battle == 1:
+                        battle_pix.btn_auto_battle()
+                    else:
+                        battle_pix.btn_attack()
                 if battle_pix.is_auto_battle_stay():
                     isMatch = 'is_auto_battle_stay'
                     battle_pix.btn_auto_battle_start()
@@ -261,35 +260,26 @@ class Monopoly():
         except Exception as e:
             print(f"解析奖励时出错: {e}")
 
-    def ocr_number(self, screenshot, count=0, type='origin'):
+    def ocr_number(self, screenshot, count=0, is_crop=False):
         x, y, width, height = 708, 480, 28, 20
         currentshot = screenshot
-        current_image = None
-        if count > 0 and type == 'origin':
+        cropped_image = None
+        if count > 0 and not is_crop:
             currentshot = engine.device.screenshot(format='opencv')
-        if type == 'origin':
-            current_image = currentshot[y:y+height, x:x+width]
+        if not is_crop:
+            cropped_image = currentshot[y:y+height, x:x+width]
         else:
-            current_image = screenshot
+            cropped_image = screenshot
         img_path = 'cropped_image.png'
-        cv2.imwrite(img_path, current_image)
+        cv2.imwrite(img_path, cropped_image)
         comparator.bicubic_resize(img_path, img_path, 3.0)
         comparator.apply_threshold_and_save(cv2.imread(
             img_path), 100, img_path)
         result = comparator.get_num_in_image(img_path)
-        if not result and type == 'origin':
+        if not result and not is_crop:
             self.update_ui("未识别到数字，裁剪重试")
-            crop_img = current_image[:, int(0.28 * width):]
-            result = self.ocr_number(crop_img, count, 'crop')
-        if not result and type == 'origin':
-            self.update_ui("未识别到数字，缩小重试")
-            top = 10
-            bottom = 10
-            left = 10
-            right = 10
-            scale_image = cv2.copyMakeBorder(current_image, top, bottom, left, right,
-                                             cv2.BORDER_CONSTANT, value=[0, 0, 0])
-            result = self.ocr_number(scale_image, count, 'scale')
+            crop_img = cropped_image[:, int(0.28 * width):]
+            self.ocr_number(crop_img, count, True)
         return result
 
     def write_awards_with_timestamp(self, award_list, file_path):
@@ -627,64 +617,629 @@ class Monopoly():
         print(f"r_bp1:{r_bp1},r_bp2:{r_bp2},r_bp3:{r_bp3}")
         return 0
 
-    def on_battle(self):
-        self.on_get_enmey()
-        if self.cfg_auto_battle == 1:
-            battle_pix.btn_auto_battle()
-            pass
-        else:
-            battle_pix.btn_attack()
+    def btn_confirm(self):
+        engine.device.click(480, 324)
 
-    def on_get_enmey(self):
-        enemy = self.cfg_enemy_map.get(self.cfg_type)
-        action = self.cfg_action_map.get(self.cfg_type)
-        current_enemy = None
+    def btn_accept_confirm(self):
+        engine.device.click(484, 470)
 
-        if not enemy or not action:
+    def btn_trim_confirm(self):
+        engine.device.click(480, 254)
+
+    def btn_final_confirm(self):
+        engine.device.click(480, 410)
+
+    def btn_menu_monopoly(self):
+        engine.device.click(455, 459)
+
+    def btn_setting_monopoly(self):
+        engine.device.click(843, 448)
+
+    def btn_play_monopoly(self):
+        engine.device.click(600, 430)
+        pass
+
+    def btn_not_continue(self):
+        engine.device.click(362, 362)
+
+    def btn_continue(self):
+        engine.device.click(536, 362)
+
+    def error(self, msg):
+        print(msg)
+        self.update_ui(msg)
+
+
+class Monopoly1():
+    def __init__(self):
+        # self.global_data = global_data
+        self.update_ui = print
+        self.debug = True
+        self.crood_range = [(474, 116), (937, 397)]
+        self.cfg_type = "801"
+        self.cfg_crossing = None
+        self.cfg_ticket = 0
+        self.cfg_lv = 5
+        self.cfg_auto_battle = 1
+        self.cfg_isContinue = 1
+        self.cfg_check_interval = 0.2
+        self.cfg_check_roll_dice_interval = 0.2
+        self.cfg_check_roll_dice_time = 2
+        self.cfg_check_roll_rule = 1
+        self.cfg_check_roll_rule_time = 8
+        self.cfg_check_roll_rule_wait = 0.2
+        self.screenshot = None
+        self.cfg_r801 = []
+        self.cfg_r802 = []
+        self.cfg_r803 = []
+        self.award_map = {}
+        self.log_award_file = None
+        self.reset(True)
+
+    def set_config(self):
+        reload_config()
+        self.cfg_ticket = int(cfg_monopoly.get("ticket"))
+        self.cfg_lv = int(cfg_monopoly.get("lv"))
+        self.cfg_type = cfg_monopoly.get("type")
+        self.cfg_crossing = cfg_monopoly.get(f"crossing.{self.cfg_type}")
+        self.cfg_auto_battle = int(cfg_monopoly.get("auto_battle"))
+        self.cfg_isContinue = int(cfg_monopoly.get("isContinue"))
+        self.cfg_check_interval = float(cfg_monopoly.get("check_interval"))
+        self.cfg_check_roll_dice_interval = float(cfg_monopoly.get("check_roll_dice_interval"))
+        self.cfg_check_roll_dice_time = int(cfg_monopoly.get("check_roll_dice_time"))
+        self.cfg_check_roll_rule = int(cfg_monopoly.get("check_roll_rule"))
+        self.cfg_check_roll_rule_time = int(cfg_monopoly.get("check_roll_rule_time"))
+        self.cfg_check_roll_rule_wait = float(cfg_monopoly.get("check_roll_rule_wait"))
+        self.cfg_r801 = cfg_monopoly.get("bp.801")
+        self.cfg_r802 = cfg_monopoly.get("bp.802")
+        self.cfg_r803 = cfg_monopoly.get("bp.803")
+
+    def reset(self, init=False):
+        self.retry_count = 0
+        self.started_count = 0
+        self.finished_count = 0
+        self.begin_time = time.time()
+        self.begin_turn = self.begin_time
+        self.total_duration = 0
+        self.turn_duration = 0
+        self.restart = 0
+        self.reported_finish = False
+        self.reported_end = False
+        self.isMatch = "None"
+        self.roll_time = 0
+        self.award_map = {}
+        if init:
             return
+        # if self.log_award_file:
+        #     engine_vee.delete_files_with_prefix("./", 'monopoly_award_')
+        # self.log_award_file = f"monopoly_award_{self.cfg_type}_{time.strftime('%Y%m%d%H%M%S')}.txt"
 
-        for key, value in enemy.items():
-            if not value:
-                continue
-            self.update_ui(f"开始匹配敌人{key}")
-            try:
-                normalized_path = os.path.normpath(value)
-                result = comparator.template_in_picture(
-                    normalized_path, return_center_coord=True, match_threshold=self.cfg_enemy_match_threshold)
-            except Exception as e:
-                self.update_ui(f"匹配敌人{key}出现异常{e}")
-                continue
-            if result:
-                current_enemy = key
-                self.update_ui(f"匹配到敌人{current_enemy}")
-                break
+    def new_trun(self):
+        self.begin_turn = time.time()
+        self.roll_time = 0
+        self.reported_end = False
+        self.reported_finish = False
+        self.started_count += 1
+
+    def report_end(self):
+        if not self.reported_finish:
+            self.finished_count += 1
+            self.reported_finish = True
+
+    def report_finish(self):
+        if not self.reported_end:
+            now = time.time()
+            total_duration = (now - self.begin_time) / 60
+            turn_duration = (now - self.begin_turn) / 60
+            failed_count = self.started_count - self.finished_count
+            if self.finished_count == 0 and self.started_count == 0:
+                turn_duration = 0
+                total_duration = 0
+            if failed_count < 0:
+                failed_count = 0
+            msg1 = f"完成{self.finished_count}次, 翻车{failed_count}次, 重启{self.restart}次"
+            msg2 = f"本轮耗时{turn_duration:.2f}分钟, 扔骰子{self.roll_time}次, 总耗时{total_duration:.2f}分钟"
+            self.update_ui(f"{msg1},{msg2}", 'stats')
+            self.reported_end = True
+
+    def report_award(self):
+        try:
+            award = self.ocr_award(self.screenshot)
+            self.accumulate_awards(award)
+            self.write_awards_with_timestamp(award, self.log_award_file)
+            result_str = ''
+            for key, value in self.award_map.items():
+                # 将 key 和 value 拼接为字符串格式，并加入换行符
+                result_str += f"{key}: {value}, "
+            self.update_ui(f"奖励: {result_str}", 'award')
+        except Exception as e:
+            self.update_ui(f"解析奖励时出错: {e}")
+
+    def accumulate_awards(self, award_list):
+        for award in award_list:
+            key = award[0]  # 第一个元素作为 key
+            value = int(award[1])  # 第二个元素转换为整数进行累加
+
+            # 如果 key 已经存在，累加值；如果不存在，初始化为当前值
+            if key in self.award_map:
+                self.award_map[key] += value
             else:
-                self.update_ui(f"未匹配到敌人{key}")
-        if not current_enemy:
-            self.update_ui("未匹配到任何敌人")
-            return
+                self.award_map[key] = value
 
-        current_action = action.get(current_enemy)
-        if not current_action:
-            self.update_ui(f"未找到敌人{current_enemy}的行动")
-            return
-        for value in current_action:
-            if len(value) == 0:
-                continue
-            parts = value.split(',')
-            command = parts[0]
-            self.update_ui(f"执行命令{command}")
-            if command == "Click":
-                x = int(parts[1])
-                y = int(parts[2])
-                engine.device.click(x, y)
-                time.sleep(0.2)
+    def thread_stoped(self) -> bool:
+        return False
 
-    def on_continue(self):
-        if self.cfg_isContinue == 0:
-            self.btn_not_continue()
+    # def update_ui(self, msg: str, type='info'):
+    #     self.global_data and self.global_data.update_ui(msg, type)
+
+    def start(self):
+        self.set_config()
+        self.reset()
+        isMatch = "None"
+        self.update_ui(f"大霸启动!", 'stats')
+        world.back_menu1()
+        wait_until_img( self.in_monopoly_menu, 
+                    operate_funcs=[partial(engine.press, [454, 464], 
+                    operate_latency=1000)] )
+        while 1:
+            print("进入循环")
+            self.screenshot = comparator._cropped_screenshot()
+            # if is_set_game_mode:
+            #     self.report_finish()
+            #     self.set_game_mode()
+            #     self.btn_play_monopoly()
+            #     self.new_trun()
+
+            # if is_page_monopoly:
+            #     isMatch = 'check_play_monopoly'
+            #     self.select_monopoly()
+            #     self.btn_setting_monopoly()
+
+            in_battle = battle_pix.is_in_battle(self.screenshot)
+            if in_battle:
+                isMatch = 'is_in_battle'
+            if battle_pix.is_in_round():
+                isMatch = 'is_in_battle_ready'
+                if self.cfg_auto_battle == 1:
+                    battle_pix.btn_auto_battle()
+                else:
+                    battle_pix.btn_attack()
+            if battle_pix.is_auto_battle_stay():
+                isMatch = 'is_auto_battle_stay'
+                battle_pix.btn_auto_battle_start()
+            if not in_battle:
+                if self.can_roll_dice():
+                    isMatch = 'can_roll_dice'
+                    input_bp = 0
+                    if self.cfg_check_roll_rule == 1:
+                        number = self.check_distance(self.screenshot)
+                        input_bp = self.check_roll_rule(number)
+                        max_bp = self.check_bp_number(self.screenshot)
+                        self.update_ui(f"距离终点 {number}，当前BP: {max_bp}")
+                        if input_bp > max_bp:
+                            input_bp = max_bp
+                    self.roll_dice(input_bp, self.roll_time)
+                    self.roll_time += 1
+                if world.check_stage(self.screenshot):
+                    isMatch = 'check_stage'
+                    battle_pix.cmd_skip()
+                if self.check_evtent():
+                    isMatch = 'check_evt'
+                if self.check_confirm():
+                    isMatch = 'check_confirm'
+                if self.check_accept_confirm():
+                    isMatch = 'check_accept_confirm'
+                if self.check_info_confirm():
+                    isMatch = 'check_info_confirm'
+                if self.check_end():
+                    isMatch = 'check_end'
+                    self.report_end()
+                if self.check_final_confirm():
+                    isMatch = 'check_final_confirm'
+                    self.btn_final_confirm()
+                    self.report_finish()
+                if self.check_crossing():
+                    isMatch = 'check_crossing'
+            if isMatch != 'None':
+                self.update_ui(f"匹配到的函数 {isMatch} ", 'debug')
+                self.retry_count = 0
+            else:
+                if self.retry_count > 100:
+                    self.error(f"检查{self.retry_count}次{self.cfg_check_interval}秒未匹配到任何执行函数，重启游戏")
+                    self.retry_count = 0
+                    self.restart += 1
+                    engine.restart_game()
+                    continue
+                self.update_ui("未匹配到任何函数", 'debug')
+                check_in_app = engine.check_in_app()
+                if not check_in_app:
+                    self.update_ui("未检查到游戏")
+                    self.retry_count = 0
+                    engine.start_app()
+                else:
+                    self.btn_trim_confirm()
+                    self.retry_count += 1
+                    self.update_ui(f"未匹配到任何函数，第{self.retry_count}次", 'debug')
+            time.sleep(self.cfg_check_interval)
+
+
+    def ocr_award(self, screenshot):
+        try:
+            x, y, width, height = 295, 175, 688-295, 369-175
+            cropped_image = screenshot[y:y+height, x:x+width]
+            img_path = 'award_cropped_image.png'
+            cv2.imwrite(img_path, cropped_image)
+            comparator.apply_threshold_and_save(cv2.imread(
+                img_path), 100, img_path)
+            comparator.bicubic_resize(img_path, img_path, 3.0)
+            results = comparator.get_award_in_image(img_path)
+            str_results = ''
+            for result in results:
+                # 分别是边框坐标、识别的文本和置信度
+                bounding_box, text, confidence = result
+                str_results += f"识别文本: {text} 置信度: {confidence}:.2f\n"
+            self.update_ui(f"ocr奖励文字: {str_results}")
+            paired_results = []
+            # 遍历结果，每两个数据组成一对 [a, b]
+            for i in range(0, len(results), 2):
+                # 取两个数据，确保不会越界
+                if i + 1 < len(results):
+                    paired_results.append([results[i][1], results[i+1][1]])
+                else:
+                    paired_results.append([results[i][1], None])  # 如果最后一个是单个，放入 None
+            return paired_results
+        except Exception as e:
+            print(f"解析奖励时出错: {e}")
+
+    def ocr_number(self, screenshot, count=0, is_crop=False):
+        x, y, width, height = 708, 480, 28, 20
+        currentshot = screenshot
+        cropped_image = None
+        if count > 0 and not is_crop:
+            currentshot = engine.device.screenshot(format='opencv')
+        if not is_crop:
+            cropped_image = currentshot[y:y+height, x:x+width]
         else:
-            self.btn_continue()
+            cropped_image = screenshot
+        img_path = 'cropped_image.png'
+        cv2.imwrite(img_path, cropped_image)
+        comparator.bicubic_resize(img_path, img_path, 3.0)
+        comparator.apply_threshold_and_save(cv2.imread(
+            img_path), 100, img_path)
+        result = comparator.get_num_in_image(img_path)
+        if not result and not is_crop:
+            self.update_ui("未识别到数字，裁剪重试")
+            crop_img = cropped_image[:, int(0.28 * width):]
+            self.ocr_number(crop_img, count, True)
+        return result
+
+    def write_awards_with_timestamp(self, award_list, file_path):
+        try:
+            with open(file_path, 'a', encoding='utf-8') as file:
+                # 获取当前时间，格式化为 YYYY-MM-DD HH:MM:SS
+                current_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
+                strAward = json.dumps(award_list, ensure_ascii=False)
+                file.write(f"{current_time}: {strAward}\n")
+            print(f"成功写入文件：{file_path}")
+        except Exception as e:
+            print(f"写入文件时出错: {e}")
+
+    def roll_dice(self, bp=0, roll_time=None):
+        start_point = (846, 440)
+        x, y = start_point
+        if bp > 0:
+            offset = 58 * bp
+            end_point = (x, y - offset)
+            engine.long_press_and_drag(start_point, end_point)
+        if bp == 0:
+            engine.device.click(x, y)
+        self.update_ui(f"第{roll_time}次投骰子, BP: {bp}")
+        for i in range(self.cfg_check_roll_dice_time):
+            time.sleep(self.cfg_check_roll_dice_interval)
+            self.btn_trim_confirm()
+
+    def can_roll_dice(self):
+        self.update_ui("开始检查是否可以掷骰子", 'debug')
+        if (self.thread_stoped()):
+            return False
+        crood_range = [(809, 428), (889, 442)]
+        if comparator.template_in_picture("./assets/monopoly/roll_dice.png", crood_range, True):
+            self.update_ui("检查到可以掷骰子", 'debug')
+            return True
+        else:
+            return False
+
+    def select_monopoly(self):
+        x = 920
+        start_y = 140
+        end_y = 380
+        current_y = start_y
+        select = False
+        while not select:
+            select = self.find_monopoly()
+            if select:
+                x, y = select
+                engine.device.click(x, y)
+                self.update_ui("选择大富翁")
+                break
+            if (self.thread_stoped()):
+                return
+            if current_y >= end_y:
+                break
+            next_y = current_y + 50
+            engine.device.swipe(x, current_y, x, next_y, 0.1)
+            current_y = next_y
+
+    def find_monopoly(self):
+        if (self.thread_stoped()):
+            return False
+        if self.cfg_type == "801":
+            return self.find_previlege()
+        if self.cfg_type == "802":
+            return self.find_treasure()
+        if self.cfg_type == "803":
+            return self.find_reputation()
+
+    def find_reputation(self):
+        template_path = "./assets/monopoly/find_reputation.png"
+        return comparator.template_in_picture(template_path, self.crood_range, True)
+
+    def find_treasure(self):
+        template_path = "./assets/monopoly/find_treasure.png"
+        return comparator.template_in_picture(template_path, self.crood_range, True)
+
+    def find_previlege(self):
+        template_path = "./assets/monopoly/find_previlege.png"
+        return comparator.template_in_picture(template_path, self.crood_range, True)
+
+    def set_game_mode(self):
+        init_ticket = 1
+        init_lv = 0
+        while self.cfg_ticket < init_ticket and not self.thread_stoped():
+            self.reduce_ticket()
+            init_ticket -= 1
+        while self.cfg_ticket > init_ticket and not self.thread_stoped():
+            self.add_ticket()
+            init_ticket += 1
+        while self.cfg_lv > init_lv and not self.thread_stoped():
+            self.add_lv()
+            init_lv += 1
+        while self.cfg_lv < init_lv and not self.thread_stoped():
+            self.reduce_lv()
+            init_lv -= 1
+
+    def add_ticket(self):
+        engine.device.click(373, 220)
+
+    def reduce_ticket(self):
+        engine.device.click(243, 220)
+
+    def add_lv(self):
+        engine.device.click(715, 220)
+
+    def reduce_lv(self):
+        engine.device.click(588, 220)
+
+    def turn_crossing(self, direction):
+        if (self.thread_stoped()):
+            return
+        if direction == "left":
+            engine.device.click(402, 243)
+        if direction == "right":
+            engine.device.click(558, 243)
+        if direction == "up":
+            engine.device.click(480, 150)
+        if direction == "down":
+            engine.device.click(480, 330)
+
+    def check_page_monopoly(self):
+        if (self.thread_stoped()):
+            return False
+        self.update_ui("开始检查是否在大富翁选择界面中", 'debug')
+        p1 = [
+            (150, 102, [235, 215, 188]),
+            (586, 21, [139, 114, 83]),
+            (471, 198, [134, 126, 107]),
+            (473, 252, [139, 130, 113]),
+            (473, 315, [145, 137, 118]),
+            (24, 16, [231, 231, 231]),
+            (472, 145, [133, 124, 107])
+        ]
+        ponits_with_colors = [p1]
+        for i in ponits_with_colors:
+            if comparator.match_point_color(i, screenshot=self.screenshot):
+                self.update_ui("检查到在大富翁选择界面中", 'debug')
+                return True
+        return False
+
+    def check_set_game_mode(self):
+        if (self.thread_stoped()):
+            return False
+        self.update_ui("开始检查是否在大富翁选择模式界面中", 'debug')
+        p1 = [
+            (393, 426, [84, 84, 84]),
+            (357, 293, [130, 113, 83]),
+            (351, 295, [188, 177, 157]),
+            (360, 298, [23, 6, 0])
+        ]
+        p2 = [
+            (437, 116, [235, 231, 228]),
+            (466, 112, [134, 133, 131]),
+            (496, 117, [224, 223, 221]),
+            (518, 119, [214, 213, 211])
+        ]
+        ponits_with_colors = [p1, p2]
+
+        for i in ponits_with_colors:
+            if comparator.match_point_color(i, screenshot=self.screenshot):
+                self.update_ui("检查到在大富翁选择模式界面中", 'debug')
+                return True
+        return False
+
+    def check_crossing(self):
+        self.update_ui("开始检查大富翁路口", 'debug')
+        if (self.thread_stoped()):
+            return False
+        current_crossing = self.check_crossing_index()
+        if current_crossing != None and self.cfg_crossing and self.cfg_crossing[current_crossing]:
+            direction = self.cfg_crossing[current_crossing]
+            self.turn_crossing(direction)
+            return True
+        return False
+
+    def check_crossing_index(self):
+        if (self.thread_stoped()):
+            return None
+        num = None
+        strType = None
+        crood_range = [(708, 480), (750, 500)]
+
+        if self.cfg_type == "801":
+            num = [46, 36, 30, 15]
+            strType = "previlege"
+        if self.cfg_type == "802":
+            num = [45, 34, 10]
+            strType = "treasure"
+        if self.cfg_type == "803":
+            num = [41, 20]
+            strType = "reputation"
+        if not num or not strType:
+            return None
+        for i in range(len(num)):
+            if comparator.template_in_picture(f"./assets/monopoly/{strType}_crossing_{num[i]}.png", crood_range):
+                self.update_ui(f"检查到大富翁路口{i}", 0)
+                return i
+        return None
+
+    def check_confirm(self):
+        self.update_ui("开始检查奖励确认界面", 'debug')
+        points_with_colors = [(524, 212, [255, 255, 253]), (441, 203, [255, 255, 253]), (413, 205, [255, 255, 251]),
+                              (413, 209, [255, 253, 250]), (413, 209, [255, 253, 250]), (445, 209, [255, 255, 253])]
+        if comparator.match_point_color(points_with_colors, screenshot=self.screenshot):
+            self.update_ui("检查到奖励确认界面", 'debug')
+            self.btn_confirm()
+            return True
+        return False
+
+    def check_accept_confirm(self):
+        self.update_ui("开始检查奖励入账确认界面", 'debug')
+        points_with_colors = [(688, 55, [253, 251, 252]), (528, 59, [244, 243, 241]),
+                              (533, 74, [233, 229, 226]), (513, 80, [198, 194, 191])]
+        if comparator.match_point_color(points_with_colors, screenshot=self.screenshot):
+            self.update_ui("检查到奖励入账确认界面", 'debug')
+            self.btn_accept_confirm()
+            return True
+        return False
+
+    def check_info_confirm(self):
+        self.update_ui("开始检查信息确认界面", 'debug')
+        flod = [(68, 483, [98, 97, 95]), (61, 472, [170, 165, 161]),
+                (61, 493, [171, 170, 168]), (51, 482, [172, 171, 166])]
+        unflod = [(72, 483, [183, 180, 175]), (57, 483, [149, 146, 141]),
+                  (57, 483, [149, 146, 141]), (63, 493, [126, 128, 125])]
+        check_list = [flod, unflod]
+        for check in check_list:
+            if comparator.match_point_color(check, screenshot=self.screenshot):
+                self.update_ui("检查到信息确认界面", 'debug')
+                self.btn_trim_confirm()
+                return True
+        return False
+
+    def check_final_confirm(self):
+        self.update_ui("开始检查最终确认界面", 'debug')
+        points_with_colors = [(533, 102, [168, 167, 165]), (533, 111, [168, 167, 165]),
+                              (533, 121, [180, 179, 177]), (487, 106, [243, 242, 238]),
+                              (487, 115, [236, 235, 233]), (441, 112, [236, 235, 233]),
+                              (432, 119, [211, 210, 208])]
+        if comparator.match_point_color(points_with_colors, screenshot=self.screenshot):
+            self.update_ui("检查到最终确认界面", 'debug')
+            return True
+        return False
+    def in_monopoly_menu(self,image):
+        return comparator.template_in_image(image,self.check_in_monopoly_menu_refs)
+
+
+    def check_evtent(self):
+        self.update_ui("开始检查事件", 'debug')
+        coord = comparator.template_in_picture(f"./assets/monopoly/btn_options.png", return_center_coord=True)
+        if coord:
+            self.update_ui("检查到事件", 'debug')
+            x, y = coord
+            offfset = 120
+            engine.device.click(x + offfset, y)
+            return True
+        return False
+
+    def check_end(self):
+        self.update_ui("开始检查是否结束", 'debug')
+        points_with_colors = [
+            (486, 111, [233, 232, 228]),
+            (486, 111, [233, 232, 228]),
+            (486, 111, [233, 232, 228]),
+            (486, 111, [233, 232, 228]),
+            (159, 174, [102, 96, 82]),
+            (164, 175, [53, 43, 31]),
+            (442, 113, [236, 235, 233])]
+        if comparator.match_point_color(points_with_colors, screenshot=self.screenshot):
+            self.update_ui("检查到结算")
+            return True
+        return False
+
+    def check_distance(self, screenshot):
+        try:
+            time.sleep(self.cfg_check_roll_rule_wait)
+            number = self.ocr_number(screenshot)
+            retry = 1
+            max_retry = self.cfg_check_roll_rule_time
+            while not number and retry < max_retry+1:
+                self.update_ui(f"检查距离失败，重试次数{retry}，最大重试次数{max_retry}")
+                time.sleep(self.cfg_check_roll_rule_wait)
+                number = self.ocr_number(screenshot, retry)
+                retry += 1
+            return number
+        except Exception as e:
+            self.update_ui(f"检查距离出现异常{e}")
+            return None
+
+    def check_roll_rule(self, number):
+        if not number:
+            self.update_ui("检查距离失败", 'debug')
+            return 0
+        try:
+            rules_map = {
+                "801": self.cfg_r801,
+                "802": self.cfg_r802,
+                "803": self.cfg_r803
+            }
+            rule = rules_map.get(self.cfg_type, "")
+            if not rule:
+                return 0
+            rule_json = f"[{rule}]"
+            ranges = json.loads(rule_json)
+            for start, end, bp in ranges:
+                if start >= number > end:
+                    return bp
+            return 0
+        except Exception as e:
+            self.update_ui(f"检查自定义扔骰子规则出现异常 {str(e)}")
+            return 0
+
+    def check_bp_number(self, screenshot):
+        bp3 = [865, 456]
+        bp2 = [848, 456]
+        bp1 = [832, 456]
+        r_bp1 = screenshot[bp1[1], bp1[0]][2]  # 获取 R 通道
+        r_bp2 = screenshot[bp2[1], bp2[0]][2]  # 获取 R 通道
+        r_bp3 = screenshot[bp3[1], bp3[0]][2]  # 获取 R 通道
+        limit = 80
+        if r_bp3 > limit:
+            return 3
+        if r_bp2 > limit:
+            return 2
+        if r_bp1 > limit:
+            return 1
+        print(f"r_bp1:{r_bp1},r_bp2:{r_bp2},r_bp3:{r_bp3}")
+        return 0
 
     def btn_confirm(self):
         engine.device.click(480, 324)

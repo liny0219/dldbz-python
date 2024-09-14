@@ -1,5 +1,5 @@
 import time
-
+from engine.comparator import comparator
 
 def wait_until(condition_func, operate_funcs=None, timeout=10, check_interval=0.1, time_out_operate_funcs=None, thread=None):
     """
@@ -89,3 +89,39 @@ def wait_until_not(condition_func, operate_funcs=None, timeout=10, check_interva
         time.sleep(check_interval)
 
     return False
+def wait_until_img(condition_func, 
+                   operate_funcs=None, 
+                   operate_funcs_args=None,
+                   timeout=10, 
+                   check_interval=0.1, 
+                   time_out_operate_funcs=None, 
+                   thread=None):
+
+    assert callable(condition_func), "wait_until传入的第一个参数必须是函数"
+    start_time = time.time()
+    time_elapsed = 0
+    while True:
+        gray_image = comparator._cropped_screenshot()
+        if condition_func(gray_image):
+            return True
+        if thread is not None and thread.stopped():
+            print("Thread has ended.")
+            return False
+        if operate_funcs and type(operate_funcs) == list:
+            try:
+                for operate_func in operate_funcs:
+                    operate_func(gray_image)
+            except:
+                pass
+        time.sleep(check_interval)
+        time_elapsed = time.time() - start_time
+        if time_elapsed >= timeout:
+            if time_out_operate_funcs and type(time_out_operate_funcs) == list:
+                try:
+                    for time_out_operate_func in time_out_operate_funcs:
+                        time_out_operate_func()
+                except:
+                    pass
+            break
+    return False
+

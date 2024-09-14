@@ -6,7 +6,8 @@ import cv2
 import easyocr
 import utils.loger as loger
 from utils.image_process import check_image_similarity,  \
-    color_match_all, color_match_count, color_in_image, find_target_in_image
+    color_match_all, color_match_count, color_in_image, \
+        find_target_in_image, crop_image
 from utils.singleton import singleton
 import uiautomator2 as u2
 from PIL import Image
@@ -28,7 +29,7 @@ class Comparator:
         Returns:
         - None
         """
-        self.device: u2.Device = None
+        self.device: u2.Device = u2.connect('127.0.0.1:16384')
 
     def set_device(self, device):
         self.device = device
@@ -57,7 +58,11 @@ class Comparator:
         else:
             return color_img
 
-    def _cropped_screenshot(self, leftup_coordinate=None, rightdown_coordinate=None, convert_gray=True, save_path=''):
+    def _cropped_screenshot(self, 
+                            leftup_coordinate=None, 
+                            rightdown_coordinate=None, 
+                            convert_gray=True, 
+                            save_path=''):
         '''
         获取截屏.
 
@@ -82,48 +87,6 @@ class Comparator:
         else:
             return color_img
 
-    def match_color_all(self, coordinates_colors):
-        """
-        检查所有坐标处的 RGB 颜色是否与预期颜色匹配。
-
-        参数:
-        - coordinates_colors: 包含坐标和对应颜色的列表，格式为 [(coordinate, expected_color), ...]
-        - expected_color::List = [B,G,R]
-        - coordinate::Union(Tuple, List) = (x_i, y_i)
-
-        返回:
-        - 如果所有指定的像素点颜色都匹配，则返回 True, 否则返回 False
-        """
-        image = self._cropped_screenshot()
-        return color_match_all(image, coordinates_colors)
-
-    def match_color_count(self, coordinates_colors):
-        """
-        返回匹配的像素点的个数。
-
-        参数:
-        - coordinates_colors: 包含坐标和对应颜色的列表，格式为 [(coordinate, expected_color), ...]
-        返回:
-        - 匹配的像素点的个数
-        """
-        image = self._cropped_screenshot()
-        return color_match_count(image, coordinates_colors)
-
-    def match_color_any_in_area(self, leftup_coordinate, rightdown_coordinate, expected_color):
-        """
-        检查指定区域内是否有像素点与指定颜色匹配。
-
-        参数:
-        - leftup_coordinate = (x1, y1): 区域的左上角坐标。
-        - rightdown_coordinate = (x2, y2): 区域的右下角坐标。
-        - expected_color: 预期颜色的 BGR 值。
-
-        返回:
-        - 如果区域内有像素点与指定颜色匹配，则返回 True, 否则返回 False
-        """
-        cropped_image = self._cropped_screenshot(leftup_coordinate, rightdown_coordinate, convert_gray=False)
-        return color_in_image(cropped_image, expected_color)
-
     def resource_path(slef, relative_path):
         """获取资源的绝对路径，处理打包和非打包两种情况"""
         try:
@@ -135,28 +98,18 @@ class Comparator:
 
         return os.path.join(base_path, relative_path)
 
-    def template_in_picture(self, template_path, coordinate=None,
-                            return_center_coord=False, save_path='', match_threshold=0.9):
-        '''
-        检查指定区域的图像是否存在指定图像模板。
-        如果有返回目标坐标
-
-        参数:
-        - leftup_coordinate    = (x1, y1): 区域的左上角坐标。默认全屏
-        - rightdown_coordinate = (x2, y2): 区域的右下角坐标。默认全屏
-        - template_path: 预期匹配的图像路径。
-
-        返回：
-        - 如果存在指定图像模板，则返回图像模板在指定区域中心点的坐标, 否则返回 None
-        '''
+    def template_in_picture(self, 
+                            template_path, 
+                            coordinate=None,
+                            return_center_coord=False, 
+                            save_path='', 
+                            match_threshold=0.9):
+        
         leftup_coordinate = None,
         rightdown_coordinate = None
         if coordinate:
             leftup_coordinate = coordinate[0]
             rightdown_coordinate = coordinate[1]
-        else:
-            leftup_coordinate = (0, 0)
-            rightdown_coordinate = (self.device.info['displayWidth'], self.device.info['displayHeight'])
         asset_path = self.resource_path(template_path)
         template_gray = self._template_image(asset_path)
 
@@ -177,17 +130,43 @@ class Comparator:
             if not is_match:  # 如果不匹配, 说明没找到图像
                 return None
             else:  # 如果匹配
+                if coordinate:  # 如果指定了背景图片, 返回全屏的绝对坐标
+                    return get_abs_center_coord(leftup_coordinate, target_leftup, target_rightdown)
+                else:  # 如果未指定背景图片, 默认背景图片就是全图, 返回全屏的绝对坐标
+                    return get_abs_center_coord((0, 0), target_leftup, target_rightdown)
+    def template_in_image(self, 
+                          gray_image, 
+                          template_path, 
+                          leftup_coordinate=None, 
+                          rightdown_coordinate=None, 
+                          return_center_coord=False,
+                          match_threshold=0.95):
+        
+        if (leftup_coordinate and rightdown_coordinate):
+            gray_image = crop_image(gray_image, leftup_coordinate, rightdown_coordinate)
+        
+        
+        template_image = self._template_image(template_path)
+
+        target_leftup, target_rightdown = find_target_in_image(template_image, gray_image)
+
+        gray_image = gray_image[target_leftup[1]: target_rightdown[1], target_leftup[0] : target_rightdown[0]]
+        
+        
+        is_match = check_image_similarity(gray_image, template_image, match_threshold)
+        if not return_center_coord:  # 如果不需要返回目标中心坐标
+            return is_match
+        else:  # 如果需要返回目标中心坐标
+            if not is_match:  # 如果不匹配, 说明没找到图像
+                return None
+            else:  # 如果匹配
                 if leftup_coordinate:  # 如果指定了背景图片, 返回全屏的绝对坐标
                     return get_abs_center_coord(leftup_coordinate, target_leftup, target_rightdown)
                 else:  # 如果未指定背景图片, 默认背景图片就是全图, 返回全屏的绝对坐标
                     return get_abs_center_coord((0, 0), target_leftup, target_rightdown)
 
-    def match_point_color(self, points_with_colors, tolerance=20, debug=0, screenshot=None, cb=None):
-        """检查屏幕上的多个点的颜色是否与期望颜色全部相匹配。
-        :param points_with_colors: list of tuples, 每个元组包含坐标(x, y)和期望的RGB颜色列表
-        :param tolerance: int, 颜色匹配的容忍度
-        :return: bool, 如果所有给定的点的颜色与相应的期望颜色匹配，返回True
-        """
+    
+    def match_point_color(self, points_with_colors, tolerance=20, debug=0, screenshot=None):
         if screenshot is None:
             screenshot = self.device.screenshot(format='opencv')  # 返回的是一个numpy.ndarray对象
         for (x, y, expected_color) in points_with_colors:
@@ -196,13 +175,20 @@ class Comparator:
             actual_color = screenshot[y, x][::-1]  # 切片[::-1]用于将BGR转换为RGB
             if debug == 1:
                 print(f"actual_color: {actual_color}, expected_color: {expected_color}")
-            if any(abs(actual_color[i] - expected_color[i]) > tolerance for i in range(3)):
-                if debug == 1:
-                    print(f"actual_color: {actual_color}, expected_color: {expected_color}")
-                    cb(x, y, actual_color, expected_color, tolerance)
             if not all(abs(actual_color[i] - expected_color[i]) <= tolerance for i in range(3)):
                 return False
         return True
+    def match_color_all(self, coordinates_colors):
+        image = self._cropped_screenshot()
+        return color_match_all(image, coordinates_colors)
+
+    def match_color_count(self, coordinates_colors):
+        image = self._cropped_screenshot()
+        return color_match_count(image, coordinates_colors)
+
+    def match_color_any_in_area(self, leftup_coordinate, rightdown_coordinate, expected_color):
+        cropped_image = self._cropped_screenshot(leftup_coordinate, rightdown_coordinate, convert_gray=False)
+        return color_in_image(cropped_image, expected_color)
 
     def get_award_in_image(self, image_path):
         try:
@@ -244,17 +230,6 @@ class Comparator:
 
 
 def get_abs_center_coord(leftup_coordinate, target_leftup, target_rightdown):
-    """
-    This function calculates the absolute center coordinates of a target area within a larger image.
-
-    Parameters:
-    leftup_coordinate (tuple): The coordinates of the top-left corner of the larger image.
-    target_leftup (tuple): The coordinates of the top-left corner of the target area.
-    target_rightdown (tuple): The coordinates of the bottom-right corner of the target area.
-
-    Returns:
-    tuple: The absolute center coordinates (x, y) of the target area.
-    """
     abs_x_center = int(leftup_coordinate[0] + (target_leftup[0] + target_rightdown[0]) // 2)
     abs_y_center = int(leftup_coordinate[1] + (target_leftup[1] + target_rightdown[1]) // 2)
     return (abs_x_center, abs_y_center)

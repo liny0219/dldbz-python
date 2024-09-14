@@ -54,6 +54,7 @@ class Engine:
     def connect(self):
         if self.device:
             return
+        print("开始连接设备")
         addr = cfg_startup.get('adb_port')
         self.device = u2.connect(addr)
         comparator.set_device(self.device)
@@ -177,3 +178,4 @@ class Engine:
 
 
 engine = Engine()
+engine.connect()

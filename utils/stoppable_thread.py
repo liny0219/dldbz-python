@@ -19,3 +19,5 @@ class StoppableThread(threading.Thread):
     def stopped(self):
         # print(f"Thread {self.name} is stopped {self._stop_event.is_set()}.")
         return self._stop_event.is_set()
+
+

@@ -252,3 +252,45 @@ def match_pic_coord_k(img, goal, k=4):
     if len(ret) == 0:
         return None
     return ret
+def match_pic_coord(img, goal):
+    #转灰度图
+    gray_image = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    gray_image = np.squeeze(gray_image)
+    gray_goal = cv2.cvtColor(goal, cv2.COLOR_BGR2GRAY)
+    gray_goal = np.squeeze(gray_goal)
+    #在img中最吻合goal的左上角位置, 记为(x,y)
+    result = match_template(gray_image, gray_goal)
+    y, x = np.unravel_index(np.argmax(result), result.shape)
+    #基于(x,y)在img中截取与goal相同shape的cropped_img
+    h_goal, w_goal = gray_goal.shape 
+    cropped_img = gray_image[y:y+h_goal, x:x+w_goal]
+    #由于cropped_img和goal已有相同shape, 可以用ssim特征匹配
+    similarity_index = ssim(cropped_img, gray_goal)
+    if similarity_index >= 0.95:
+        return (x, y)
+    return None
+
+def match_pic(img, goal):
+    #转灰度图
+    gray_image = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    gray_image = np.squeeze(gray_image)
+    gray_goal = cv2.cvtColor(goal, cv2.COLOR_BGR2GRAY)
+    gray_goal = np.squeeze(gray_goal)
+    #在img中最吻合goal的左上角位置, 记为(x,y)
+    result = match_template(gray_image, gray_goal)
+    y,x = np.unravel_index(np.argmax(result), result.shape)
+    #基于(x,y)在img中截取与goal相同shape的cropped_img
+    h_goal, w_goal = gray_goal.shape 
+    cropped_img = gray_image[y:y+h_goal, x:x+w_goal]
+    #由于cropped_img和goal已有相同shape, 可以用ssim特征匹配
+    similarity_index = ssim(cropped_img, gray_goal)
+    if similarity_index >= 0.95:
+        return True
+    return False
+
+
+def crop_image(image, coord1, coord2):
+    x1, y1 = coord1
+    x2, y2 = coord2
+    cropped_image = image[y1:y2, x1:x2]
+    return cropped_image
