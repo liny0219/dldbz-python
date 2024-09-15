@@ -82,11 +82,11 @@ def copy_md_as_txt(source_md, dest_dir, output_name):
         print(f"复制文件失败: {e}")
 
 
-def update_version_in_json(json_file, part='patch', write=False):
+def update_version_in_json(version, json_file, part='patch', write=False):
     """根据提供的部分来更新 JSON 文件中的版本号."""
     with open(json_file, 'r', encoding='utf-8') as file:
         data = json.load(file)
-    version_parts = data['version'].split('.')
+    version_parts = version.split('.')
 
     if part == 'major':
         index = 0
@@ -124,10 +124,10 @@ def replace_version_in_spec(spec_file, new_version, output_file):
         file.write(updated_content)
 
 
-def main(type='minor'):
+def main(type='minor', version='1.0.0'):
     spec_file = 'startup.spec'
     dist_dir = 'dist'
-    json_file = 'config/startup.json'
+    json_file = 'config/version.json'
     publish_dir = 'publish'
     package_dir = publish_dir + '/package'
     tmp_spec_file = 'tmp.spec'
@@ -137,7 +137,7 @@ def main(type='minor'):
     if not os.path.exists(package_dir):
         os.makedirs(package_dir)
 
-    new_version = update_version_in_json(json_file, type)  # 更新 JSON 文件中的版本号并获取新版本
+    new_version = update_version_in_json(version, json_file, type)  # 更新 JSON 文件中的版本号并获取新版本
     zip_filename = f'大霸茶馆v{new_version}.zip'
     replace_version_in_spec(spec_file, new_version, tmp_spec_file)  # 替换 spec 文件中的版本号并保存到 tmp.spec
 

@@ -30,6 +30,7 @@ def reload_config():
     cfg_monopoly.reload()
 
 
+cfg_version = ConfigLoader('./config/version.json')
 cfg_engine = ConfigLoader('./config/engine.json')
 cfg_startup = ConfigLoader('./config/startup.json')
 cfg_monopoly = ConfigLoader('./config/monopoly.json')

@@ -1,11 +1,11 @@
 import tkinter as tk
 import tkinter.ttk as ttk
 from startup_logic import Startup
-from utils.config_loader import cfg_startup
+from utils.config_loader import cfg_version
 
 # 创建主窗口
 app = tk.Tk()
-app.title(f"歧路茶馆v{cfg_startup.get('version')}")
+app.title(f"歧路茶馆v{cfg_version.get('version')}")
 app.geometry("800x600")  # 增加窗口宽度
 
 startup = Startup(app)
