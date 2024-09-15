@@ -82,7 +82,7 @@ def copy_md_as_txt(source_md, dest_dir, output_name):
         print(f"复制文件失败: {e}")
 
 
-def update_version_in_json(json_file, part='patch'):
+def update_version_in_json(json_file, part='patch', write=False):
     """根据提供的部分来更新 JSON 文件中的版本号."""
     with open(json_file, 'r', encoding='utf-8') as file:
         data = json.load(file)
@@ -109,8 +109,9 @@ def update_version_in_json(json_file, part='patch'):
 
     new_version = '.'.join(version_parts)
     data['version'] = new_version
-    # with open(json_file, 'w', encoding='utf-8') as file:
-    #     json.dump(data, file, indent=4)
+    if write:
+        with open(json_file, 'w', encoding='utf-8') as file:
+            json.dump(data, file, indent=4)
     return new_version
 
 
@@ -123,24 +124,25 @@ def replace_version_in_spec(spec_file, new_version, output_file):
         file.write(updated_content)
 
 
-def main():
-    spec_file = 'startup.spec.debug'
+def main(type='minor'):
+    spec_file = 'startup.spec'
     dist_dir = 'dist'
     json_file = 'config/startup.json'
-    tmp_spec_file = 'tmp.spec'
     publish_dir = 'publish'
+    package_dir = publish_dir + '/package'
+    tmp_spec_file = 'tmp.spec'
 
     clean_dist_directory(dist_dir)
-    clean_dist_directory(publish_dir)
+    clean_dist_directory(package_dir)
+    if not os.path.exists(package_dir):
+        os.makedirs(package_dir)
 
-    # new_version = update_version_in_json(json_file, "minor")  # 更新 JSON 文件中的版本号并获取新版本
-    new_version = update_version_in_json(json_file, "patch")  # 更新 JSON 文件中的版本号并获取新版本
+    new_version = update_version_in_json(json_file, type)  # 更新 JSON 文件中的版本号并获取新版本
     zip_filename = f'大霸茶馆v{new_version}.zip'
     replace_version_in_spec(spec_file, new_version, tmp_spec_file)  # 替换 spec 文件中的版本号并保存到 tmp.spec
 
     run_pyinstaller(tmp_spec_file)  # 使用更新后的 tmp.spec 进行打包
 
-    exe_dir = dist_dir  # EXE 文件名默认放在 dist 目录中
     items_to_copy = [
         ('./battle_script', 'battle_script'),
         ('./config', 'config'),
@@ -148,10 +150,8 @@ def main():
         ('./image', 'image'),
     ]
 
-    copy_files_and_directories(exe_dir, items_to_copy)
-    copy_md_as_txt('readme.md', exe_dir, 'readme.txt')
-    zip_directory(dist_dir, publish_dir, zip_filename)
-
-
-if __name__ == '__main__':
-    main()
+    for filename in os.listdir(dist_dir):
+        shutil.move(os.path.join(dist_dir, filename), os.path.join(package_dir, filename))
+    copy_files_and_directories(package_dir, items_to_copy)
+    copy_md_as_txt('readme.md', package_dir, 'readme.txt')
+    zip_directory(package_dir, publish_dir, zip_filename)

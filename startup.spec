@@ -57,11 +57,3 @@ exe = EXE(pyz,
           strip=False,
           upx=True,
           console=False)
-
-# coll = COLLECT(exe,
-#                a.binaries,
-#                a.zipfiles,
-#                a.datas,
-#                strip=False,
-#                upx=True,
-#                name='Tavern')

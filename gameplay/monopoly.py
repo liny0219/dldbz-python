@@ -387,7 +387,7 @@ class Monopoly():
                 x, y = select
                 if self.check_page_monopoly():
                     engine.device.click(x, y)
-                    self.update_ui("选择大富翁")
+                    self.update_ui(f"选择大富翁模式:{self.cfg_type}")
                 break
             if (self.thread_stoped()):
                 return
