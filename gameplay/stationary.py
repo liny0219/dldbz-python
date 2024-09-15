@@ -29,55 +29,68 @@ class Stationary:
         try:
             retry_count = 0
             is_match = None
-            is_pre_match = None
-            is_in_world = False
+            pre_match = None
+            in_battle = False
             turn_direction = 1
             while not self.thread_stoped():
-                is_pre_match = is_match
-                is_match = None
-                time.sleep(0.1)
-                self.screenshot = engine.device.screenshot(format='opencv')
-                is_in_app = True
-                if not is_pre_match:
-                    is_in_app = engine.check_in_app()
-                if not is_in_app:
-                    is_match = 'check_not_app'
-                    self.update_ui("未检查到游戏")
-                    engine.start_app()
-                    continue
+                try:
+                    pre_match = is_match
+                    is_match = None
+                    time.sleep(0.1)
+                    self.screenshot = engine.device.screenshot(format='opencv')
+                    if is_match != 'None':
+                        self.update_ui(f"匹配到的函数 {is_match} ", "debug")
+                        retry_count = 0
+                    is_in_app = True
 
-                is_in_world = world.check_in_world(self.screenshot)
-                if is_in_world:
-                    is_match = 'is_in_world'
-                    self.update_ui("已进入大地图")
+                    if not in_battle:
+                        is_in_app = engine.check_in_app()
+                    if not is_in_app:
+                        is_match = 'check_not_app'
+                        self.update_ui("未检查到游戏")
+                        engine.start_app()
+                        continue
+
+                    is_game_title = False
+                    if not in_battle:
+                        is_game_title = world.check_game_title(self.screenshot)
+
+                    if is_game_title and pre_match != 'check_game_title':
+                        is_match = 'check_game_start'
+                        self.update_ui("检查到游戏开始界面")
+                        world.btn_trim_click()
+                        continue
+
                     if turn_direction == 1:
                         world.run_right()
                         turn_direction = 0
                     else:
                         world.run_left()
                         turn_direction = 1
+
+                    in_battle = battle_pix.is_in_battle(self.screenshot)
+                    if in_battle:
+                        is_match = 'is_in_battle'
+                        if battle_pix.is_in_round():
+                            is_match = 'is_in_round'
+                            battle_pix.btn_auto_battle()
+                        elif battle_pix.is_auto_battle_stay():
+                            is_match = 'is_auto_battle_stay'
+                            battle_pix.btn_auto_battle_start()
+                        else:
+                            world.btn_trim_click()
+                            continue
+                    if not is_match:
+                        retry_count += 1
+
+                    if retry_count > 300:
+                        self.update_ui("未检测到任何界面")
+                        is_match = f'not match {retry_count}'
+                        self.update_ui(f"检查{retry_count}次{0.1}秒未匹配到任何执行函数，重启游戏")
+                        engine.restart_game()
                     continue
-
-                in_battle = battle_pix.is_in_battle(self.screenshot)
-                if in_battle:
-                    is_match = 'is_in_battle'
-                    if battle_pix.is_in_round():
-                        is_match = 'is_in_round'
-                        battle_pix.btn_auto_battle()
-                    elif battle_pix.is_auto_battle_stay():
-                        is_match = 'is_auto_battle_stay'
-                        battle_pix.btn_auto_battle_start()
-                else:
-                    world.btn_trim_click()
-
-                if not is_match:
-                    retry_count += 1
-
-                if retry_count > 100:
-                    self.update_ui("未检测到任何界面")
-                    is_match = f'not match {retry_count}'
-                    self.update_ui(f"检查{retry_count}次{0.2}秒未匹配到任何执行函数，重启游戏")
-                    engine.restart_game()
-                continue
+                except Exception as e:
+                    self.update_ui(f"发生错误: {e}")
+                    break
         except Exception as e:
             self.update_ui(f"发生错误: {e}")

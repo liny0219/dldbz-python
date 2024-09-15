@@ -39,8 +39,8 @@ class World:
         if (self.thread_stoped()):
             return False
         self.update_ui("开始检查是否在游戏开始界面", 'debug')
-        if comparator.template_compare(f"./assets/world/game_title.png", [(557, 5), (651, 25)], screenshot=screenshot):
-            self.update_ui("检查到在游戏开始界面", 'debug')
+        if comparator.template_compare(f"./assets/world/game_title.png", screenshot=screenshot):
+            self.update_ui("检查到在游戏开始界面")
             return True
         else:
             return False
@@ -77,13 +77,11 @@ class World:
         if (self.thread_stoped()):
             return
         engine.device.swipe(500, 280, 600, 280, 0.05)
-        self.update_ui("向右移动")
 
     def run_left(self):
         if (self.thread_stoped()):
             return
         engine.device.swipe(500, 280, 400, 280, 0.05)
-        self.update_ui("向左移动")
 
     def btn_trim_click(self):
         engine.device.click(950, 530)
