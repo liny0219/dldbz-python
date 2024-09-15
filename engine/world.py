@@ -73,5 +73,20 @@ class World:
         engine.device.click(925, 16)
         self.update_ui("点击关闭按钮", 'debug')
 
+    def run_right(self):
+        if (self.thread_stoped()):
+            return
+        engine.device.swipe(500, 280, 600, 280, 0.05)
+        self.update_ui("向右移动")
+
+    def run_left(self):
+        if (self.thread_stoped()):
+            return
+        engine.device.swipe(500, 280, 400, 280, 0.05)
+        self.update_ui("向左移动")
+
+    def btn_trim_click(self):
+        engine.device.click(950, 530)
+
 
 world = World()

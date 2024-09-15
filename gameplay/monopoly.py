@@ -301,7 +301,7 @@ class Monopoly():
                 if is_in_monoploly:
                     self.btn_center_confirm()
                 else:
-                    self.btn_trim_confirm()
+                    world.btn_trim_click()
 
                 self.retry_count += 1
                 self.update_ui(f"未匹配到任何函数，第{self.retry_count}次", "debug")
@@ -743,9 +743,6 @@ class Monopoly():
 
     def btn_center_confirm(self):
         engine.device.click(480, 254)
-
-    def btn_trim_confirm(self):
-        engine.device.click(950, 530)
 
     def btn_final_confirm(self):
         engine.device.click(480, 410)

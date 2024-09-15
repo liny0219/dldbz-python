@@ -7,6 +7,7 @@ import tkinter.messagebox
 from engine.battle import battle
 from gameplay.monopoly import Monopoly
 from gameplay.recollection import Recollection
+from gameplay.stationary import Stationary
 from tool_get_coord import GetCoord
 from app_data import AppData
 from utils.stoppable_thread import StoppableThread
@@ -93,6 +94,13 @@ class Startup:
         self.app.destroy()
         sys.exit(0)
 
+    def on_stationary(self):
+        if self.app_data.thread is not None and self.app_data.thread.is_alive():
+            self.update_ui("已启动原地刷怪，不要重复点击哦！")
+            return
+        self.app_data.thread = StoppableThread(target=self._evt_run_stationary)
+        self.app_data.thread.start()
+
     def on_monopoly(self):
         if self.app_data.thread is not None and self.app_data.thread.is_alive():
             self.update_ui("已启动游戏盘，不要重复点击哦！")
@@ -150,6 +158,15 @@ class Startup:
         for award in self.log_update_data:
             engine.write_to_file(award, self.log_file)
         self.log_update_data = []
+
+    def _evt_run_stationary(self):
+        self.init_engine()
+        if not self.inited:
+            self.update_ui("初始化引擎失败，请检查设备连接！")
+            return
+        self.update_ui("开始原地刷怪...")
+        stationary = Stationary(self.app_data)
+        stationary.start()
 
     def _evt_monopoly(self):
         self.init_engine()

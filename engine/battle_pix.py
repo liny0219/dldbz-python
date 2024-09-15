@@ -3,7 +3,6 @@ from typing import TYPE_CHECKING
 from engine.engine import engine
 from engine.comparator import comparator
 from utils.singleton import singleton
-import time
 
 if TYPE_CHECKING:
     from app_data import AppData

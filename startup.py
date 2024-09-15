@@ -37,6 +37,8 @@ monopoly_frame = tk.Frame(notebook, name="monopoly_frame")
 
 recollection_frame = tk.Frame(notebook, name="recollection_frame")
 
+map_frame = tk.Frame(notebook, name="map_frame")
+
 settings_frame = tk.Frame(notebook)
 settings_frame.grid(padx=10, pady=5)
 
@@ -46,6 +48,7 @@ log_frame.grid(padx=10, pady=5)
 # 添加到Notebook
 notebook.add(monopoly_frame, text='游戏盘')
 notebook.add(recollection_frame, text='追忆之书')
+notebook.add(map_frame, text='大地图')
 notebook.add(settings_frame, text='设置')
 notebook.add(log_frame, text='日志')
 
@@ -55,6 +58,11 @@ app.grid_rowconfigure(3, weight=1)
 app.grid_columnconfigure(0, weight=1)
 app.grid_columnconfigure(1, weight=1)
 app.grid_columnconfigure(2, weight=3)
+
+
+def create_map_frame(frame):
+    tk.Button(frame, text="原地刷野", command=startup.on_stationary,
+              font=("Segoe UI", 10), width=10, height=1).grid(row=0, column=0, padx=10, pady=10)
 
 
 def create_log_frame(frame):
@@ -78,11 +86,23 @@ def create_info_button(frame):
 
     # 右侧信息展示框架
     info_frame = tk.Frame(frame)
-    info_frame.pack(side='left', fill='both', expand=True, padx=10, pady=10)
+    info_frame.pack(side='left', fill='both', expand=True, padx=10, pady=10)\
+
+
+    main_button = {"text": "大霸启动", "command": None}
+    if frame == monopoly_frame:
+        main_button["text"] = "大霸启动"
+        main_button["command"] = startup.on_monopoly
+    elif frame == recollection_frame:
+        main_button["text"] = "追忆启动"
+        main_button["command"] = startup.on_recollection
+    elif frame == map_frame:
+        main_button["text"] = "刷野启动"
+        main_button["command"] = startup.on_stationary
 
     # 定义按钮的配置列表
     buttons = [
-        {"text": "大霸启动", "command": startup.on_monopoly if frame == monopoly_frame else startup.on_recollection},
+        main_button,
         {"text": "休息一下", "command": startup.on_stop},
         {"text": "查看帮助", "command": startup.open_readme},
         {"text": "战斗编辑", "command": startup.edit_battle_script},
@@ -107,6 +127,7 @@ def create_info_button(frame):
 
 create_info_button(monopoly_frame)
 create_info_button(recollection_frame)
+create_info_button(map_frame)
 create_settings_frame(settings_frame)
 create_log_frame(log_frame)
 
