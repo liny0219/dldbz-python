@@ -7,6 +7,7 @@ from utils.singleton import singleton
 import uiautomator2 as u2
 from utils.config_loader import cfg_startup, cfg_engine
 import time
+import shutil
 
 if TYPE_CHECKING:
     from app_data import AppData
@@ -175,6 +176,21 @@ class Engine:
             T = self.default_sleep_ms
         sleep_time_s = T / 1000.
         time.sleep(sleep_time_s)
+
+    def cleanup_large_files(self, directory, size_limit_mb=10):  # size_limit_mb默认为10MB
+        """ 清理指定目录中所有超过给定大小（MB）的文件。 """
+        size_limit_bytes = size_limit_mb * 1024 * 1024  # 将MB转换为字节
+        for filename in os.listdir(directory):
+            file_path = os.path.join(directory, filename)
+            try:
+                if os.path.isfile(file_path) or os.path.islink(file_path):
+                    if os.path.getsize(file_path) > size_limit_bytes:
+                        os.unlink(file_path)
+                        print(f"Deleted {file_path} due to exceeding size limit of {size_limit_mb} MB.")
+                elif os.path.isdir(file_path):
+                    self.cleanup_large_files(file_path, size_limit_mb)  # 递归检查子目录
+            except Exception as e:
+                print(f'Failed to delete {file_path}. Reason: {e}')
 
 
 engine = Engine()

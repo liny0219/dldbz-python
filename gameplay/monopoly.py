@@ -1,5 +1,6 @@
 import time
 import cv2
+import datetime
 from engine.comparator import comparator
 from engine.world import world
 from engine.engine import engine
@@ -75,7 +76,8 @@ class Monopoly():
         self.reported_finish = False
         self.reported_end = False
         self.isMatch = "None"
-        self.roll_time = 1
+        self.roll_time = 0
+        self.find_enemy = False
         self.award_map = {}
         if init:
             return
@@ -85,7 +87,7 @@ class Monopoly():
 
     def new_trun(self):
         self.begin_turn = time.time()
-        self.roll_time = 1
+        self.roll_time = 0
         self.reported_end = False
         self.reported_finish = False
         self.started_count += 1
@@ -150,6 +152,10 @@ class Monopoly():
         pre_match = "None"
         is_pre_in_monoploly = False
         is_in_monoploly = False
+        enemy = self.cfg_enemy_map.get(self.cfg_type)
+        action = self.cfg_action_map.get(self.cfg_type)
+        if enemy and action:
+            self.find_enemy = True
         self.update_ui(f"大霸启动!", 'stats')
         while not self.thread_stoped():
             try:
@@ -243,8 +249,8 @@ class Monopoly():
                         self.update_ui(f"距离终点 {number}，当前BP: {max_bp}")
                         if input_bp > max_bp:
                             input_bp = max_bp
-                    self.roll_dice(input_bp, self.roll_time)
                     self.roll_time += 1
+                    self.roll_dice(input_bp, self.roll_time)
                     continue
 
                 if world.check_stage(self.screenshot) and pre_match != 'check_stage':
@@ -308,7 +314,7 @@ class Monopoly():
             except Exception as e:
                 self.update_ui(f"出现异常！{e}")
 
-    def ocr_number(self, screenshot, count=0, type='origin'):
+    def ocr_number(self, screenshot, count=0, type='origin', debug=True):
         x, y, width, height = 708, 480, 28, 20
         currentshot = screenshot
         current_image = None
@@ -320,10 +326,18 @@ class Monopoly():
             current_image = screenshot
         # 缩放图片（例如 bicubic resize）
         resized_image = cv2.resize(current_image, None, fx=3.0, fy=3.0, interpolation=cv2.INTER_CUBIC)
-        # cv2.imwrite('cropped_image.png', resized_image)
         _, threshold_image = cv2.threshold(resized_image, 100, 255, cv2.THRESH_BINARY)
-        # cv2.imwrite('threshold_image.png', threshold_image)
+
         result = comparator.get_num_in_image(threshold_image)
+        if not result and debug:
+            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+            debug_path = 'debug_images'
+            os.makedirs(debug_path, exist_ok=True)  # 确保目录存在
+            engine.cleanup_large_files(debug_path, 10)  # 清理大于 10 MB 的文件
+
+            cv2.imwrite(os.path.join(debug_path, f'current_image_{timestamp}.png'), current_image)
+            cv2.imwrite(os.path.join(debug_path, f'resized_image_{timestamp}.png'), resized_image)
+            cv2.imwrite(os.path.join(debug_path, f'threshold_image_{timestamp}.png'), threshold_image)
         if not result and type == 'origin':
             self.update_ui("未识别到距离，裁剪重试")
             crop_img = current_image[:, int(0.28 * width):]
@@ -664,10 +678,10 @@ class Monopoly():
         return 0
 
     def on_battle(self):
-        self.on_get_enmey()
+        if (self.find_enemy):
+            self.on_get_enmey()
         if self.cfg_auto_battle == 1:
             battle_pix.btn_auto_battle()
-            pass
         else:
             battle_pix.btn_attack()
 
@@ -686,7 +700,7 @@ class Monopoly():
             try:
                 normalized_path = os.path.normpath(value)
                 result = comparator.template_compare(
-                    normalized_path, return_center_coord=True, match_threshold=self.cfg_enemy_match_threshold, screenshot=self.screenshot, pack=False)
+                    normalized_path, [(15, 86), (506, 448)], return_center_coord=True, match_threshold=self.cfg_enemy_match_threshold, screenshot=self.screenshot, pack=False)
             except Exception as e:
                 self.update_ui(f"匹配敌人{key}出现异常{e}")
                 continue

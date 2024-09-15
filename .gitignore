@@ -3,6 +3,7 @@ log.txt
 cropped_image.png
 threshold_image.png
 tmp.spec
+debug_images/
 __MACOSX/
 publish/
 bin-debug/
