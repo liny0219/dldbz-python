@@ -1,5 +1,6 @@
 # Build and Release Folders
 log.txt
+log_debug.txt
 cropped_image.png
 threshold_image.png
 tmp.spec

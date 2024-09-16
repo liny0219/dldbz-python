@@ -29,9 +29,11 @@ class Startup:
         self.inited = False
         self.is_busy = False
         self.log_file = 'log.txt'
+        self.log_file_debug = 'log_debug.txt'
         self.monopoly = None
         self.log_update_count_max = 10
         self.log_update_data = []
+        self.log_update_data_debug = []
 
     def init_engine_thread(self):
         engine.set_config()
@@ -120,12 +122,19 @@ class Startup:
         if self.app_data.thread is not None:
             self.app_data.thread.stop()
         self.write_to_file()
+        self.write_to_file(self.log_file_debug)
 
     def update_ui(self, msg, type='info'):
         if not self.message_text:
             return
         if self.debug == 1:
             print(msg)
+
+        current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        message = f"[{current_time}] {msg}\n"
+        self.log_update_data_debug.append(message)
+        # if len(self.log_update_data_debug) >= self.log_update_count_max*10:
+        self.write_to_file(self.log_file_debug)
         if type == 'debug' and self.debug == 0:
             return
         # 如果是type=1，更新统计信息
@@ -134,9 +143,6 @@ class Startup:
         if type == 'award':
             self.award_label.config(text=msg)
         else:
-            # 获取当前时间
-            current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            message = f"[{current_time}] {msg}\n"
             self.log_update_data.append(message)
             if len(self.log_update_data) >= self.log_update_count_max:
                 self.write_to_file()
@@ -154,10 +160,17 @@ class Startup:
             self.message_text.config(state=tk.DISABLED)
             self.message_text.see(tk.END)
 
-    def write_to_file(self):
-        for award in self.log_update_data:
-            engine.write_to_file(award, self.log_file)
-        self.log_update_data = []
+    def write_to_file(self, file_path=None):
+        if not file_path:
+            file_path = self.log_file
+        if file_path == self.log_file_debug:
+            for debug in self.log_update_data_debug:
+                engine.write_to_file(debug, file_path)
+                self.log_update_data_debug = []
+        if file_path == self.log_file:
+            for msg in self.log_update_data:
+                engine.write_to_file(msg, file_path)
+                self.log_update_data = []
 
     def _evt_run_stationary(self):
         self.init_engine()
@@ -174,6 +187,7 @@ class Startup:
             self.update_ui("初始化引擎失败，请检查设备连接！")
             return
         engine.delete_if_larger_than(self.log_file, 10)
+        engine.delete_if_larger_than(self.log_file_debug, 10)
         current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         message = f"[{current_time}] 游戏盘开始\n"
         engine.write_to_file(message, self.log_file)

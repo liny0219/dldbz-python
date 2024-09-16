@@ -112,6 +112,18 @@ def color_in_image(img, expected_color):
     return np.any(np.all(img == expected_color, axis=-1))
 
 
+def resize_image_if_needed(image, min_size=7):
+    '''
+    如果图像的最小边小于指定尺寸，则调整图像大小。
+    '''
+    h, w = image.shape
+    if min(h, w) < min_size:
+        scale = min_size / min(h, w)
+        new_size = (int(w * scale), int(h * scale))
+        return cv2.resize(image, new_size, interpolation=cv2.INTER_LINEAR)
+    return image
+
+
 def check_image_similarity(gray_image1, gray_image2, threshold):
     '''
     检查两个图像是否匹配。
@@ -123,6 +135,8 @@ def check_image_similarity(gray_image1, gray_image2, threshold):
     返回:
     - 如果匹配,返回True;否则返回False
     '''
+    gray_image1 = resize_image_if_needed(gray_image1)
+    gray_image2 = resize_image_if_needed(gray_image2)
     similarity_index = ssim(gray_image1, gray_image2)
     # loger.log_info(f'相似度:{similarity_index},阈值：{threshold}')
     if similarity_index >= threshold:
