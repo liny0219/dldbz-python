@@ -13,6 +13,8 @@ class BattleVee:
     def __init__(self):
         self.app_data = None
         self.debug = False
+        self.cfg_battle_ui = './assets/battle/battle_ui.png'
+        self.cfg_attack = './assets/battle/attack.png'
 
     def set(self, app_data: AppData):
         self.app_data = app_data
@@ -59,11 +61,35 @@ class BattleVee:
             if comparator.match_point_color(i, screenshot=screenshot):
                 self.update_ui("检测到在战斗界面中", 'debug')
                 return True
+        if self.is_battle_ui(screenshot):
+            return True
+        if self.is_sp_skill(screenshot):
+            return True
+
+    def is_battle_ui(self, screenshot=None):
+        return comparator.template_compare(self.cfg_battle_ui, match_threshold=0.7, screenshot=screenshot)
+
+    def is_sp_skill(self, screenshot=None):
+        self.update_ui("开始检查是否在战斗待确认必杀界面中", 'debug')
+        ck1 = [(786, 345, [210, 207, 198]),
+               (779, 347, [213, 202, 184]),
+               (637, 345, [242, 236, 210]),
+               (630, 346, [213, 221, 200]),
+               (627, 346, [188, 176, 160]),
+               (699, 324, [176, 180, 129]),]
+        cks = [ck1]
+        for i in cks:
+            if self.thread_stoped():
+                return False
+            if comparator.match_point_color(i, screenshot=screenshot):
+                self.update_ui("检查到在战斗待确认必杀界面中", 'debug')
+                return True
         return False
 
-    def is_in_round(self):
+    def is_in_round(self, screenshot=None):
         self.update_ui("开始检查是否在战斗准备界面中", 'debug')
-        result = comparator.template_in_picture("./assets/battle/attack.png", [[784, 470], [857, 498]], True)
+        result = comparator.template_compare(
+            self.cfg_attack, [(702, 448), (944, 516)], return_center_coord=True, screenshot=screenshot)
         if result:
             self.update_ui("检测到在战斗准备界面中", 'debug')
         return result
