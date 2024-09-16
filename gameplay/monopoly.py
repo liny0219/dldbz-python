@@ -406,7 +406,7 @@ class Monopoly():
             if result:
                 self.update_ui("缩小识别成功")
 
-        if not result:
+        if not result and type == 'crop':
             self.update_ui("未识别到距离，预处理重试")
             threshold_image = comparator.process_image(current_image, 120)
             result = self.ocr_number(threshold_image, count, 'process')

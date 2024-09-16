@@ -6,7 +6,7 @@
   "auto_battle": "1",
   "isContinue": "0",
   "round_time": "12",
-  "wait_time": "5",
+  "wait_time": "3",
   "check_time": "120",
   "check_interval": "0.1",
   "check_roll_dice_time": "2",

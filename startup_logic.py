@@ -133,26 +133,26 @@ class Startup:
             self.write_to_file(self.log_file_debug)
         if type == 'debug' and self.debug == 0:
             return
+        self.log_update_data.append(message)
         # 如果是type=1，更新统计信息
         if type == 'stats':
             self.stats_label.config(text=msg)
-        else:
-            self.log_update_data.append(message)
-            if len(self.log_update_data) >= self.log_update_count_max:
-                self.write_to_file()
-            # 允许修改文本框内容
-            self.message_text.config(state=tk.NORMAL)
 
-            # 检查消息行数，超过200条时删除最早的消息
-            num_lines = int(self.message_text.index('end-1c').split('.')[0])  # 获取当前行数
-            if num_lines > 200:
-                self.message_text.delete(1.0, 2.0)  # 删除第一行
+        if len(self.log_update_data) >= self.log_update_count_max:
+            self.write_to_file()
+        # 允许修改文本框内容
+        self.message_text.config(state=tk.NORMAL)
 
-            # 插入新的消息
-            self.message_text.insert(tk.END, message)
-            # 禁用编辑并滚动到底部
-            self.message_text.config(state=tk.DISABLED)
-            self.message_text.see(tk.END)
+        # 检查消息行数，超过200条时删除最早的消息
+        num_lines = int(self.message_text.index('end-1c').split('.')[0])  # 获取当前行数
+        if num_lines > 200:
+            self.message_text.delete(1.0, 2.0)  # 删除第一行
+
+        # 插入新的消息
+        self.message_text.insert(tk.END, message)
+        # 禁用编辑并滚动到底部
+        self.message_text.config(state=tk.DISABLED)
+        self.message_text.see(tk.END)
 
     def write_to_file(self, file_path=None):
         if not file_path:
