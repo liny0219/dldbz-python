@@ -405,10 +405,11 @@ class Monopoly():
             result = self.ocr_number(scale_image, count, 'scale')
             if result:
                 self.update_ui("缩小识别成功")
-        if not result and type == 'origin':
+
+        if not result:
             self.update_ui("未识别到距离，预处理重试")
             threshold_image = comparator.process_image(current_image, 120)
-            result = self.ocr_number(scale_image, count, 'process')
+            result = self.ocr_number(threshold_image, count, 'process')
             if result:
                 self.update_ui("预处理识别成功")
         return result
