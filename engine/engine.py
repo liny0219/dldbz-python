@@ -25,11 +25,11 @@ class Engine:
         self.app_data = None
         self.debug = False
 
-        self.rand_press_px = 5
-        self.press_duration = 300
-        self.swipe_duration = 50
-        self.operate_latency = 500
-        self.default_sleep_ms = 10
+        self.cfg_rand_press_px = 5
+        self.cfg_press_duration = 300
+        self.cfg_swipe_duration = 50
+        self.cfg_operate_latency = 500
+        self.cfg_default_sleep_ms = 10
 
     def set(self, app_data: AppData):
         self.app_data = app_data
@@ -40,11 +40,12 @@ class Engine:
             self.update_ui(f"连接设备失败: {e}")
 
     def set_config(self):
-        self.press_duration = cfg_engine.get('common.press_duration')
-        self.default_sleep_ms = cfg_engine.get('common.default_sleep_ms')
-        self.operate_latency = cfg_engine.get('common.operate_latency')
-        self.rand_press_px = cfg_engine.get('common.rand_press_px')
-        self.swipe_duration = cfg_engine.get('common.swipe_duration')
+        self.cfg_press_duration = cfg_engine.get('common.press_duration')
+        self.cfg_default_sleep_ms = cfg_engine.get('common.default_sleep_ms')
+        self.cfg_operate_latency = cfg_engine.get('common.operate_latency')
+        self.cfg_rand_press_px = cfg_engine.get('common.rand_press_px')
+        self.cfg_swipe_duration = cfg_engine.get('common.swipe_duration')
+        self.cfg_package_name = cfg_startup.get('package_name')
 
     def thread_stoped(self) -> bool:
         return self.app_data and self.app_data.thread_stoped()
@@ -67,9 +68,7 @@ class Engine:
 
     def start_app(self):
         # 启动应用程序，需要确保已安装并可通过此包名启动
-        self.update_ui("启动游戏")
-        self.device.app_start("com.netease.ma167")
-        self.device.app_start("com.netease.ma167.bilibili")
+        self.device.app_start(self.cfg_package_name)
 
     def check_in_game(self):
         activity = self.device.app_current().get('activity')
@@ -79,8 +78,7 @@ class Engine:
             return False
 
     def stop_app(self):
-        self.device.app_stop("com.netease.ma167")
-        self.device.app_stop("com.netease.ma167.bilibili")
+        self.device.app_stop(self.cfg_package_name)
 
     def restart_game(self):
         self.update_ui("重启游戏")
@@ -142,9 +140,9 @@ class Engine:
                 # 判断文件是否大于指定的大小
                 if file_size_in_MB > size_in_mb:
                     os.remove(file_path)
-                    print(f"已删除文件: {file_path}，文件大小: {file_size_in_MB:.2f} MB")
+                    print(f"已删除文件: {file_path}，文件大小: {file_size_in_MB:.1f} MB")
                 else:
-                    print(f"文件大小 {file_size_in_MB:.2f} MB, 不需要删除: {file_path}")
+                    print(f"文件大小 {file_size_in_MB:.1f} MB, 不需要删除: {file_path}")
             else:
                 print(f"文件不存在: {file_path}")
         except Exception as e:
@@ -152,7 +150,7 @@ class Engine:
 
     def press(self, coordinate, T=None, operate_latency=500):
         if not T:
-            T = self.press_duration
+            T = self.cfg_press_duration
         if self.device:
             x = coordinate[0]
             y = coordinate[1]
@@ -161,7 +159,7 @@ class Engine:
 
     def light_swipe(self, start_coordinate, end_coordinate, T=None):
         if not T:
-            T = self.swipe_duration
+            T = self.cfg_swipe_duration
         if self.device:
             x_start, y_start = start_coordinate
             x_end, y_end = end_coordinate
@@ -173,7 +171,7 @@ class Engine:
 
     def sleep_ms(self, T=None):
         if not T:
-            T = self.default_sleep_ms
+            T = self.cfg_default_sleep_ms
         sleep_time_s = T / 1000.
         time.sleep(sleep_time_s)
 

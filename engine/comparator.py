@@ -189,7 +189,7 @@ class Comparator:
         # image_gray中最符合模板template_gray的区域的左上角, 右下角坐标. 且该区域与模板shape一致.
         target_leftup, target_rightdown = find_target_in_image(template_gray, cropped_screenshot_gray)
         # 第二次裁剪, 为了匹配模板template_gray的shape, 此时twice_cropped_screenshot_gray与template_gray有相同shape, 这之后才可调用比较相似度的函数
-        twice_cropped_screenshot_gray = cropped_screenshot_gray[target_leftup[1]: target_rightdown[1], target_leftup[0]: target_rightdown[0]]
+        twice_cropped_screenshot_gray = cropped_screenshot_gray[target_leftup[1]                                                                : target_rightdown[1], target_leftup[0]: target_rightdown[0]]
 
         # 检查是否匹配
         is_match = check_image_similarity(twice_cropped_screenshot_gray, template_gray, match_threshold)
@@ -243,8 +243,7 @@ class Comparator:
         # print(f"template_path:{template_path} target_leftup: {target_leftup}, target_rightdown: {target_rightdown}")
 
         # 第二次裁剪, 为了匹配模板template_gray的shape, 此时twice_cropped_screenshot_gray与template_gray有相同shape, 这之后才可调用比较相似度的函数
-        twice_cropped_screenshot_gray = cropped_screenshot_gray[target_leftup[1]
-            : target_rightdown[1], target_leftup[0]: target_rightdown[0]]
+        twice_cropped_screenshot_gray = cropped_screenshot_gray[target_leftup[1]: target_rightdown[1], target_leftup[0]: target_rightdown[0]]
 
         # 检查是否匹配
         is_match = check_image_similarity(twice_cropped_screenshot_gray, template_gray, match_threshold)
@@ -282,14 +281,6 @@ class Comparator:
                 return False
         return True
 
-    def get_award_in_image(self, image_path):
-        try:
-            # 使用 EasyOCR 读取图像中的文本
-            results = reader.readtext(image_path)
-            return results
-        except ValueError:
-            return None
-
     def get_num_in_image(self, image_path):
         try:
             result = reader.readtext(image_path, detail=0)
@@ -298,6 +289,56 @@ class Comparator:
             return None
         except ValueError:
             return None
+
+    def replace_color(self, pixel, threshold_value):
+        """
+        判断像素的 RGB 值并替换颜色。
+        如果 RGB 值都小于阈值，返回黑色 [0, 0, 0]，否则返回白色 [255, 255, 255]。
+        """
+        b, g, r = pixel
+        if b < threshold_value and g < threshold_value and r < threshold_value:
+            return [0, 0, 0]  # 黑色
+        else:
+            return [255, 255, 255]  # 白色
+
+    def process_image(self, input_image, threshold_value=100):
+        """
+        对输入的彩色图像进行遍历，根据阈值替换颜色，输出处理后的图像。
+        :param input_image: 输入的彩色图像
+        :param threshold_value: 阈值，默认值为 100
+        :return: 处理后的图像
+        """
+        # 获取图像的高度和宽度
+        height, width, _ = input_image.shape
+
+        # 遍历每个像素
+        for i in range(height):
+            for j in range(width):
+                # 获取当前像素的 B, G, R 值
+                pixel = input_image[i, j]
+
+                # 使用 replace_color 函数替换颜色
+                input_image[i, j] = self.replace_color(pixel, threshold_value)
+
+        scale = 10
+        input_image = cv2.copyMakeBorder(input_image, scale, scale, scale, scale,
+                                         cv2.BORDER_CONSTANT, value=[0, 0, 0])
+        scale = 5
+        input_image = cv2.resize(input_image, None, fx=scale, fy=scale, interpolation=cv2.INTER_CUBIC)
+        # 转换为灰度图
+        gray = cv2.cvtColor(input_image, cv2.COLOR_BGR2GRAY)
+        # 进行抗锯齿处理
+        blurred = cv2.GaussianBlur(gray, (3, 3), 0)
+        # 自适应阈值处理，增强对比度
+        enhanced_image = cv2.adaptiveThreshold(blurred, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+                                               cv2.THRESH_BINARY, 11, 2)
+        # 尝试二值化增强边缘 (尝试不同阈值)
+        _, binary_image = cv2.threshold(enhanced_image, 150, 255, cv2.THRESH_BINARY_INV)
+        # 锐化图像，增强边缘清晰度
+        kernel = np.array([[0, -1, 0], [-1, 5, -1], [0, -1, 0]])  # 锐化核
+        sharpened_image = cv2.filter2D(binary_image, -1, kernel)
+
+        return sharpened_image
 
 
 def get_abs_center_coord(leftup_coordinate, target_leftup, target_rightdown):

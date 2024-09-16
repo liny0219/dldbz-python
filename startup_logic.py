@@ -23,7 +23,6 @@ class Startup:
         self.app_data = AppData(update_ui=self.update_ui)
         self.app = app
         self.stats_label = None
-        self.award_label = None
         self.message_text = None
         self.debug = cfg_startup.get('debug')
         self.inited = False
@@ -71,9 +70,6 @@ class Startup:
 
     def set_stats_label(self, stats_label):
         self.stats_label = stats_label
-
-    def set_award_label(self, award_label):
-        self.award_label = award_label
 
     def set_message_text(self, message_text):
         self.message_text = message_text
@@ -133,15 +129,13 @@ class Startup:
         current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         message = f"[{current_time}] {msg}\n"
         self.log_update_data_debug.append(message)
-        # if len(self.log_update_data_debug) >= self.log_update_count_max*10:
-        self.write_to_file(self.log_file_debug)
+        if len(self.log_update_data_debug) >= self.log_update_count_max*10:
+            self.write_to_file(self.log_file_debug)
         if type == 'debug' and self.debug == 0:
             return
         # 如果是type=1，更新统计信息
         if type == 'stats':
             self.stats_label.config(text=msg)
-        if type == 'award':
-            self.award_label.config(text=msg)
         else:
             self.log_update_data.append(message)
             if len(self.log_update_data) >= self.log_update_count_max:
@@ -186,8 +180,8 @@ class Startup:
         if not self.inited:
             self.update_ui("初始化引擎失败，请检查设备连接！")
             return
-        engine.delete_if_larger_than(self.log_file, 10)
-        engine.delete_if_larger_than(self.log_file_debug, 10)
+        engine.delete_if_larger_than(self.log_file, 1)
+        engine.delete_if_larger_than(self.log_file_debug, 1)
         current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         message = f"[{current_time}] 游戏盘开始\n"
         engine.write_to_file(message, self.log_file)

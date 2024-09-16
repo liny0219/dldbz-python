@@ -24,10 +24,6 @@ message_label.grid(row=0, column=0, columnspan=2, pady=10)
 stats_label = tk.Label(app, text="大霸，启动", font=("Segoe UI", 12))
 stats_label.grid(row=1, column=0, columnspan=2, pady=5)
 
-# # 统计奖励信息标签
-# award_label = tk.Label(app, text="奖励-等待结算", font=("Segoe UI", 12))
-# award_label.grid(row=2, column=0, columnspan=2, pady=5, sticky="n")
-
 notebook = ttk.Notebook(app)
 notebook.grid(row=2, column=0, columnspan=2, sticky='nsew', padx=10, pady=10)
 
@@ -159,7 +155,6 @@ def on_tab_changed(event: tk.Event):
 
 notebook.bind("<<NotebookTabChanged>>", on_tab_changed)
 startup.set_stats_label(stats_label)
-# startup.set_award_label(award_label)
 
 
 # 设置关闭事件处理

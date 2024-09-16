@@ -53,6 +53,9 @@ class Monopoly():
         self.cfg_enemy_match_threshold = 0.5
         self.cfg_enemy_check_debug = 0
         self.total_finish_time = 0
+        self.pre_check_time = -1
+        self.cfg_check_time = 120
+        self.pre_crossing = -1
         self.reset()
 
     def thread_stoped(self) -> bool:
@@ -84,11 +87,11 @@ class Monopoly():
         self.cfg_enemy_check_debug = int(cfg_monopoly.get("enemy_check_debug"))
         self.cfg_round_time = int(cfg_monopoly.get("round_time"))*60
         self.cfg_wait_time = int(cfg_monopoly.get("wait_time"))*60
+        self.cfg_check_time = int(cfg_monopoly.get("check_time"))
 
     def reset_round(self):
         self.round_time_start = time.time()
         self.wait_time = time.time()
-        self.check_count = 0
         self.roll_time = 0
 
     def reset(self):
@@ -105,7 +108,6 @@ class Monopoly():
         self.award_map = {}
 
         self.is_in_app = True
-        self.is_check_restart = True
         self.state = State.Unknow
         self.enemy = self.cfg_enemy_map.get(self.cfg_type)
         self.action = self.cfg_action_map.get(self.cfg_type)
@@ -137,7 +139,7 @@ class Monopoly():
             self.total_finish_time += turn_duration
             avg_duration = self.total_finish_time / self.finished_count if self.finished_count > 0 else 0
             msg1 = f"完成{self.finished_count}次, 翻车{failed_count}次, 重启{self.restart}次"
-            msg2 = f"本轮{turn_duration:.2f}分钟,平均{avg_duration:.2f}分钟 扔骰子{self.roll_time}次, 总耗时{total_duration:.2f}分钟"
+            msg2 = f"本轮{turn_duration:.1f}分钟,平均{avg_duration:.1f}分钟 扔骰子{self.roll_time}次, 总耗时{total_duration:.1f}分钟"
             self.update_ui(f"{msg1},{msg2}", 'stats')
             self.reported_end = True
 
@@ -149,6 +151,10 @@ class Monopoly():
             self.update_ui("启动游戏")
             self.reset_round()
             self.restart += 1
+            self.state = State.Unknow
+            time.sleep(3)
+            return True
+        return False
 
     def check_in_game_title(self):
         if self.state == State.Title or self.state != State.Unknow:
@@ -196,8 +202,6 @@ class Monopoly():
             return State.MonopolySetting
 
     def check_in_battle(self):
-        if self.state == State.Battle:
-            return
         if battle_pix.is_in_battle(self.screenshot):
             return State.Battle
 
@@ -248,7 +252,6 @@ class Monopoly():
             new_state = State.MonopolyMap
 
         if self.check_end():
-            new_state = State.MonopolyMap
             self.report_end()
 
         if self.check_final_confirm():
@@ -260,32 +263,27 @@ class Monopoly():
         if crossing_index != -1:
             new_state = State.MonopolyMap
             self.turn_crossing(crossing_index)
-            time.sleep(2)
+            self.pre_crossing = crossing_index
         return new_state
 
-    def check_in_monopoly_round(self):
+    def check_in_monopoly_round(self, round_state):
         if time.time() - self.round_time_start > self.cfg_round_time:
             return False
-        if self.state == State.Battle:
-            return True
-        if self.state == State.BattleInRound:
-            return True
-        if self.state == State.BattleAutoStay:
-            return True
-        if self.state == State.MonopolyMap:
-            return True
-        return False
+        if round_state == State.Finised:
+            return False
+        return True
 
     def start(self):
         self.set_config()
         self.reset()
-        is_round = True
         if self.enemy and self.action:
             self.find_enemy = True
         self.update_ui(f"大霸启动!", 'stats')
         wait_duration = 0
+        run_in_map = False
         while not self.thread_stoped():
             try:
+                self.update_ui(f"全量检查", 'debug')
                 time.sleep(self.cfg_check_interval)
                 self.screenshot = engine.device.screenshot(format='opencv')
                 # 每轮执行状态(完整一轮执行状态,包含启动界面\地图\战斗\结算等)
@@ -304,47 +302,48 @@ class Monopoly():
                 if not turn_state:
                     turn_state = self.check_in_monopoly_setting()
                 if turn_state == State.MonopolySetting:
-                    self.round_time_start = time.time()
-                    is_round = True
+                    self.state = State.MonopolyMap
 
-                while is_round or self.check_in_monopoly_round() and not self.thread_stoped():
-                    self.round_time_start = time.time()
-                    round_state = self.check_in_battle()
-                    if round_state == State.Battle and round_state != State.BattleInRound:
-                        round_state = self.check_in_battle_in_round()
-                    if not round_state == State.Battle and round_state != State.BattleInRound:
-                        round_state = self.check_in_battle_auto_stay()
-                    if not round_state:
-                        round_state = self.check_in_monopoly_map()
+                self.round_time_start = time.time()
+                while True:
+                    self.update_ui(f"地图检查", 'debug')
+                    round_state = None
+                    check_state = self.check_in_battle()
+                    if check_state:
+                        check_state = self.check_in_battle_in_round()
+                        check_state = self.check_in_battle_auto_stay()
+                    if not check_state:
+                        check_state = self.check_in_monopoly_map()
 
-                    if round_state == State.Finised:
-                        is_round = False
+                    round_state = check_state
+
+                    if round_state:
+                        run_in_map = True
                         self.wait_time = time.time()
-                    elif round_state:
-                        self.wait_time = time.time()
-                        is_round = True
                     else:
                         self.btn_center_confirm()
 
                     round_duration = time.time() - self.round_time_start
-                    self.check_deamon(round_duration)
+
+                    if self.check_deamon(round_duration):
+                        run_in_map = False
+                        break
                     time.sleep(self.cfg_check_interval)
                     self.screenshot = engine.device.screenshot(format='opencv')
+                    is_in_map = self.check_in_monopoly_round(round_state)
+                    if not run_in_map or not is_in_map or self.thread_stoped():
+                        run_in_map = False
+                        break
                 if round_state:
                     turn_state = round_state
                 if turn_state:
                     self.wait_time = time.time()
                     self.state = turn_state
-                    self.is_check_restart = False
                     self.update_ui(f"当前状态{self.state}", 'debug')
                 else:
                     self.state = State.Unknow
                     world.btn_trim_click()
-                    self.check_count += 1
                     self.update_ui("未匹配到任何状态", 'debug')
-
-                if self.check_count > 20:
-                    self.is_check_restart = True
 
                 wait_duration = time.time() - self.wait_time
                 if wait_duration > self.cfg_wait_time:
@@ -352,44 +351,49 @@ class Monopoly():
                     self.update_ui("重启游戏")
                     engine.restart_game()
                     self.restart += 1
+                    self.state = State.Unknow
                     self.reset_round()
+                    time.sleep(3)
 
             except Exception as e:
                 self.update_ui(f"出现异常！{e}")
 
     def check_deamon(self, time):
-        if time % 120 == 0:
+        time = int(time)
+        if (time % self.cfg_check_time == 0 and time != self.pre_check_time) or self.pre_check_time == -1:
+            self.pre_check_time = time
             self.update_ui(f"本轮已经运行{time}秒,自检一次")
-            self.check_restart()
+            return self.check_restart()
 
-    def ocr_number(self, screenshot, count=0, type='origin', debug=True):
+    def ocr_number(self, screenshot, count=0, type='origin', debug=False):
         x, y, width, height = 708, 480, 28, 20
         currentshot = screenshot
         current_image = None
-        if count > 0 and type == 'origin':
+        if count > 0 and type == 'origin' and not debug:
             currentshot = engine.device.screenshot(format='opencv')
-        if type == 'origin':
+        if type == 'origin' and not debug:
             current_image = currentshot[y:y+height, x:x+width]
         else:
             current_image = screenshot
-        # 缩放图片（例如 bicubic resize）
-        resized_image = cv2.resize(current_image, None, fx=3.0, fy=3.0, interpolation=cv2.INTER_CUBIC)
-        _, threshold_image = cv2.threshold(resized_image, 100, 255, cv2.THRESH_BINARY)
 
-        result = comparator.get_num_in_image(threshold_image)
-        if not result and debug:
-            timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
-            debug_path = 'debug_images'
-            os.makedirs(debug_path, exist_ok=True)  # 确保目录存在
-            engine.cleanup_large_files(debug_path, 10)  # 清理大于 10 MB 的文件
+        result = None
 
-            cv2.imwrite(os.path.join(debug_path, f'current_image_{timestamp}.png'), current_image)
-            cv2.imwrite(os.path.join(debug_path, f'resized_image_{timestamp}.png'), resized_image)
-            cv2.imwrite(os.path.join(debug_path, f'threshold_image_{timestamp}.png'), threshold_image)
+        if type == 'origin':
+            # 缩放图片（例如 bicubic resize）
+            resized_image = cv2.resize(current_image, None, fx=3.0, fy=3.0, interpolation=cv2.INTER_CUBIC)
+            _, threshold_image = cv2.threshold(resized_image, 100, 255, cv2.THRESH_BINARY)
+            current_image = threshold_image
+        result = comparator.get_num_in_image(current_image)
+        if not debug:
+            self.write_ocr_log(result, current_image, type)
+
         if not result and type == 'origin':
             self.update_ui("未识别到距离，裁剪重试")
             crop_img = current_image[:, int(0.28 * width):]
             result = self.ocr_number(crop_img, count, 'crop')
+            if result:
+                self.update_ui("裁剪识别成功")
+
         if not result and type == 'origin':
             self.update_ui("未识别到距离，缩小重试")
             top = 10
@@ -399,7 +403,24 @@ class Monopoly():
             scale_image = cv2.copyMakeBorder(current_image, top, bottom, left, right,
                                              cv2.BORDER_CONSTANT, value=[0, 0, 0])
             result = self.ocr_number(scale_image, count, 'scale')
+            if result:
+                self.update_ui("缩小识别成功")
+        if not result and type == 'origin':
+            self.update_ui("未识别到距离，预处理重试")
+            threshold_image = comparator.process_image(current_image, 120)
+            result = self.ocr_number(scale_image, count, 'process')
+            if result:
+                self.update_ui("预处理识别成功")
         return result
+
+    def write_ocr_log(self, result, current_image, type):
+        if result:
+            return
+        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        debug_path = 'debug_images'
+        os.makedirs(debug_path, exist_ok=True)  # 确保目录存在
+        engine.cleanup_large_files(debug_path, 10)  # 清理大于 10 MB 的文件
+        cv2.imwrite(os.path.join(debug_path, f'current_image_{timestamp}_{type}.png'), current_image)
 
     def write_awards_with_timestamp(self, award_list, file_path):
         try:
@@ -515,19 +536,24 @@ class Monopoly():
         direction = ""
         if crossing_index != None and self.cfg_crossing and self.cfg_crossing[crossing_index]:
             direction = self.cfg_crossing[crossing_index]
-            self.update_ui(f"匹配到大富翁路口{crossing_index}，选择方向{direction}")
+            self.update_crossing_msg(f"匹配到大富翁路口{crossing_index}，选择方向{direction}", crossing_index)
         if direction == "left":
             engine.device.click(402, 243)
-            self.update_ui("选择左转")
+            self.update_crossing_msg("选择左转", crossing_index)
         if direction == "right":
             engine.device.click(558, 243)
-            self.update_ui("选择右转")
+            self.update_crossing_msg("选择右转", crossing_index)
         if direction == "up":
             engine.device.click(480, 150)
-            self.update_ui("选择上转")
+            self.update_crossing_msg("选择上转", crossing_index)
         if direction == "down":
             engine.device.click(480, 330)
-            self.update_ui("选择下转")
+            self.update_crossing_msg("选择下转", crossing_index)
+
+    def update_crossing_msg(self, msg, crossing_index):
+        if crossing_index == self.pre_crossing:
+            return
+        self.update_ui(msg)
 
     def check_page_monopoly(self):
         if (self.thread_stoped()):
@@ -562,7 +588,7 @@ class Monopoly():
             return -1
         current_crossing = self.check_crossing_index()
         if current_crossing != -1:
-            self.update_ui(f"当前在大富翁路口格子{current_crossing}")
+            self.update_crossing_msg(f"当前在大富翁路口格子{current_crossing}", current_crossing)
             return current_crossing
         return -1
 
@@ -591,7 +617,9 @@ class Monopoly():
     def check_confirm(self):
         self.update_ui("开始检查奖励确认界面", 'debug')
         points_with_colors = [(524, 212, [255, 255, 253]), (441, 203, [255, 255, 253]), (413, 205, [255, 255, 251]),
-                              (413, 209, [255, 253, 250]), (413, 209, [255, 253, 250]), (445, 209, [255, 255, 253])]
+                              (413, 209, [255, 253, 250]), (413, 209, [255, 253, 250]), (445, 209, [255, 255, 253]),
+                              (435, 316, [50, 95, 114]), (520, 314, [54, 97, 114]), (414, 326, [33, 79, 105]),
+                              (542, 325, [34, 84, 107])]
         if comparator.match_point_color(points_with_colors, screenshot=self.screenshot):
             self.update_ui("检查到奖励确认界面", 'debug')
             self.btn_confirm()

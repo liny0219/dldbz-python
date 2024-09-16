@@ -7,6 +7,7 @@
   "isContinue": "0",
   "round_time": "12",
   "wait_time": "5",
+  "check_time": "120",
   "check_interval": "0.1",
   "check_roll_dice_time": "2",
   "check_roll_dice_interval": "0.2",
@@ -33,8 +34,7 @@
   "enemy_match_threshold": "0.5",
   "enemy": {
     "802": {
-      "赫尔米尼亚": "./image/802/01.png",
-      "黑蝙蝠异种": "./image/802/02.png"
+      "赫尔米尼亚": "./image/802/01.png"
     }
   },
   "info_action": "设置识别的敌人对应执行的行动,",
@@ -53,7 +53,7 @@
   "check_roll_rule_time": "3",
   "check_roll_rule_wait": "0.1",
   "bp": {
-    "801": "[19,19,1],[25,19,2]",
+    "801": "[19,20,1],[25,19,2]",
     "802": "[13,6,1],[16,13,3],[20,16,1]",
     "803": "[21,14,3],[12,12,2]"
   }

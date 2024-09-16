@@ -188,7 +188,7 @@ class Battle:
         engine.press(self.sp_coords)
         time.sleep(0.4)
         engine.press(self.sp_confirm_coords)
-        self.update_ui(f"必杀技执行完毕，耗时：{time.time() - start_time:.2f} 秒")
+        self.update_ui(f"必杀技执行完毕，耗时：{time.time() - start_time:.1f} 秒")
 
     def cmd_wait(self, time_in_ms):
         time_in_seconds = int(time_in_ms) / 1000.0
