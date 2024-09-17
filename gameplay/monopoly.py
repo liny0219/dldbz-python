@@ -347,8 +347,8 @@ class Monopoly():
 
                 wait_duration = time.time() - self.wait_time
                 if wait_duration > self.cfg_wait_time:
-                    self.error(f"{self.cfg_wait_time}分钟未匹配到任何执行函数，重启游戏")
-                    self.update_ui("重启游戏")
+                    min = self.cfg_wait_time/60
+                    self.error(f"{int(min)}分钟未匹配到任何执行函数，重启游戏")
                     engine.restart_game()
                     self.restart += 1
                     self.state = State.Unknow
@@ -362,66 +362,83 @@ class Monopoly():
         time = int(time)
         if (time % self.cfg_check_time == 0 and time != self.pre_check_time) or self.pre_check_time == -1:
             self.pre_check_time = time
-            self.update_ui(f"本轮已经运行{time}秒,自检一次")
+            if time > 0:
+                self.update_ui(f"本轮已经运行{time}秒,自检一次")
             return self.check_restart()
 
-    def ocr_number(self, screenshot, count=0, type='origin', debug=False):
-        x, y, width, height = 708, 480, 28, 20
-        currentshot = screenshot
-        current_image = None
-        if count > 0 and type == 'origin' and not debug:
-            currentshot = engine.device.screenshot(format='opencv')
-        if type == 'origin' and not debug:
-            current_image = currentshot[y:y+height, x:x+width]
-        else:
-            current_image = screenshot
+    def ocr_number(self, screenshot):
+        # if type == 'origin' and not debug:
+        #     path = 'debug_images/current_image_20240917_073435_origin.png'
+        #     current_image = cv2.imread(path)
 
-        result = None
+        width = screenshot.shape[1]
+        process_image_origin = None
+        process_image_origin_retry = None
+        process_image_crop = None
+        process_image_scale = None
+        process_image_list = [screenshot]
+        result, process_image_origin = self.process_image(screenshot)
 
-        if type == 'origin':
-            # 缩放图片（例如 bicubic resize）
-            resized_image = cv2.resize(current_image, None, fx=3.0, fy=3.0, interpolation=cv2.INTER_CUBIC)
-            _, threshold_image = cv2.threshold(resized_image, 100, 255, cv2.THRESH_BINARY)
-            current_image = threshold_image
-        result = comparator.get_num_in_image(current_image)
-        if not debug:
-            self.write_ocr_log(result, current_image, type)
+        if not result:
+            process_image_list.append(process_image_origin)
+            retry_src = screenshot
 
-        if not result and type == 'origin':
+            self.write_ocr_log(result, retry_src, type)
+            result, process_image_origin_retry = self.process_image(retry_src)
+
+        if not result:
+            process_image_list.append(process_image_origin_retry)
+            crop_src = screenshot
+
             self.update_ui("未识别到距离，裁剪重试")
-            crop_img = current_image[:, int(0.28 * width):]
-            result = self.ocr_number(crop_img, count, 'crop')
+            crop_offset = 0.33
+            crop_img = crop_src[:, int(crop_offset * width):]
+            result, process_image_crop = self.process_image(crop_img)
             if result:
                 self.update_ui("裁剪识别成功")
 
-        if not result and type == 'origin':
+        if not result:
+            process_image_list.append(process_image_crop)
+            scale_src = screenshot
+
             self.update_ui("未识别到距离，缩小重试")
-            top = 10
-            bottom = 10
-            left = 10
-            right = 10
-            scale_image = cv2.copyMakeBorder(current_image, top, bottom, left, right,
+            offset = 10
+            scale_image = cv2.copyMakeBorder(scale_src, offset, offset, offset, offset,
                                              cv2.BORDER_CONSTANT, value=[0, 0, 0])
-            result = self.ocr_number(scale_image, count, 'scale')
+            result, process_image_scale = self.process_image(scale_image)
             if result:
                 self.update_ui("缩小识别成功")
 
-        if not result and type == 'crop':
+        if not result:
+            process_image_list.append(process_image_scale)
+
             self.update_ui("未识别到距离，预处理重试")
-            threshold_image = comparator.process_image(current_image, 120)
-            result = self.ocr_number(threshold_image, count, 'process')
-            if result:
-                self.update_ui("预处理识别成功")
+            # 遍历process_image，找到第一个识别成功的图片
+            for image in process_image_list:
+                image = comparator.process_image(image, 120)
+                result = self.process_image(image)
+                if result:
+                    self.update_ui("预处理识别成功")
+                    break
         return result
+
+    def process_image(self, current_image):
+        resized_image = cv2.resize(current_image, None, fx=3.0, fy=3.0, interpolation=cv2.INTER_CUBIC)
+        _, threshold_image = cv2.threshold(resized_image, 100, 255, cv2.THRESH_BINARY)
+        process_image = threshold_image
+        result = comparator.get_num_in_image(process_image)
+        return result, process_image
 
     def write_ocr_log(self, result, current_image, type):
         if result:
             return
         timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
         debug_path = 'debug_images'
+        file_name = f'current_image_{timestamp}_{type}.png'
         os.makedirs(debug_path, exist_ok=True)  # 确保目录存在
         engine.cleanup_large_files(debug_path, 10)  # 清理大于 10 MB 的文件
-        cv2.imwrite(os.path.join(debug_path, f'current_image_{timestamp}_{type}.png'), current_image)
+        cv2.imwrite(os.path.join(debug_path, file_name), current_image)
+        return file_name
 
     def write_awards_with_timestamp(self, award_list, file_path):
         try:
@@ -700,14 +717,19 @@ class Monopoly():
 
     def check_distance(self, screenshot):
         try:
+            x, y, width, height = 708, 480, 28, 20
+            currentshot = screenshot
             time.sleep(self.cfg_check_roll_rule_wait)
-            number = self.ocr_number(screenshot)
+            current_image = currentshot[y:y+height, x:x+width]
+            number = self.ocr_number(current_image)
             retry = 1
             max_retry = self.cfg_check_roll_rule_time
             while not number and retry < max_retry+1:
                 self.update_ui(f"检查距离失败，重试次数{retry}，最大重试次数{max_retry}")
                 time.sleep(self.cfg_check_roll_rule_wait)
-                number = self.ocr_number(screenshot, retry)
+                currentshot = engine.device.screenshot(format='opencv')
+                current_image = currentshot[y:y+height, x:x+width]
+                number = self.ocr_number(current_image, retry)
                 retry += 1
             return number
         except Exception as e:

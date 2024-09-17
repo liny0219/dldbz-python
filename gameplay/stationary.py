@@ -5,7 +5,6 @@ from engine.world import world
 from engine.battle_pix import battle_pix
 from engine.engine import engine
 from utils.config_loader import cfg_recollection
-from engine.comparator import comparator
 
 
 class Stationary:
@@ -71,7 +70,7 @@ class Stationary:
                     in_battle = battle_pix.is_in_battle(self.screenshot)
                     if in_battle:
                         is_match = 'is_in_battle'
-                        if battle_pix.is_in_round():
+                        if battle_pix.is_in_round(self.screenshot):
                             is_match = 'is_in_round'
                             battle_pix.btn_auto_battle()
                         elif battle_pix.is_auto_battle_stay():
@@ -90,7 +89,6 @@ class Stationary:
                         engine.restart_game()
                     continue
                 except Exception as e:
-                    self.update_ui(f"发生错误: {e}")
-                    break
+                    self.update_ui(f"发生错误: {e}", "debug")
         except Exception as e:
             self.update_ui(f"发生错误: {e}")

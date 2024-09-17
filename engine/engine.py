@@ -7,7 +7,6 @@ from utils.singleton import singleton
 import uiautomator2 as u2
 from utils.config_loader import cfg_startup, cfg_engine
 import time
-import shutil
 
 if TYPE_CHECKING:
     from app_data import AppData
