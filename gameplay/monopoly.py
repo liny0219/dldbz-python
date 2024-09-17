@@ -53,6 +53,7 @@ class Monopoly():
         self.cfg_enemy_match_threshold = 0.5
         self.cfg_enemy_check = 0
         self.total_finish_time = 0
+        self.total_failed_time = 0
         self.pre_check_time = -1
         self.cfg_check_time = 120
         self.pre_crossing = -1
@@ -95,12 +96,12 @@ class Monopoly():
         self.roll_time = 0
 
     def reset(self):
+        self.pre_count = 0
         self.started_count = 0
         self.finished_count = 0
+        self.begin_turn = 0
         self.total_finish_time = 0
-        self.begin_time = time.time()
-        self.begin_turn = self.begin_time
-        self.total_duration = 0
+        self.total_failed_time = 0
         self.restart = 0
         self.reported_finish = False
         self.reported_end = False
@@ -128,19 +129,33 @@ class Monopoly():
     def report_finish(self):
         if not self.reported_end:
             now = time.time()
-            total_duration = (now - self.begin_time) / 60
             turn_duration = (now - self.begin_turn) / 60
-            failed_count = self.started_count - self.finished_count
-            if self.finished_count == 0 and self.started_count == 0:
+            if self.started_count == 0:
+                self.finished_count = 0
                 turn_duration = 0
-                total_duration = 0
+
+            failed_count = self.started_count - self.finished_count
+            if failed_count > self.pre_count:
+                self.total_failed_time += turn_duration
+            else:
+                self.total_finish_time += turn_duration
+
+            self.pre_count = failed_count
+
             if failed_count < 0:
                 failed_count = 0
-            self.total_finish_time += turn_duration
-            avg_duration = self.total_finish_time / self.finished_count if self.finished_count > 0 else 0
-            msg1 = f"完成{self.finished_count}次, 翻车{failed_count}次, 重启{self.restart}次"
-            msg2 = f"本轮{turn_duration:.1f}分钟,平均{avg_duration:.1f}分钟 扔骰子{self.roll_time}次, 总耗时{total_duration:.1f}分钟"
-            self.update_ui(f"{msg1},{msg2}", 'stats')
+                self.total_failed_time = 0
+                self.total_finish_time = 0
+
+            avg_finish_duration = self.total_finish_time / self.finished_count if self.finished_count > 0 else 0
+            avg_failed_duration = self.total_failed_time / failed_count if failed_count > 0 else 0
+
+            total_duration = (self.total_finish_time + self.total_failed_time)
+
+            msg1 = f"成功{self.finished_count}次, 翻车{failed_count}次, 重启{self.restart}次"
+            msg2 = f"本轮{turn_duration:.1f}分钟,成功平均{avg_finish_duration:.1f}分钟,翻车平均{avg_failed_duration:.1f}分钟"
+            msg3 = f"扔骰子{self.roll_time}次, 总耗时{total_duration:.1f}分钟"
+            self.update_ui(f"{msg1},{msg2},{msg3}", 'stats')
             self.reported_end = True
 
     def check_restart(self):
