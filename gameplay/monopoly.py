@@ -719,7 +719,6 @@ class Monopoly():
         try:
             x, y, width, height = 708, 480, 28, 20
             currentshot = screenshot
-            time.sleep(self.cfg_check_roll_rule_wait)
             current_image = currentshot[y:y+height, x:x+width]
             number = self.ocr_number(current_image)
             retry = 1

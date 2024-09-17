@@ -4,6 +4,9 @@
 仅供交流学习用，请勿用于任何商业盈利
 
 #### 更新说明
+v2.5.1
+在config/monopoly.json配置文件中增加是否开启识别敌人enemy_check配置 0 不开启,1开启
+
 v2.5.0
 在config/starup.json配置文件中增加package_name配置
 OCR识别距离,增加抗锯齿处理\锐化处理\增强数字的边缘从而提升成功率
