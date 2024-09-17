@@ -819,6 +819,7 @@ class Monopoly():
                     x = int(parts[1])
                     y = int(parts[2])
                     engine.device.click(x, y)
+                    
         except Exception as e:
             self.update_ui(f"处理敌人行动出现异常{e}")
 

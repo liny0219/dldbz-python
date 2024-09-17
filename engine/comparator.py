@@ -81,7 +81,9 @@ class Comparator:
         else:
             return color_img
 
-    def _cropped_image(self,  leftup_coordinate=None, rightdown_coordinate=None, convert_gray=True, save_path='', screenshot=None):
+    def _cropped_image(self,  leftup_coordinate=None, 
+                       rightdown_coordinate=None, convert_gray=True, 
+                       save_path='', screenshot=None):
         '''
         获取截屏.
 
@@ -206,7 +208,9 @@ class Comparator:
                     return get_abs_center_coord((0, 0), target_leftup, target_rightdown)
 
     def template_compare(self, template_path, coordinate=None,
-                         return_center_coord=False, save_path='', match_threshold=0.9, screenshot=None, pack=True, gray=True):
+                         return_center_coord=False, save_path='', 
+                         match_threshold=0.9, screenshot=None, 
+                         pack=True, gray=True):
         '''
         检查指定区域的图像是否存在指定图像模板。
         如果有返回目标坐标
