@@ -51,7 +51,7 @@ class Monopoly():
         self.cfg_enemy_map = {}
         self.cfg_action_map = {}
         self.cfg_enemy_match_threshold = 0.5
-        self.cfg_enemy_check_debug = 0
+        self.cfg_enemy_check = 0
         self.total_finish_time = 0
         self.pre_check_time = -1
         self.cfg_check_time = 120
@@ -84,7 +84,7 @@ class Monopoly():
         self.cfg_enemy_map = cfg_monopoly.get("enemy")
         self.cfg_action_map = cfg_monopoly.get("action")
         self.cfg_enemy_match_threshold = float(cfg_monopoly.get("enemy_match_threshold"))
-        self.cfg_enemy_check_debug = int(cfg_monopoly.get("enemy_check_debug"))
+        self.cfg_enemy_check = int(cfg_monopoly.get("enemy_check"))
         self.cfg_round_time = int(cfg_monopoly.get("round_time"))*60
         self.cfg_wait_time = int(cfg_monopoly.get("wait_time"))*60
         self.cfg_check_time = int(cfg_monopoly.get("check_time"))
@@ -276,7 +276,7 @@ class Monopoly():
     def start(self):
         self.set_config()
         self.reset()
-        if self.enemy and self.action:
+        if self.enemy and self.action and self.cfg_enemy_check == 1:
             self.find_enemy = True
         self.update_ui(f"大霸启动!", 'stats')
         wait_duration = 0

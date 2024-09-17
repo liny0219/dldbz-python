@@ -30,7 +30,7 @@
     ]
   },
   "info_enemy": "设置识别敌人图片配置与对应行动,enemy_match_threshold图片容差",
-  "enemy_check_debug": "1",
+  "enemy_check": "1",
   "enemy_match_threshold": "0.5",
   "enemy": {
     "802": {
