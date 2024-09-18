@@ -172,7 +172,7 @@ class Monopoly():
         return False
 
     def check_in_game_title(self):
-        if self.state == State.Title or self.state != State.Unknow:
+        if self.state == State.Title:
             return
         if world.check_game_title(self.screenshot):
             self.update_ui("检查到游戏开始界面")
@@ -180,7 +180,7 @@ class Monopoly():
             return State.Title
 
     def check_in_game_continue(self):
-        if self.state == State.Continue or self.state != State.Unknow:
+        if self.state == State.Continue:
             return
         if self.check_continue():
             self.update_ui("检查到继续游戏")
@@ -188,16 +188,12 @@ class Monopoly():
             return State.Continue
 
     def check_in_world(self):
-        if self.state == State.World or self.state != State.Unknow:
-            return
         if world.check_in_world(self.screenshot):
             self.btn_menu_monopoly()
             return State.World
 
     def check_in_monopoly_page(self):
         if self.state == State.MonopolyPage:
-            return
-        if self.state != State.Unknow and self.state != State.Finised:
             return
         if self.check_page_monopoly():
             self.select_monopoly()
@@ -207,8 +203,6 @@ class Monopoly():
     def check_in_monopoly_setting(self):
         if self.state == State.MonopolySetting:
             return
-        if self.state != State.Unknow and self.state != State.Finised:
-            return
         if self.check_monopoly_setting():
             self.report_finish()
             self.set_game_mode()
@@ -217,6 +211,7 @@ class Monopoly():
             return State.MonopolySetting
 
     def check_in_battle(self):
+        self.update_ui(f"开始战斗检查", 'debug')
         if battle_pix.is_in_battle(self.screenshot):
             return State.Battle
 
@@ -225,13 +220,16 @@ class Monopoly():
             if (self.find_enemy):
                 self.on_get_enmey()
             if self.cfg_auto_battle == 1:
+                self.update_ui(f"点击委托战斗", 'debug')
                 battle_pix.btn_auto_battle()
             else:
                 battle_pix.btn_attack()
             return State.BattleInRound
 
     def check_in_battle_auto_stay(self):
+        self.update_ui(f"开始检查是否在开始委托战斗", 'debug')
         if battle_pix.is_auto_battle_stay():
+            self.update_ui(f"点击开始委托战斗", 'debug')
             battle_pix.btn_auto_battle_start()
             return State.BattleAutoStay
 
@@ -289,89 +287,102 @@ class Monopoly():
         return True
 
     def start(self):
-        self.set_config()
-        self.reset()
-        if self.enemy and self.action and self.cfg_enemy_check == 1:
-            self.find_enemy = True
-        self.update_ui(f"大霸启动!", 'stats')
-        wait_duration = 0
-        run_in_map = False
-        while not self.thread_stoped():
-            try:
-                self.update_ui(f"全量检查", 'debug')
-                time.sleep(self.cfg_check_interval)
-                self.screenshot = engine.device.screenshot(format='opencv')
-                # 每轮执行状态(完整一轮执行状态,包含启动界面\地图\战斗\结算等)
-                turn_state = None
-                # 每回合执行状态(仅在大富翁地图的回合执行状态,包含大富翁里面扔骰子\事件\结算等)
-                round_state = None
-                self.check_deamon(wait_duration)
-                if not turn_state:
-                    turn_state = self.check_in_game_title()
-                if not turn_state:
-                    turn_state = self.check_in_game_continue()
-                if not turn_state:
-                    turn_state = self.check_in_world()
-                if not turn_state:
-                    turn_state = self.check_in_monopoly_page()
-                if not turn_state:
-                    turn_state = self.check_in_monopoly_setting()
-                if turn_state == State.MonopolySetting:
-                    self.state = State.MonopolyMap
-
-                self.round_time_start = time.time()
-                while True:
-                    self.update_ui(f"地图检查", 'debug')
-                    round_state = None
-                    check_state = self.check_in_battle()
-                    if check_state:
-                        check_state = self.check_in_battle_in_round()
-                        check_state = self.check_in_battle_auto_stay()
-                    if not check_state:
-                        check_state = self.check_in_monopoly_map()
-
-                    round_state = check_state
-
-                    if round_state:
-                        run_in_map = True
-                        self.wait_time = time.time()
-                    else:
-                        self.btn_center_confirm()
-
-                    round_duration = time.time() - self.round_time_start
-
-                    if self.check_deamon(round_duration):
-                        run_in_map = False
-                        break
+        try:
+            self.set_config()
+            self.reset()
+            if self.enemy and self.action and self.cfg_enemy_check == 1:
+                self.find_enemy = True
+            self.update_ui(f"大霸启动!", 'stats')
+            wait_duration = 0
+            run_in_map = False
+            while not self.thread_stoped():
+                try:
+                    self.update_ui(f"全量检查", 'debug')
                     time.sleep(self.cfg_check_interval)
                     self.screenshot = engine.device.screenshot(format='opencv')
-                    is_in_map = self.check_in_monopoly_round(round_state)
-                    if not run_in_map or not is_in_map or self.thread_stoped():
-                        run_in_map = False
-                        break
-                if round_state:
-                    turn_state = round_state
-                if turn_state:
-                    self.wait_time = time.time()
-                    self.state = turn_state
-                    self.update_ui(f"当前状态{self.state}", 'debug')
-                else:
-                    self.state = State.Unknow
-                    world.btn_trim_click()
-                    self.update_ui("未匹配到任何状态", 'debug')
+                    # 每轮执行状态(完整一轮执行状态,包含启动界面\地图\战斗\结算等)
+                    turn_state = None
+                    # 每回合执行状态(仅在大富翁地图的回合执行状态,包含大富翁里面扔骰子\事件\结算等)
+                    round_state = None
+                    self.check_deamon(wait_duration)
+                    if not turn_state:
+                        turn_state = self.check_in_game_title()
+                    if not turn_state:
+                        turn_state = self.check_in_game_continue()
+                    if not turn_state:
+                        turn_state = self.check_in_world()
+                    if not turn_state:
+                        turn_state = self.check_in_monopoly_page()
+                    if not turn_state:
+                        turn_state = self.check_in_monopoly_setting()
+                    if turn_state == State.MonopolySetting:
+                        self.state = State.MonopolyMap
 
-                wait_duration = time.time() - self.wait_time
-                if wait_duration > self.cfg_wait_time:
-                    min = self.cfg_wait_time/60
-                    self.error(f"{int(min)}分钟未匹配到任何执行函数，重启游戏")
-                    engine.restart_game()
-                    self.restart += 1
-                    self.state = State.Unknow
-                    self.reset_round()
-                    time.sleep(3)
+                    self.round_time_start = time.time()
+                    while True:
+                        self.update_ui(f"地图检查", 'debug')
+                        round_state = None
+                        check_state = self.check_in_battle()
+                        if check_state:
+                            self.update_ui(f"检查到战斗中", 'debug')
+                            self.check_in_battle_in_round()
+                            self.check_in_battle_auto_stay()
+                        if not check_state:
+                            check_state = self.check_in_monopoly_map()
 
-            except Exception as e:
-                self.update_ui(f"出现异常！{e}")
+                        time.sleep(self.cfg_check_interval)
+                        self.screenshot = engine.device.screenshot(format='opencv')
+
+                        if not check_state:
+                            check_state = self.check_in_world()
+                            run_in_map = False
+                            break
+                        if not check_state:
+                            check_state = self.check_continue()
+                            run_in_map = False
+                            break
+
+                        round_state = check_state
+                        if round_state:
+                            run_in_map = True
+                            self.wait_time = time.time()
+                        else:
+                            self.btn_center_confirm()
+
+                        is_in_map = self.check_in_monopoly_round(round_state)
+                        if not run_in_map or not is_in_map or self.thread_stoped():
+                            run_in_map = False
+                            break
+
+                        round_duration = time.time() - self.round_time_start
+                        if self.check_deamon(round_duration):
+                            run_in_map = False
+                            break
+
+                    if round_state:
+                        turn_state = round_state
+                    if turn_state:
+                        self.wait_time = time.time()
+                        self.state = turn_state
+                        self.update_ui(f"当前状态{self.state}", 'debug')
+                    else:
+                        self.state = State.Unknow
+                        world.btn_trim_click()
+                        self.update_ui("未匹配到任何状态", 'debug')
+
+                    wait_duration = time.time() - self.wait_time
+                    if wait_duration > self.cfg_wait_time:
+                        min = self.cfg_wait_time/60
+                        self.error(f"{int(min)}分钟未匹配到任何执行函数，重启游戏")
+                        engine.restart_game()
+                        self.restart += 1
+                        self.state = State.Unknow
+                        self.reset_round()
+                        time.sleep(3)
+                except Exception as e:
+                    self.update_ui(f"出现异常！{e}")
+        except Exception as e:
+            self.update_ui(f"出现异常！{e}")
 
     def check_deamon(self, time):
         time = int(time)
