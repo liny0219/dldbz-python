@@ -172,7 +172,7 @@ class Monopoly():
         return False
 
     def check_in_game_title(self):
-        if self.state == State.Title or self.state != State.Unknow:
+        if self.state == State.Title:
             return
         if world.check_game_title(self.screenshot):
             self.update_ui("检查到游戏开始界面")
@@ -180,7 +180,7 @@ class Monopoly():
             return State.Title
 
     def check_in_game_continue(self):
-        if self.state == State.Continue or self.state != State.Unknow:
+        if self.state == State.Continue:
             return
         if self.check_continue():
             self.update_ui("检查到继续游戏")
@@ -188,16 +188,12 @@ class Monopoly():
             return State.Continue
 
     def check_in_world(self):
-        if self.state == State.World or self.state != State.Unknow:
-            return
         if world.check_in_world(self.screenshot):
             self.btn_menu_monopoly()
             return State.World
 
     def check_in_monopoly_page(self):
         if self.state == State.MonopolyPage:
-            return
-        if self.state != State.Unknow and self.state != State.Finised:
             return
         if self.check_page_monopoly():
             self.select_monopoly()
@@ -206,8 +202,6 @@ class Monopoly():
 
     def check_in_monopoly_setting(self):
         if self.state == State.MonopolySetting:
-            return
-        if self.state != State.Unknow and self.state != State.Finised:
             return
         if self.check_monopoly_setting():
             self.report_finish()
@@ -330,25 +324,35 @@ class Monopoly():
                     if not check_state:
                         check_state = self.check_in_monopoly_map()
 
-                    round_state = check_state
+                    time.sleep(self.cfg_check_interval)
+                    self.screenshot = engine.device.screenshot(format='opencv')
 
+                    if not check_state:
+                        check_state = self.check_in_world()
+                        run_in_map = False
+                        break
+                    if not check_state:
+                        check_state = self.check_continue()
+                        run_in_map = False
+                        break
+
+                    round_state = check_state
                     if round_state:
                         run_in_map = True
                         self.wait_time = time.time()
                     else:
                         self.btn_center_confirm()
 
-                    round_duration = time.time() - self.round_time_start
-
-                    if self.check_deamon(round_duration):
-                        run_in_map = False
-                        break
-                    time.sleep(self.cfg_check_interval)
-                    self.screenshot = engine.device.screenshot(format='opencv')
                     is_in_map = self.check_in_monopoly_round(round_state)
                     if not run_in_map or not is_in_map or self.thread_stoped():
                         run_in_map = False
                         break
+
+                    round_duration = time.time() - self.round_time_start
+                    if self.check_deamon(round_duration):
+                        run_in_map = False
+                        break
+
                 if round_state:
                     turn_state = round_state
                 if turn_state:
