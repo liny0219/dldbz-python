@@ -56,7 +56,7 @@ class Stationary:
 
                     if is_game_title and pre_match != 'check_game_title':
                         is_match = 'check_game_start'
-                        self.update_ui("检查到游戏开始界面")
+                        self.update_ui("find-游戏开始界面")
                         world.btn_trim_click()
                         continue
 
@@ -70,7 +70,8 @@ class Stationary:
                     in_battle = battle_pix.is_in_battle(self.screenshot)
                     if in_battle:
                         is_match = 'is_in_battle'
-                        if battle_pix.is_in_round(self.screenshot):
+                        is_auto_stay = battle_pix.is_auto_battle_stay()
+                        if not is_auto_stay and battle_pix.is_in_round(self.screenshot):
                             is_match = 'is_in_round'
                             battle_pix.btn_auto_battle()
                         elif battle_pix.is_auto_battle_stay():

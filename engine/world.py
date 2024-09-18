@@ -24,23 +24,23 @@ class World:
         self.global_data and self.global_data.update_ui(msg, type)
 
     def check_in_world(self, screenshot=None):
-        """检查是否在游戏世界中，通过左下角菜单的颜色来判断"""
+        """检查游戏世界中，通过左下角菜单的颜色来判断"""
         if (self.thread_stoped()):
             return False
-        self.update_ui("开始检查是否在世界中", 'debug')
+        self.update_ui("check-世界中", 'debug')
         if comparator.template_compare(f"./assets/world/world_menu_main.png",  match_threshold=0.8, screenshot=screenshot):
-            self.update_ui("检查到在大富翁选择界面中", 'debug')
+            self.update_ui("find-在大富翁选择界面中", 'debug')
             return True
         else:
             return False
 
     def check_game_title(self, screenshot=None):
-        """检查是否在游戏开始界面"""
+        """检查游戏开始界面"""
         if (self.thread_stoped()):
             return False
-        self.update_ui("开始检查是否在游戏开始界面", 'debug')
+        self.update_ui("check-游戏开始界面", 'debug')
         if comparator.template_compare(f"./assets/world/game_title.png", screenshot=screenshot):
-            self.update_ui("检查到在游戏开始界面")
+            self.update_ui("find-在游戏开始界面")
             return True
         else:
             return False
@@ -48,7 +48,7 @@ class World:
     def check_stage(self, screenshot=None):
         if (self.thread_stoped()):
             return
-        self.update_ui("开始检查是否在小剧场中", 'debug')
+        self.update_ui("check-小剧场中", 'debug')
         points_with_colors = [
             (696, 330, [146, 123, 79]),
             (634, 350, [156, 133, 83]),
@@ -56,7 +56,7 @@ class World:
             (278, 340, [141, 119, 70]),
         ]
         if comparator.match_point_color(points_with_colors, 20, screenshot=screenshot):
-            self.update_ui("检查到在小剧场中", 'debug')
+            self.update_ui("find-在小剧场中", 'debug')
             return True
         else:
             return False

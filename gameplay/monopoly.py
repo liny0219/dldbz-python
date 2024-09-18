@@ -37,7 +37,7 @@ class Monopoly():
         self.cfg_lv = 5
         self.cfg_auto_battle = 1
         self.cfg_isContinue = 1
-        self.cfg_check_interval = 0.2
+        self.cfg_check_interval = 0.05
         self.cfg_check_roll_dice_interval = 0.2
         self.cfg_check_roll_dice_time = 2
         self.cfg_check_roll_rule = 1
@@ -125,6 +125,7 @@ class Monopoly():
         if not self.reported_finish:
             self.finished_count += 1
             self.reported_finish = True
+            self.update_ui(f"find-完成一局", 'debug')
 
     def report_finish(self):
         if not self.reported_end:
@@ -174,20 +175,26 @@ class Monopoly():
     def check_in_game_title(self):
         if self.state == State.Title:
             return
+        if self.state != State.Unknow:
+            return
         if world.check_game_title(self.screenshot):
-            self.update_ui("检查到游戏开始界面")
             self.btn_center_confirm()
             return State.Title
 
     def check_in_game_continue(self):
         if self.state == State.Continue:
             return
+        if self.state != State.Unknow:
+            return
         if self.check_continue():
-            self.update_ui("检查到继续游戏")
             self.on_continue()
             return State.Continue
 
     def check_in_world(self):
+        if self.state == State.World:
+            return
+        if self.state != State.Unknow:
+            return
         if world.check_in_world(self.screenshot):
             self.btn_menu_monopoly()
             return State.World
@@ -195,27 +202,32 @@ class Monopoly():
     def check_in_monopoly_page(self):
         if self.state == State.MonopolyPage:
             return
+        if self.state != State.Unknow and self.state != State.Finised:
+            return
         if self.check_page_monopoly():
             self.select_monopoly()
             self.btn_setting_monopoly()
             return State.MonopolyPage
 
     def check_in_monopoly_setting(self):
-        if self.state == State.MonopolySetting:
+        if self.state == State.MonopolySetting or self.state == State.MonopolyMap:
             return
         if self.check_monopoly_setting():
             self.report_finish()
+            self.update_ui(f"设置大富翁挑战设定")
             self.set_game_mode()
+            self.update_ui(f"开始大富翁,当前第 {self.started_count+1} 轮")
             self.btn_play_monopoly()
             self.new_trun()
             return State.MonopolySetting
 
     def check_in_battle(self):
-        self.update_ui(f"开始战斗检查", 'debug')
         if battle_pix.is_in_battle(self.screenshot):
             return State.Battle
 
-    def check_in_battle_in_round(self):
+    def check_in_battle_in_round(self, state):
+        if state == State.BattleInRound or state == State.BattleAutoStay:
+            return
         if battle_pix.is_in_round(self.screenshot):
             if (self.find_enemy):
                 self.on_get_enmey()
@@ -227,10 +239,9 @@ class Monopoly():
             return State.BattleInRound
 
     def check_in_battle_auto_stay(self):
-        self.update_ui(f"开始检查是否在开始委托战斗", 'debug')
-        if battle_pix.is_auto_battle_stay():
-            self.update_ui(f"点击开始委托战斗", 'debug')
+        if battle_pix.is_auto_battle_stay(self.screenshot):
             battle_pix.btn_auto_battle_start()
+            self.update_ui(f"点击开始委托战斗", 'debug')
             return State.BattleAutoStay
 
     def check_in_monopoly_map(self):
@@ -248,43 +259,61 @@ class Monopoly():
             self.roll_time += 1
             self.roll_dice(input_bp, self.roll_time)
 
-        if world.check_stage(self.screenshot):
+        if not new_state and world.check_stage(self.screenshot):
             new_state = State.MonopolyMap
             battle_pix.cmd_skip()
 
-        if self.check_evtent():
+        if not new_state and self.check_evtent():
             new_state = State.MonopolyMap
 
-        if self.check_confirm():
+        if not new_state and self.check_confirm():
             new_state = State.MonopolyMap
 
-        if self.check_accept_confirm():
+        if not new_state and self.check_accept_confirm():
             new_state = State.MonopolyMap
 
-        if self.check_info_confirm():
+        if not new_state and self.check_info_confirm():
             new_state = State.MonopolyMap
 
-        if self.check_end():
+        if not new_state and self.check_end():
             self.report_end()
 
-        if self.check_final_confirm():
+        if not new_state and self.check_final_confirm():
             self.btn_final_confirm()
             self.report_finish()
             new_state = State.Finised
 
-        crossing_index = self.check_crossing()
-        if crossing_index != -1:
-            new_state = State.MonopolyMap
-            self.turn_crossing(crossing_index)
-            self.pre_crossing = crossing_index
+        if not new_state:
+            crossing_index = self.check_crossing()
+            if crossing_index != -1:
+                new_state = State.MonopolyMap
+                self.turn_crossing(crossing_index)
+                self.pre_crossing = crossing_index
         return new_state
 
-    def check_in_monopoly_round(self, round_state):
+    def check_in_monopoly_round_end(self, round_state):
         if time.time() - self.round_time_start > self.cfg_round_time:
-            return False
+            return True
         if round_state == State.Finised:
+            return True
+        return False
+
+    def check_in_monopoly_round(self, round_state):
+        if round_state == State.World \
+                or round_state == State.Unknow \
+                or round_state == State.Finised \
+                or round_state == State.Title \
+                or round_state == State.Continue \
+                or round_state == State.MonopolyPage \
+                or round_state == State.MonopolySetting:
+
             return False
         return True
+
+    def shot(self):
+        self.update_ui("-----------开始截图", 'debug')
+        self.screenshot = engine.device.screenshot(format='opencv')
+        self.update_ui("-----------截图完成", 'debug')
 
     def start(self):
         try:
@@ -294,76 +323,117 @@ class Monopoly():
                 self.find_enemy = True
             self.update_ui(f"大霸启动!", 'stats')
             wait_duration = 0
-            run_in_map = False
+            # 有空整体重构为有限状态机
             while not self.thread_stoped():
                 try:
                     self.update_ui(f"全量检查", 'debug')
                     time.sleep(self.cfg_check_interval)
-                    self.screenshot = engine.device.screenshot(format='opencv')
-                    # 每轮执行状态(完整一轮执行状态,包含启动界面\地图\战斗\结算等)
+                    self.shot()
+
                     turn_state = None
-                    # 每回合执行状态(仅在大富翁地图的回合执行状态,包含大富翁里面扔骰子\事件\结算等)
+                    turn_check_state = None
                     round_state = None
+                    round_check_state = None
                     self.check_deamon(wait_duration)
-                    if not turn_state:
-                        turn_state = self.check_in_game_title()
-                    if not turn_state:
-                        turn_state = self.check_in_game_continue()
-                    if not turn_state:
-                        turn_state = self.check_in_world()
-                    if not turn_state:
-                        turn_state = self.check_in_monopoly_page()
-                    if not turn_state:
-                        turn_state = self.check_in_monopoly_setting()
-                    if turn_state == State.MonopolySetting:
+
+                    turn_check_state = self.check_in_game_title()
+                    if turn_check_state:
+                        self.state = State.Title
+                        turn_state = self.state
+                        time.sleep(3)
+
+                    turn_check_state = self.check_in_game_continue()
+                    if turn_check_state:
+                        self.state = State.Continue
+                        turn_state = self.state
+                        time.sleep(3)
+
+                    turn_check_state = self.check_in_world()
+                    if turn_check_state:
+                        self.state = State.World
+                        turn_state = self.state
+                        self.shot()
+
+                    turn_check_state = self.check_in_monopoly_page()
+                    if turn_check_state:
+                        self.state = State.MonopolyPage
+                        turn_state = self.state
+                        self.shot()
+
+                    turn_check_state = self.check_in_monopoly_setting()
+                    if turn_check_state:
+                        self.state = State.MonopolySetting
+                        # 流转到一下状态
                         self.state = State.MonopolyMap
+                        turn_state = self.state
 
                     self.round_time_start = time.time()
-                    while True:
+
+                    in_map = False
+                    while not self.thread_stoped():
                         self.update_ui(f"地图检查", 'debug')
                         round_state = None
-                        check_state = self.check_in_battle()
-                        if check_state:
-                            self.update_ui(f"检查到战斗中", 'debug')
-                            self.check_in_battle_in_round()
-                            self.check_in_battle_auto_stay()
-                        if not check_state:
-                            check_state = self.check_in_monopoly_map()
+                        self.shot()
+                        round_check_state = self.check_in_battle()
+                        if round_check_state:
+                            round_state = self.state
 
-                        time.sleep(self.cfg_check_interval)
-                        self.screenshot = engine.device.screenshot(format='opencv')
+                            round_check_state = self.check_in_battle_in_round(self.state)
+                            if round_check_state:
+                                self.state = State.BattleInRound
+                                round_state = self.state
+                                self.shot()
 
-                        if not check_state:
-                            check_state = self.check_in_world()
-                            run_in_map = False
-                            break
-                        if not check_state:
-                            check_state = self.check_continue()
-                            run_in_map = False
-                            break
+                            round_check_state = self.check_in_battle_auto_stay()
+                            if round_check_state:
+                                self.state = State.BattleAutoStay
+                                round_state = self.state
 
-                        round_state = check_state
-                        if round_state:
-                            run_in_map = True
-                            self.wait_time = time.time()
+                            self.state = round_state
                         else:
-                            self.btn_center_confirm()
+                            round_check_state = self.check_in_monopoly_map()
+                            if round_check_state == State.Finised:
+                                self.state = State.Finised
+                                in_map = False
+                                round_state = self.state
+                                break
+                            elif round_check_state:
+                                self.state = State.MonopolyMap
+                                round_state = self.state
 
-                        is_in_map = self.check_in_monopoly_round(round_state)
-                        if not run_in_map or not is_in_map or self.thread_stoped():
-                            run_in_map = False
+                        if not round_state:
+                            round_state = self.check_in_world()
+                            if not round_state:
+                                round_state = self.check_continue()
+                            if round_state:
+                                self.state = round_state
+                                in_map = False
+                                break
+                            else:
+                                self.btn_center_confirm()
+                                if not in_map:
+                                    break
+                        else:
+                            in_map = True
+                            self.state = round_state
+                            self.wait_time = time.time()
+                            time.sleep(self.cfg_check_interval)
+
+                        if time.time() - self.round_time_start > self.cfg_round_time:
+                            self.state = State.Unknow
+                            round_state = self.state
                             break
 
                         round_duration = time.time() - self.round_time_start
                         if self.check_deamon(round_duration):
-                            run_in_map = False
+                            self.state = State.Unknow
+                            round_state = self.state
                             break
 
                     if round_state:
                         turn_state = round_state
-                    if turn_state:
+                    if turn_state and turn_state != State.Unknow:
                         self.wait_time = time.time()
-                        self.state = turn_state
                         self.update_ui(f"当前状态{self.state}", 'debug')
                     else:
                         self.state = State.Unknow
@@ -442,7 +512,7 @@ class Monopoly():
             # 遍历process_image，找到第一个识别成功的图片
             for image in process_image_list:
                 image = comparator.process_image(image, 120)
-                result = self.process_image(image)
+                result, process_image = self.process_image(image)
                 if result:
                     self.update_ui("预处理识别成功")
                     break
@@ -492,11 +562,11 @@ class Monopoly():
             self.btn_center_confirm()
 
     def can_roll_dice(self):
-        self.update_ui("开始检查是否可以掷骰子", 'debug')
+        self.update_ui("check-是否可以掷骰子", 'debug')
         if (self.thread_stoped()):
             return False
-        if comparator.template_compare("./assets/monopoly/roll_dice.png", [(780, 400), (900, 460)], return_center_coord=True, screenshot=self.screenshot):
-            self.update_ui("检查到可以掷骰子", 'debug')
+        if comparator.template_compare("./assets/monopoly/roll_dice.png", [(780, 400), (900, 460)], screenshot=self.screenshot):
+            self.update_ui("find-可以掷骰子", 'debug')
             return True
         else:
             return False
@@ -508,7 +578,7 @@ class Monopoly():
         current_y = start_y
         select = False
         while not select:
-            self.screenshot = engine.device.screenshot(format='opencv')
+            self.shot()
             select = self.find_monopoly()
             if select:
                 x, y = select
@@ -602,32 +672,32 @@ class Monopoly():
     def check_page_monopoly(self):
         if (self.thread_stoped()):
             return False
-        self.update_ui("开始检查是否在大富翁选择界面中", 'debug')
+        self.update_ui("check-大富翁选择界面中", 'debug')
         if comparator.template_compare(f"./assets/monopoly/page_monopoly.png", screenshot=self.screenshot):
-            self.update_ui("检查到在大富翁选择界面中", 'debug')
+            self.update_ui("find-在大富翁选择界面中", 'debug')
             return True
         return False
 
     def check_page_monopoly_map(self):
         if (self.thread_stoped()):
             return False
-        self.update_ui("开始检查是否在大富翁地图界面中", 'debug')
+        self.update_ui("check-大富翁地图界面中", 'debug')
         if comparator.template_compare(f"./assets/monopoly/monopoly_map.png", screenshot=self.screenshot):
-            self.update_ui("检查到在大富翁地图界面中", 'debug')
+            self.update_ui("find-在大富翁地图界面中", 'debug')
             return True
         return False
 
     def check_monopoly_setting(self):
         if (self.thread_stoped()):
             return False
-        self.update_ui("开始检查是否在大富翁选择模式界面中", 'debug')
+        self.update_ui("check-大富翁选择模式界面中", 'debug')
         if comparator.template_compare("./assets/monopoly/monopoly_setting.png", screenshot=self.screenshot):
-            self.update_ui("检查到在大富翁选择模式界面中", 'debug')
+            self.update_ui("find-在大富翁选择模式界面中", 'debug')
             return True
         return False
 
     def check_crossing(self):
-        self.update_ui("开始检查大富翁路口", 'debug')
+        self.update_ui("check-大富翁路口", 'debug')
         if (self.thread_stoped()):
             return -1
         current_crossing = self.check_crossing_index()
@@ -659,29 +729,27 @@ class Monopoly():
         return -1
 
     def check_confirm(self):
-        self.update_ui("开始检查奖励确认界面", 'debug')
-        points_with_colors = [(524, 212, [255, 255, 253]), (441, 203, [255, 255, 253]), (413, 205, [255, 255, 251]),
-                              (413, 209, [255, 253, 250]), (413, 209, [255, 253, 250]), (445, 209, [255, 255, 253]),
-                              (435, 316, [50, 95, 114]), (520, 314, [54, 97, 114]), (414, 326, [33, 79, 105]),
-                              (542, 325, [34, 84, 107])]
-        if comparator.match_point_color(points_with_colors, screenshot=self.screenshot):
-            self.update_ui("检查到奖励确认界面", 'debug')
-            self.btn_confirm()
+        self.update_ui("check-奖励确认界面", 'debug')
+        coord = comparator.template_compare(f"./assets/monopoly/btn_confirm_award.png",
+                                            return_center_coord=True, screenshot=self.screenshot)
+        if coord:
+            self.update_ui("find-奖励确认界面", 'debug')
+            engine.device.click(coord[0], coord[1])
             return True
         return False
 
     def check_accept_confirm(self):
-        self.update_ui("开始检查奖励入账确认界面", 'debug')
+        self.update_ui("check-奖励入账确认界面", 'debug')
         points_with_colors = [(688, 55, [253, 251, 252]), (528, 59, [244, 243, 241]),
                               (533, 74, [233, 229, 226]), (513, 80, [198, 194, 191])]
         if comparator.match_point_color(points_with_colors, screenshot=self.screenshot):
-            self.update_ui("检查到奖励入账确认界面", 'debug')
+            self.update_ui("find-奖励入账确认界面", 'debug')
             self.btn_accept_confirm()
             return True
         return False
 
     def check_info_confirm(self):
-        self.update_ui("开始检查信息确认界面", 'debug')
+        self.update_ui("check-信息确认界面", 'debug')
         flod = [(68, 483, [98, 97, 95]), (61, 472, [170, 165, 161]),
                 (61, 493, [171, 170, 168]), (51, 482, [172, 171, 166])]
         unflod = [(72, 483, [183, 180, 175]), (57, 483, [149, 146, 141]),
@@ -689,37 +757,36 @@ class Monopoly():
         check_list = [flod, unflod]
         for check in check_list:
             if comparator.match_point_color(check, screenshot=self.screenshot):
-                self.update_ui("检查到信息确认界面", 'debug')
+                self.update_ui("find-信息确认界面", 'debug')
                 self.btn_center_confirm()
                 return True
         return False
 
     def check_final_confirm(self):
-        self.update_ui("开始检查最终确认界面", 'debug')
+        self.update_ui("check-最终确认界面", 'debug')
         points_with_colors = [(533, 102, [168, 167, 165]), (533, 111, [168, 167, 165]),
                               (533, 121, [180, 179, 177]), (487, 106, [243, 242, 238]),
                               (487, 115, [236, 235, 233]), (441, 112, [236, 235, 233]),
                               (432, 119, [211, 210, 208])]
         if comparator.match_point_color(points_with_colors, screenshot=self.screenshot):
-            self.update_ui("检查到最终确认界面", 'debug')
+            self.update_ui("find-最终确认界面", 'debug')
             return True
         return False
 
     def check_continue(self):
-        self.update_ui("开始检查是否继续游戏", 'debug')
-        coord = comparator.template_compare(f"./assets/monopoly/monopoly_continue.png",
-                                            return_center_coord=True, screenshot=self.screenshot)
+        self.update_ui("check-是否继续游戏", 'debug')
+        coord = comparator.template_compare(f"./assets/monopoly/monopoly_continue.png", screenshot=self.screenshot)
         if coord:
-            self.update_ui("检查到继续游戏", 'debug')
+            self.update_ui("find-继续游戏")
             return True
         return False
 
     def check_evtent(self):
-        self.update_ui("开始检查事件", 'debug')
+        self.update_ui("check-事件", 'debug')
         coord = comparator.template_compare(f"./assets/monopoly/btn_options.png",
                                             return_center_coord=True, screenshot=self.screenshot)
         if coord:
-            self.update_ui("检查到事件", 'debug')
+            self.update_ui("find-事件", 'debug')
             x, y = coord
             offfset = 120
             engine.device.click(x + offfset, y)
@@ -727,7 +794,7 @@ class Monopoly():
         return False
 
     def check_end(self):
-        self.update_ui("开始检查是否结束", 'debug')
+        self.update_ui("check-是否结束", 'debug')
         points_with_colors = [
             (486, 111, [233, 232, 228]),
             (486, 111, [233, 232, 228]),
@@ -737,7 +804,7 @@ class Monopoly():
             (164, 175, [53, 43, 31]),
             (442, 113, [236, 235, 233])]
         if comparator.match_point_color(points_with_colors, screenshot=self.screenshot):
-            self.update_ui("检查到结算")
+            self.update_ui("find-结算")
             return True
         return False
 
@@ -752,9 +819,9 @@ class Monopoly():
             while not number and retry < max_retry+1:
                 self.update_ui(f"检查距离失败，重试次数{retry}，最大重试次数{max_retry}")
                 time.sleep(self.cfg_check_roll_rule_wait)
-                currentshot = engine.device.screenshot(format='opencv')
+                self.shot()
                 current_image = currentshot[y:y+height, x:x+width]
-                number = self.ocr_number(current_image, retry)
+                number = self.ocr_number(current_image)
                 retry += 1
             return number
         except Exception as e:
@@ -817,7 +884,7 @@ class Monopoly():
                 try:
                     normalized_path = os.path.normpath(value)
                     result = comparator.template_compare(
-                        normalized_path, [(15, 86), (506, 448)], return_center_coord=True, match_threshold=self.cfg_enemy_match_threshold, screenshot=self.screenshot, pack=False)
+                        normalized_path, [(15, 86), (506, 448)], match_threshold=self.cfg_enemy_match_threshold, screenshot=self.screenshot, pack=False)
                 except Exception as e:
                     self.update_ui(f"匹配敌人{key}出现异常{e}")
                     continue
@@ -853,9 +920,6 @@ class Monopoly():
             self.btn_not_continue()
         else:
             self.btn_continue()
-
-    def btn_confirm(self):
-        engine.device.click(480, 324)
 
     def btn_accept_confirm(self):
         engine.device.click(484, 470)

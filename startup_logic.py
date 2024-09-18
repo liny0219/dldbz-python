@@ -125,9 +125,10 @@ class Startup:
             return
         if self.debug == 1:
             print(msg)
-
-        current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        # 展示时间到毫秒
+        current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
         message = f"[{current_time}] {msg}\n"
+        print(message)
         self.log_update_data_debug.append(message)
         if len(self.log_update_data_debug) >= self.log_update_count_max*10:
             self.write_to_file(self.log_file_debug)
