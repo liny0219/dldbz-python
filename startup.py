@@ -7,7 +7,7 @@ from utils.config_loader import cfg_version
 app = tk.Tk()
 app.title(f"歧路茶馆v{cfg_version.get('version')}")
 app.geometry("800x600")  # 增加窗口宽度
-icon_path = 'assets/icon_title.ico'
+icon_path = 'image/icon_title.ico'
 app.iconbitmap(icon_path)
 startup = Startup(app)
 # 创建样式对象
