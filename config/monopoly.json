@@ -14,19 +14,47 @@
   "info_crossing": "设置路口转向,801-80权利,802-80富足,803-80名声,注意设置错误会导致卡住",
   "crossing": {
     "801": [
-      "left",
-      "right",
-      "up",
-      "left"
+      {
+        "left": "0,100",
+        "right": "100,100",
+        "default": "left"
+      },
+      {
+        "right": "0,100",
+        "default": "right"
+      },
+      {
+        "up": "0,100",
+        "default": "up"
+      },
+      {
+        "left": "0,100",
+        "default": "left"
+      }
     ],
     "802": [
-      "left",
-      "up",
-      "right"
+      {
+        "left": "0,100",
+        "default": "right"
+      },
+      {
+        "up": "0,100",
+        "default": "up"
+      },
+      {
+        "right": "0,100",
+        "default": "right"
+      }
     ],
     "803": [
-      "left",
-      "up"
+      {
+        "left": "0,100",
+        "default": "left"
+      },
+      {
+        "up": "0,100",
+        "default": "up"
+      }
     ]
   },
   "info_enemy": "设置识别敌人图片配置与对应行动,enemy_match_threshold图片容差",

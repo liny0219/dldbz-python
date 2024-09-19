@@ -15,6 +15,7 @@ class BattleVee:
         self.debug = False
         self.cfg_battle_ui = './assets/battle/battle_ui.png'
         self.cfg_attack = './assets/battle/attack.png'
+        self.cfg_auto_battle_stay = './assets/battle/auto_battle_stay.png'
 
     def set(self, app_data: AppData):
         self.app_data = app_data
@@ -47,7 +48,7 @@ class BattleVee:
         engine.device.long_click(480, 254, duration)
 
     def is_in_battle(self, screenshot=None):
-        self.update_ui("开始检查是否在战斗界面中", 'debug')
+        self.update_ui("check-战斗界面中", 'debug')
         isR1 = [(788, 71, [145, 144, 142]), (791, 49, [243, 240, 233]), (784, 58, [0, 1, 0])]
         isR2 = [(787, 178, [223, 228, 224]), (791, 157, [245, 244, 242]), (784, 168, [1, 0, 0])]
         isR3 = [(786, 285, [226, 222, 219]), (790, 264, [237, 231, 231]), (784, 273, [0, 2, 1])]
@@ -55,22 +56,25 @@ class BattleVee:
         isSP = [(461, 195, [99, 99, 99]), (880, 194, [0, 0, 0]), (309, 197, [101, 101, 101]),
                 (517, 195, [99, 99, 99]), (655, 195, [97, 96, 101])]
         Role = [isR1, isR2, isR3, isR4, isSP]
+        result = False
         for i in Role:
             if self.thread_stoped():
                 return False
             if comparator.match_point_color(i, screenshot=screenshot):
-                self.update_ui("检测到在战斗界面中", 'debug')
-                return True
-        if self.is_battle_ui(screenshot):
-            return True
-        if self.is_sp_skill(screenshot):
-            return True
+                result = True
+        if not result and self.is_battle_ui(screenshot):
+            result = True
+        if not result and self.is_sp_skill(screenshot):
+            result = True
+        if result:
+            self.update_ui("find-在战斗界面中", 'debug')
+        return result
 
     def is_battle_ui(self, screenshot=None):
         return comparator.template_compare(self.cfg_battle_ui, match_threshold=0.7, screenshot=screenshot)
 
     def is_sp_skill(self, screenshot=None):
-        self.update_ui("开始检查是否在战斗待确认必杀界面中", 'debug')
+        self.update_ui("check-战斗待确认必杀界面中", 'debug')
         ck1 = [(786, 345, [210, 207, 198]),
                (779, 347, [213, 202, 184]),
                (637, 345, [242, 236, 210]),
@@ -82,31 +86,25 @@ class BattleVee:
             if self.thread_stoped():
                 return False
             if comparator.match_point_color(i, screenshot=screenshot):
-                self.update_ui("检查到在战斗待确认必杀界面中", 'debug')
+                self.update_ui("find-在战斗待确认必杀界面中", 'debug')
                 return True
         return False
 
     def is_in_round(self, screenshot=None):
-        self.update_ui("开始检查是否在战斗准备界面中", 'debug')
+        self.update_ui("check-战斗准备界面中", 'debug')
         result = comparator.template_compare(
-            self.cfg_attack, [(702, 448), (944, 516)], return_center_coord=True, screenshot=screenshot)
+            self.cfg_attack, [(702, 448), (944, 516)],  screenshot=screenshot)
         if result:
-            self.update_ui("检测到在战斗准备界面中", 'debug')
+            self.update_ui("find-在战斗准备界面中", 'debug')
         return result
 
     def is_auto_battle_stay(self, screenshot=None):
-        self.update_ui("开始检查是否在自动战斗停留界面中", 'debug')
-        ck = [(882, 481, [196, 229, 218]), (857, 479, [237, 255, 239]), (857, 487, [237, 255, 240]),
-              (838, 484, [244, 255, 243]), (838, 484, [244, 255, 243]), (820, 487, [242, 255, 243]),
-              (792, 480, [200, 229, 201]),  (791, 486, [238, 255, 255]), (777, 481, [251, 255, 251]),
-              (828, 505, [205, 235, 235])]
-        cks = [ck]
-        for i in cks:
-            if self.thread_stoped():
-                return False
-            if comparator.match_point_color(i, screenshot=screenshot):
-                self.update_ui("检测到在自动战斗停留界面中", 'debug')
-                return True
+        self.update_ui("check-自动战斗停留界面中", 'debug')
+        result = comparator.template_compare(
+            self.cfg_auto_battle_stay, [(705, 450), (946, 520)],  screenshot=screenshot)
+        if result:
+            self.update_ui("find-在自动战斗停留界面中", 'debug')
+            return True
         return False
 
 
