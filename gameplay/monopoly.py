@@ -70,8 +70,6 @@ class Monopoly():
         self.cfg_ticket = int(cfg_monopoly.get("ticket"))
         self.cfg_lv = int(cfg_monopoly.get("lv"))
         self.cfg_type = cfg_monopoly.get("type")
-        self.cfg_crossing_type = cfg_monopoly.get("crossing_type")
-        self.cfg_auto_crossing = cfg_monopoly.get(f"auto_crossing.{self.cfg_type}")
         self.cfg_crossing = cfg_monopoly.get(f"crossing.{self.cfg_type}")
         self.cfg_auto_battle = int(cfg_monopoly.get("auto_battle"))
         self.cfg_isContinue = int(cfg_monopoly.get("isContinue"))
@@ -289,10 +287,7 @@ class Monopoly():
             crossing_index = self.check_crossing()
             if crossing_index != -1:
                 new_state = State.MonopolyMap
-                if self.cfg_crossing_type == "auto_crossing":
-                    self.turn_auto_crossing(crossing_index)
-                else:
-                    self.turn_crossing(crossing_index)
+                self.turn_auto_crossing(crossing_index)
                 self.pre_crossing = crossing_index
         return new_state
 
@@ -648,9 +643,9 @@ class Monopoly():
     def turn_auto_crossing(self, crossing_index):
         if self.thread_stoped():
             return
-        if not self.cfg_auto_crossing or not self.cfg_auto_crossing[crossing_index]:
+        if not self.cfg_crossing or not self.cfg_crossing[crossing_index]:
             return
-        rule = self.cfg_auto_crossing[crossing_index]
+        rule = self.cfg_crossing[crossing_index]
         move_step = self.check_move_distance(self.screenshot)
         self.update_ui(f"find-大富翁路口{crossing_index}，移动步数{move_step}")
         default = rule["default"]
@@ -675,15 +670,6 @@ class Monopoly():
                 # 匹配到方向，执行相应的动作
                 self.turn_direction(direction)
                 break
-
-    def turn_crossing(self, crossing_index):
-        if (self.thread_stoped()):
-            return
-        direction = ""
-        if crossing_index != None and self.cfg_crossing and self.cfg_crossing[crossing_index]:
-            direction = self.cfg_crossing[crossing_index]
-            self.update_crossing_msg(f"匹配到大富翁路口{crossing_index}，选择方向{direction}", crossing_index)
-        self.turn_direction(direction)
 
     def turn_direction(self, direction):
         if direction == "left":
