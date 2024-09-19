@@ -70,6 +70,8 @@ class Monopoly():
         self.cfg_ticket = int(cfg_monopoly.get("ticket"))
         self.cfg_lv = int(cfg_monopoly.get("lv"))
         self.cfg_type = cfg_monopoly.get("type")
+        self.cfg_crossing_type = cfg_monopoly.get("crossing_type")
+        self.cfg_auto_crossing = cfg_monopoly.get(f"auto_crossing.{self.cfg_type}")
         self.cfg_crossing = cfg_monopoly.get(f"crossing.{self.cfg_type}")
         self.cfg_auto_battle = int(cfg_monopoly.get("auto_battle"))
         self.cfg_isContinue = int(cfg_monopoly.get("isContinue"))
@@ -250,7 +252,7 @@ class Monopoly():
             new_state = State.MonopolyMap
             input_bp = 0
             if self.cfg_check_roll_rule == 1:
-                number = self.check_distance(self.screenshot)
+                number = self.check_map_distance(self.screenshot)
                 input_bp = self.check_roll_rule(number)
                 max_bp = self.check_bp_number(self.screenshot)
                 self.update_ui(f"距离终点 {number}，当前BP: {max_bp}")
@@ -287,7 +289,10 @@ class Monopoly():
             crossing_index = self.check_crossing()
             if crossing_index != -1:
                 new_state = State.MonopolyMap
-                self.turn_crossing(crossing_index)
+                if self.cfg_crossing_type == "auto_crossing":
+                    self.turn_auto_crossing(crossing_index)
+                else:
+                    self.turn_crossing(crossing_index)
                 self.pre_crossing = crossing_index
         return new_state
 
@@ -462,68 +467,64 @@ class Monopoly():
                 self.update_ui(f"本轮已经运行{time}秒,自检一次")
             return self.check_restart()
 
-    def ocr_number(self, screenshot):
+    def ocr_number(self, screenshot, crop_type="left"):
         # if type == 'origin' and not debug:
         #     path = 'debug_images/current_image_20240917_073435_origin.png'
         #     current_image = cv2.imread(path)
 
         width = screenshot.shape[1]
         process_image_origin = None
-        process_image_origin_retry = None
-        process_image_crop = None
-        process_image_scale = None
-        process_image_list = [screenshot]
         result, process_image_origin = self.process_image(screenshot)
 
         if not result:
-            process_image_list.append(process_image_origin)
             retry_src = screenshot
-
             self.write_ocr_log(result, retry_src, type)
             result, process_image_origin_retry = self.process_image(retry_src)
 
         if not result:
-            process_image_list.append(process_image_origin_retry)
             crop_src = screenshot
-
+            crop_img = None
             self.update_ui("未识别到距离，裁剪重试")
-            crop_offset = 0.33
-            crop_img = crop_src[:, int(crop_offset * width):]
+            self.write_ocr_log(result, crop_src, type)
+            if crop_type == "left":
+                crop_offset = 0.33
+                crop_img = crop_src[:, int(crop_offset * width):]
+            else:
+                crop_offset = 0.33
+                left = int(crop_offset * width)
+                right = int((1 - crop_offset) * width)
+                crop_img = crop_src[:, left:right]
             result, process_image_crop = self.process_image(crop_img)
             if result:
                 self.update_ui("裁剪识别成功")
 
         if not result:
-            process_image_list.append(process_image_crop)
             scale_src = screenshot
-
             self.update_ui("未识别到距离，缩小重试")
+            self.write_ocr_log(result, scale_image, type)
             offset = 10
             scale_image = cv2.copyMakeBorder(scale_src, offset, offset, offset, offset,
                                              cv2.BORDER_CONSTANT, value=[0, 0, 0])
             result, process_image_scale = self.process_image(scale_image)
             if result:
                 self.update_ui("缩小识别成功")
-
-        if not result:
-            process_image_list.append(process_image_scale)
-
-            self.update_ui("未识别到距离，预处理重试")
-            # 遍历process_image，找到第一个识别成功的图片
-            for image in process_image_list:
-                image = comparator.process_image(image, 120)
-                result, process_image = self.process_image(image)
-                if result:
-                    self.update_ui("预处理识别成功")
-                    break
         return result
 
-    def process_image(self, current_image):
+    def process_image(self, current_image, threshold=100):
         resized_image = cv2.resize(current_image, None, fx=3.0, fy=3.0, interpolation=cv2.INTER_CUBIC)
-        _, threshold_image = cv2.threshold(resized_image, 100, 255, cv2.THRESH_BINARY)
-        process_image = threshold_image
-        result = comparator.get_num_in_image(process_image)
-        return result, process_image
+        image = resized_image
+        # 分离图像的 BGR 通道
+        if len(resized_image.shape) == 3:
+            b_channel, g_channel, r_channel = cv2.split(resized_image)
+            # 对每个通道应用阈值操作
+            _, b_thresh = cv2.threshold(b_channel, threshold, 255, cv2.THRESH_BINARY)
+            _, g_thresh = cv2.threshold(g_channel, threshold, 255, cv2.THRESH_BINARY)
+            _, r_thresh = cv2.threshold(r_channel, threshold, 255, cv2.THRESH_BINARY)
+            # 将阈值处理后的通道合并回彩色图像
+            threshold_image = cv2.merge([b_thresh, g_thresh, r_thresh])
+            image = threshold_image
+        result = comparator.get_num_in_image(image)
+        return result, image
 
     def write_ocr_log(self, result, current_image, type):
         if result:
@@ -644,6 +645,37 @@ class Monopoly():
     def reduce_lv(self):
         engine.device.click(588, 220)
 
+    def turn_auto_crossing(self, crossing_index):
+        if self.thread_stoped():
+            return
+        if not self.cfg_auto_crossing or not self.cfg_auto_crossing[crossing_index]:
+            return
+        rule = self.cfg_auto_crossing[crossing_index]
+        move_step = self.check_move_distance(self.screenshot)
+        self.update_ui(f"find-大富翁路口{crossing_index}，移动步数{move_step}")
+        default = rule["default"]
+        if move_step is None:
+            if default:
+                self.update_ui(f"未检测到移动步数，使用默认方向{default}")
+                self.turn_direction(default)
+            else:
+                self.update_ui(f"未检测到移动步数，无默认方向")
+            return
+
+        # 遍历 rule 的键
+        for direction, range_str in rule.items():
+            if direction == "default":
+                continue
+            # 获取范围值，假设格式为 "x,y"，例如 "1,3"
+            range_vals = list(map(int, range_str.split(',')))
+            min_val, max_val = range_vals
+            # 判断 move_step 是否在范围内
+            if min_val <= move_step < max_val:
+                self.update_ui(f"find-大富翁路口{crossing_index}, 方向{direction}--规则剩余步数 {range_vals}")
+                # 匹配到方向，执行相应的动作
+                self.turn_direction(direction)
+                break
+
     def turn_crossing(self, crossing_index):
         if (self.thread_stoped()):
             return
@@ -651,18 +683,21 @@ class Monopoly():
         if crossing_index != None and self.cfg_crossing and self.cfg_crossing[crossing_index]:
             direction = self.cfg_crossing[crossing_index]
             self.update_crossing_msg(f"匹配到大富翁路口{crossing_index}，选择方向{direction}", crossing_index)
+        self.turn_direction(direction)
+
+    def turn_direction(self, direction):
         if direction == "left":
             engine.device.click(402, 243)
-            self.update_crossing_msg("选择左转", crossing_index)
+            self.update_ui("选择左转")
         if direction == "right":
             engine.device.click(558, 243)
-            self.update_crossing_msg("选择右转", crossing_index)
+            self.update_ui("选择右转")
         if direction == "up":
             engine.device.click(480, 150)
-            self.update_crossing_msg("选择上转", crossing_index)
+            self.update_ui("选择上转")
         if direction == "down":
             engine.device.click(480, 330)
-            self.update_crossing_msg("选择下转", crossing_index)
+            self.update_ui("选择下转")
 
     def update_crossing_msg(self, msg, crossing_index):
         if crossing_index == self.pre_crossing:
@@ -727,6 +762,27 @@ class Monopoly():
             if comparator.template_compare(f"./assets/monopoly/{strType}_crossing_{num[i]}.png", screenshot=self.screenshot):
                 return i
         return -1
+
+    def check_move_distance(self, screenshot):
+        try:
+            x, y, width, height = 863, 421, 30, 20
+            currentshot = screenshot
+            current_image = currentshot[y:y+height, x:x+width]
+
+            number = self.ocr_number(current_image, crop_type="center")
+            retry = 1
+            max_retry = self.cfg_check_roll_rule_time
+            while not number and retry < max_retry+1:
+                self.update_ui(f"check-剩余步数，重试次数{retry}，最大重试次数{max_retry}")
+                time.sleep(self.cfg_check_roll_rule_wait)
+                self.shot()
+                current_image = currentshot[y:y+height, x:x+width]
+                number = self.ocr_number(current_image)
+                retry += 1
+            return number
+        except Exception as e:
+            self.update_ui(f"check-剩余步数，重试次数{e}")
+            return None
 
     def check_confirm(self):
         self.update_ui("check-奖励确认界面", 'debug')
@@ -808,7 +864,7 @@ class Monopoly():
             return True
         return False
 
-    def check_distance(self, screenshot):
+    def check_map_distance(self, screenshot):
         try:
             x, y, width, height = 708, 480, 28, 20
             currentshot = screenshot
