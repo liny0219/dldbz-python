@@ -228,7 +228,7 @@ class Comparator:
             if not is_match:  # 如果不匹配, 说明没找到图像
                 return None
             else:  # 如果匹配
-                if leftup_coordinate:  # 如果指定了背景图片, 返回全屏的绝对坐标
+                if coordinate:  # 如果指定了背景图片, 返回全屏的绝对坐标
                     return get_abs_center_coord(leftup_coordinate, target_leftup, target_rightdown)
                 else:  # 如果未指定背景图片, 默认背景图片就是全图, 返回全屏的绝对坐标
                     return get_abs_center_coord((0, 0), target_leftup, target_rightdown)
