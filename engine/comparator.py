@@ -56,8 +56,11 @@ class Comparator:
             return gray_img
         else:
             return color_img
-
-    def _screenshot_cropped_image(self,  leftup_coordinate=None, rightdown_coordinate=None, convert_gray=True, save_path=''):
+    def _cropped_screenshot(self, 
+                            leftup_coordinate=None, 
+                            rightdown_coordinate=None, 
+                            convert_gray=True, 
+                            save_path=''):
         '''
         获取截屏.
 
@@ -66,6 +69,7 @@ class Comparator:
         - rightdown_coordinate = (x2, y2): 区域的右下角坐标。
         - convert_gray: 是否转化为灰度图
         '''
+
         color_img = self.device.screenshot(format='opencv')
         if (leftup_coordinate and rightdown_coordinate):
             x1, y1 = leftup_coordinate
@@ -80,6 +84,24 @@ class Comparator:
             return gray_img
         else:
             return color_img
+
+    def _screenshot_cropped_image(self,  
+                                  leftup_coordinate=None, 
+                                  rightdown_coordinate=None, 
+                                  convert_gray=True, 
+                                  save_path=''):
+        '''
+        获取截屏.
+
+        参数：
+        - leftup_coordinate = (x1, y1): 区域的左上角坐标。
+        - rightdown_coordinate = (x2, y2): 区域的右下角坐标。
+        - convert_gray: 是否转化为灰度图
+        '''
+        return self._cropped_screenshot(leftup_coordinate, 
+                                        rightdown_coordinate, 
+                                        convert_gray, 
+                                        save_path)
 
     def _cropped_image(self,  leftup_coordinate=None, 
                        rightdown_coordinate=None, convert_gray=True, 
@@ -179,12 +201,15 @@ class Comparator:
         if coordinate:
             leftup_coordinate = coordinate[0]
             rightdown_coordinate = coordinate[1]
-        else:
-            leftup_coordinate = (0, 0)
-            rightdown_coordinate = (self.device.info['displayWidth'], self.device.info['displayHeight'])
+        # else不用赋值, 解释见调用_screenshot_cropped_image
+        # else:
+        #     leftup_coordinate = (0, 0)
+        #     rightdown_coordinate = (self.device.info['displayWidth'], self.device.info['displayHeight'])
         asset_path = self.resource_path(template_path)
         template_gray = self._template_image(asset_path)
 
+        # 若未指定coordinate, leftup_coordinate与rightdown_coordinate都是None, 
+        # 此时_cropped_image对应参数接受None, 则默认截取全屏
         cropped_screenshot_gray = self._screenshot_cropped_image(
             leftup_coordinate, rightdown_coordinate, save_path=save_path)
 
@@ -196,6 +221,36 @@ class Comparator:
         # 检查是否匹配
         is_match = check_image_similarity(twice_cropped_screenshot_gray, template_gray, match_threshold)
 
+        if not return_center_coord:  # 如果不需要返回目标中心坐标
+            return is_match
+        else:  # 如果需要返回目标中心坐标
+            if not is_match:  # 如果不匹配, 说明没找到图像
+                return None
+            else:  # 如果匹配
+                if leftup_coordinate:  # 如果指定了背景图片, 返回全屏的绝对坐标
+                    return get_abs_center_coord(leftup_coordinate, target_leftup, target_rightdown)
+                else:  # 如果未指定背景图片, 默认背景图片就是全图, 返回全屏的绝对坐标
+                    return get_abs_center_coord((0, 0), target_leftup, target_rightdown)
+    def template_in_image(self, 
+                          gray_image, 
+                          template_path, 
+                          leftup_coordinate=None, 
+                          rightdown_coordinate=None, 
+                          return_center_coord=False,
+                          match_threshold=0.95):
+        
+        if (leftup_coordinate and rightdown_coordinate):
+            gray_image = crop_image(gray_image, leftup_coordinate, rightdown_coordinate)
+        
+        
+        template_image = self._template_image(template_path)
+
+        target_leftup, target_rightdown = find_target_in_image(template_image, gray_image)
+
+        gray_image = gray_image[target_leftup[1]: target_rightdown[1], target_leftup[0] : target_rightdown[0]]
+        
+        
+        is_match = check_image_similarity(gray_image, template_image, match_threshold)
         if not return_center_coord:  # 如果不需要返回目标中心坐标
             return is_match
         else:  # 如果需要返回目标中心坐标
@@ -228,16 +283,17 @@ class Comparator:
         if coordinate:
             leftup_coordinate = coordinate[0]
             rightdown_coordinate = coordinate[1]
-        else:
-            leftup_coordinate = (0, 0)
-            rightdown_coordinate = (self.device.info['displayWidth'], self.device.info['displayHeight'])
+        # else:
+        #     leftup_coordinate = (0, 0)
+        #     rightdown_coordinate = (self.device.info['displayWidth'], self.device.info['displayHeight'])
         asset_path = template_path
 
         if pack:
             asset_path = self.resource_path(template_path)
 
         template_gray = self._template_image(asset_path)
-
+        # 若未指定coordinate, leftup_coordinate与rightdown_coordinate都是None, 
+        # 此时_cropped_image对应参数接受None, 则默认截取全屏
         cropped_screenshot_gray = self._cropped_image(
             leftup_coordinate, rightdown_coordinate, save_path=save_path, screenshot=screenshot)
 
