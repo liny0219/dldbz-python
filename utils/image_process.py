@@ -3,12 +3,15 @@ import numpy as np
 from skimage.metrics import structural_similarity as ssim
 from skimage.feature import match_template
 
+def crop_image(image, coord1, coord2):
+    x1, y1 = coord1
+    x2, y2 = coord2
+    cropped_image = image[y1:y2, x1:x2]
+    return cropped_image
 
 def crop_save_img(coord1, coord2, path, device):
     img = device.screenshot(format='opencv')
-    x1, y1 = coord1
-    x2, y2 = coord2
-    cropped = img[y1:y2, x1:x2]
+    cropped = crop_image(img, coord1, coord2)
     cv2.imwrite(path, cropped)
 
 
