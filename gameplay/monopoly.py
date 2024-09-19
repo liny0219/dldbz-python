@@ -496,10 +496,10 @@ class Monopoly():
         if not result:
             scale_src = screenshot
             self.update_ui("未识别到距离，缩小重试")
-            self.write_ocr_log(result, scale_image, type)
             offset = 10
             scale_image = cv2.copyMakeBorder(scale_src, offset, offset, offset, offset,
                                              cv2.BORDER_CONSTANT, value=[0, 0, 0])
+            self.write_ocr_log(result, scale_image, type)
             result, process_image_scale = self.process_image(scale_image)
             if result:
                 self.update_ui("缩小识别成功")
