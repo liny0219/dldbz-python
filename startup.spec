@@ -24,7 +24,7 @@ for package in packages:
     hiddenimports += pkg_hiddenimports
 
 # 添加手动指定的数据目录
-datas += [('assets', 'assets')]
+datas += [('assets', 'assets'),('fonts', 'fonts')]
 
 # 主脚本路径
 main_script = 'startup.py'
@@ -56,4 +56,5 @@ exe = EXE(pyz,
           bootloader_ignore_signals=False,
           strip=False,
           upx=True,
+          icon='assets/icon_exe.ico'.
           console=False)
