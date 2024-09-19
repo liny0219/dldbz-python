@@ -56,5 +56,5 @@ exe = EXE(pyz,
           bootloader_ignore_signals=False,
           strip=False,
           upx=True,
-          icon='assets/icon_exe.ico'.
+          icon='assets/icon_exe.ico',
           console=False)
