@@ -69,10 +69,25 @@ def create_log_frame(frame):
 
 
 def create_settings_frame(frame):
+
+    label = tk.Label(frame, text="当前端口:")
+    label.grid(row=0, column=0, padx=2, pady=2)
+    entry_var = tk.StringVar()
+    entry = tk.Entry(frame, textvariable=entry_var, width=30)
+    entry.grid(row=0, column=1, padx=10, pady=10)
+    startup.set_port_ui(entry, entry_var)
+    submit_button = tk.Button(frame, text="修改端口", width=15, height=1, command=startup.btn_set_custom_port)
+    submit_button.grid(row=0, column=2, padx=10, pady=10)
+
+    tk.Button(frame, text="设置雷电端口", command=startup.btn_set_ld_port,
+              font=("Segoe UI", 10), width=30, height=1).grid(row=1, column=0, padx=10, pady=10)
+    tk.Button(frame, text="设置mumu端口", command=startup.btn_set_mumu_port,
+              font=("Segoe UI", 10), width=30, height=1).grid(row=1, column=1, padx=10, pady=10)
+
     tk.Button(frame, text="启动设置", command=startup.open_startup_config,
-              font=("Segoe UI", 10), width=30, height=1).grid(row=0, column=0, padx=10, pady=10)
+              font=("Segoe UI", 10), width=30, height=1).grid(row=2, column=0, padx=10, pady=10)
     tk.Button(frame, text="游戏盘设置", command=startup.open_monopoly_config,
-              font=("Segoe UI", 10), width=30, height=1).grid(row=0, column=1, padx=10, pady=10)
+              font=("Segoe UI", 10), width=30, height=1).grid(row=2, column=1, padx=10, pady=10)
 
 
 def create_info_button(frame):
