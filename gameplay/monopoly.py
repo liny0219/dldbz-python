@@ -586,7 +586,7 @@ class Monopoly():
                 return
             if current_y >= end_y:
                 break
-            next_y = current_y + 50
+            next_y = current_y + 25
             engine.device.swipe(x, current_y, x, next_y, 0.1)
             current_y = next_y
 

@@ -14,8 +14,13 @@ from utils.stoppable_thread import StoppableThread
 from engine.engine import engine
 from engine.world import world
 from engine.comparator import comparator
-from utils.config_loader import cfg_startup
+from utils.config_loader import cfg_startup, update_json_config
+import tkinter as tk
+from tkinter import messagebox
 import psutil
+import json
+
+path_cfg_statrup = 'config/startup.json'
 
 
 class Startup:
@@ -73,6 +78,13 @@ class Startup:
 
     def set_message_text(self, message_text):
         self.message_text = message_text
+
+    def set_port_ui(self, entry: tk.Entry, port_var: tk.StringVar):
+        self.port_entry = entry
+        self.port_value = port_var
+        with open(path_cfg_statrup, 'r', encoding='utf-8') as file:
+            data = json.load(file)
+            self.port_value.set(data['adb_port'])
 
     def on_close(self):
         self.update_ui("正在关闭程序，请稍等...")
@@ -232,6 +244,41 @@ class Startup:
     def get_coord(self):
         coordinate_getter = GetCoord(self.app_data)
         coordinate_getter.show_coordinates_window()
+
+    def btn_set_custom_port(self):
+        # 弹出警告框
+        response = tkinter.messagebox.askokcancel("配置修改警告",
+                                                  "请注意，修改配置后需要重启程序才能生效。是否继续修改？")
+        if response:
+            if os.path.exists(path_cfg_statrup):
+                user_input = self.port_entry.get()
+                update_json_config(path_cfg_statrup, 'adb_port', user_input)
+            else:
+                self.update_ui("帮助文档(readme.txt)不存在，请检查！")
+
+    def btn_set_mumu_port(self):
+        # 弹出警告框
+        response = tkinter.messagebox.askokcancel("配置修改警告",
+                                                  "请注意，修改配置后需要重启程序才能生效。是否继续修改？")
+        if response:
+            if os.path.exists(path_cfg_statrup):
+                str_port = "127.0.0.1:16384"
+                update_json_config(path_cfg_statrup, 'adb_port', str_port)
+                self.port_value.set(str_port)
+            else:
+                self.update_ui("帮助文档(readme.txt)不存在，请检查！")
+
+    def btn_set_ld_port(self):
+        # 弹出警告框
+        response = tkinter.messagebox.askokcancel("配置修改警告",
+                                                  "请注意，修改配置后需要重启程序才能生效。是否继续打开配置文件？")
+        if response:
+            if os.path.exists(path_cfg_statrup):
+                str_port = "127.0.0.1:5555"
+                update_json_config(path_cfg_statrup, 'adb_port', str_port)
+                self.port_value.set(str_port)
+            else:
+                self.update_ui("帮助文档(readme.txt)不存在，请检查！")
 
     def open_monopoly_config(self):
         file_path = os.path.join('config', 'monopoly.json')
