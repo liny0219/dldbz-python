@@ -475,10 +475,6 @@ class Monopoly():
         return isinstance(value, (int, float))
 
     def ocr_number(self, screenshot, crop_type="left"):
-        # if type == 'origin' and not debug:
-        #     path = 'debug_images/current_image_20240917_073435_origin.png'
-        #     current_image = cv2.imread(path)
-
         width = screenshot.shape[1]
         crop_img = None
         scale_src = None
@@ -530,11 +526,12 @@ class Monopoly():
             list_img.append(scale_image)
             self.update_ui("未识别到距离，预处理重试")
             for i in range(len(list_img)):
-                img = list_img[i]
-                if (len(img) == 0):
+                pro_img = list_img[i]
+                if (len(pro_img) == 0):
                     continue
-                result = comparator.process_image(img)
-                self.write_ocr_log(result, img, f'process_image_{i}')
+                process_img = comparator.process_image(pro_img, threshold_value=120)
+                result = comparator.get_num_in_image(process_img)
+                self.write_ocr_log(result, process_img, f'process_image_{i}')
             if self.is_number(result):
                 self.update_ui("预处理识别成功")
         return result
