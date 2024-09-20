@@ -1,6 +1,6 @@
 import time
 import cv2
-import datetime
+from datetime import datetime
 from engine.comparator import comparator
 from engine.world import world
 from engine.engine import engine
@@ -27,8 +27,8 @@ class State(Enum):
 
 
 class Monopoly():
-    def __init__(self, global_data: AppData):
-        self.global_data = global_data
+    def __init__(self, app_data: AppData):
+        self.app_data = app_data
         self.debug = True
         self.crood_range = [(474, 116), (937, 397)]
         self.cfg_type = "801"
@@ -60,13 +60,14 @@ class Monopoly():
         self.reset()
 
     def thread_stoped(self) -> bool:
-        return self.global_data and self.global_data.thread_stoped()
+        return self.app_data and self.app_data.thread_stoped()
 
     def update_ui(self, msg: str, type='info'):
-        self.global_data and self.global_data.update_ui(msg, type)
+        self.app_data and self.app_data.update_ui(msg, type)
 
     def set_config(self):
         reload_config()
+        battle_pix.set(self.app_data)
         self.cfg_ticket = int(cfg_monopoly.get("ticket"))
         self.cfg_lv = int(cfg_monopoly.get("lv"))
         self.cfg_type = cfg_monopoly.get("type")
@@ -100,6 +101,7 @@ class Monopoly():
         self.started_count = 0
         self.finished_count = 0
         self.begin_turn = 0
+        self.pre_turn_state = State.Unknow
         self.total_finish_time = 0
         self.total_failed_time = 0
         self.restart = 0
@@ -119,6 +121,7 @@ class Monopoly():
         self.roll_time = 0
         self.reported_end = False
         self.reported_finish = False
+        self.pre_turn_state = State.Unknow
         self.started_count += 1
 
     def report_end(self):
@@ -332,6 +335,7 @@ class Monopoly():
 
                     turn_state = None
                     turn_check_state = None
+                    pre_round_state = None
                     round_state = None
                     round_check_state = None
                     self.check_deamon(wait_duration)
@@ -372,24 +376,29 @@ class Monopoly():
                     in_map = False
                     while not self.thread_stoped():
                         self.update_ui(f"地图检查", 'debug')
+                        self.check_state()
                         round_state = None
                         self.shot()
-                        round_check_state = self.check_in_battle()
-                        if round_check_state:
-                            round_state = self.state
+                        if self.check_in_battle():
+                            if pre_round_state != State.Battle:
+                                self.update_ui(f"战斗界面中")
+                            round_state = State.Battle
 
-                            round_check_state = self.check_in_battle_in_round(self.state)
-                            if round_check_state:
-                                self.state = State.BattleInRound
-                                round_state = self.state
-                                self.shot()
+                        if self.check_in_battle_in_round(self.state):
+                            self.update_ui(f"战斗中点击委托")
+                            round_state = State.BattleInRound
+                            self.shot()
 
-                            round_check_state = self.check_in_battle_auto_stay()
-                            if round_check_state:
-                                self.state = State.BattleAutoStay
-                                round_state = self.state
+                        if self.check_in_battle_auto_stay():
+                            self.update_ui(f"战斗中点击开始委托战斗")
+                            round_state = State.BattleAutoStay
+                            time.sleep(2)
 
+                        if round_state:
                             self.state = round_state
+                            if round_state == State.Battle and pre_round_state == State.Battle:
+                                time.sleep(2)
+                            pre_round_state = round_state
                         else:
                             round_check_state = self.check_in_monopoly_map()
                             if round_check_state == State.Finised:
@@ -432,27 +441,33 @@ class Monopoly():
 
                     if round_state:
                         turn_state = round_state
+
                     if turn_state and turn_state != State.Unknow:
-                        self.wait_time = time.time()
                         self.update_ui(f"当前状态{self.state}", 'debug')
+                        if turn_state != self.pre_turn_state:
+                            self.update_ui(f"更新状态{self.state}")
+                            self.wait_time = time.time()
                     else:
                         self.state = State.Unknow
                         world.btn_trim_click()
                         self.update_ui("未匹配到任何状态", 'debug')
-
-                    wait_duration = time.time() - self.wait_time
-                    if wait_duration > self.cfg_wait_time:
-                        min = self.cfg_wait_time/60
-                        self.error(f"{int(min)}分钟未匹配到任何执行函数，重启游戏")
-                        engine.restart_game()
-                        self.restart += 1
-                        self.state = State.Unknow
-                        self.reset_round()
-                        time.sleep(3)
+                    self.pre_turn_state = turn_state
+                    self.check_state()
                 except Exception as e:
-                    self.update_ui(f"出现异常！{e}")
+                    self.update_ui(f"地图循环出现异常！{e}")
         except Exception as e:
-            self.update_ui(f"出现异常！{e}")
+            self.update_ui(f"挂机出现异常！{e}")
+
+    def check_state(self):
+        wait_duration = time.time() - self.wait_time
+        if wait_duration > self.cfg_wait_time:
+            min = self.cfg_wait_time/60
+            self.error(f"{int(min)}分钟未匹配到任何执行函数，重启游戏")
+            engine.restart_game()
+            self.restart += 1
+            self.state = State.Unknow
+            self.reset_round()
+            time.sleep(3)
 
     def check_deamon(self, time):
         time = int(time)
@@ -524,7 +539,7 @@ class Monopoly():
     def write_ocr_log(self, result, current_image, type):
         if result:
             return
-        timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         debug_path = 'debug_images'
         file_name = f'current_image_{timestamp}_{type}.png'
         os.makedirs(debug_path, exist_ok=True)  # 确保目录存在
@@ -954,7 +969,7 @@ class Monopoly():
                     x = int(parts[1])
                     y = int(parts[2])
                     engine.device.click(x, y)
-                    
+
         except Exception as e:
             self.update_ui(f"处理敌人行动出现异常{e}")
 

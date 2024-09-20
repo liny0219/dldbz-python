@@ -1,6 +1,6 @@
 import tkinter as tk
 import tkinter.ttk as ttk
-from tkinter import Toplevel, Label, Button
+from tkinter import Label
 from startup_logic import Startup
 from utils.config_loader import cfg_version
 # 创建主窗口
@@ -13,9 +13,9 @@ startup = Startup(app)
 # 创建样式对象
 style = ttk.Style()
 
-font_path = "fonts/FZSTK.TTF"  # 字体路径
-default_font = (font_path, 12)  # 默认字体大小为12
-bold_font = (font_path, 18, 'bold')  # 粗体字，大小为18
+# font_path = "fonts/FZSTK.TTF"  # 字体路径
+default_font = ("Segoe UI", 12)  # 默认字体大小为12
+bold_font = ("Segoe UI", 18, 'bold')  # 粗体字，大小为18
 # 配置'TNotebook.Tab'的样式
 style.configure('TNotebook.Tab', font=('Segoe UI', '12', 'bold'), padding=[20, 8])
 
@@ -38,14 +38,13 @@ recollection_frame = tk.Frame(notebook, name="recollection_frame")
 
 map_frame = tk.Frame(notebook, name="map_frame")
 
-settings_frame = tk.Frame(notebook)
+settings_frame = tk.Frame(notebook, name="settings_frame")
 settings_frame.grid(padx=10, pady=5)
 
-log_frame = tk.Frame(notebook)
-log_frame.grid(padx=10, pady=5)
 
-about_frame = tk.Frame(notebook)
+about_frame = tk.Frame(notebook, name="about_frame")
 about_frame.grid(padx=10, pady=5)
+
 Label(about_frame, text=f"歧路茶馆 v{cfg_version.get('version')}", font=bold_font).pack(pady=10)
 Label(about_frame, text="仅供交流学习用，请勿用于任何商业盈利", font=default_font).pack(pady=10)
 Label(about_frame, text="贡献者: 夜宵, GGBond, Wlog, 章鱼哥, ◕‿◕", font=default_font).pack(pady=10)
@@ -56,7 +55,6 @@ notebook.add(monopoly_frame, text='游戏盘')
 notebook.add(recollection_frame, text='追忆之书')
 notebook.add(map_frame, text='大地图')
 notebook.add(settings_frame, text='设置')
-notebook.add(log_frame, text='日志')
 notebook.add(about_frame, text='关于')
 
 # 使用 grid 布局管理器
@@ -69,13 +67,6 @@ app.grid_columnconfigure(2, weight=3)
 def create_map_frame(frame):
     tk.Button(frame, text="原地刷野", command=startup.on_stationary,
               font=("Segoe UI", 10), width=10, height=1).grid(row=0, column=0, padx=10, pady=10)
-
-
-def create_log_frame(frame):
-    tk.Button(frame, text="执行信息", command=startup.open_log,
-              font=("Segoe UI", 10), width=10, height=1).grid(row=0, column=0, padx=10, pady=10)
-    # tk.Button(frame, text="游戏盘奖励", command=startup.open_monopoly_log,
-    #           font=("Segoe UI", 10), width=10, height=1).grid(row=0, column=1, padx=10, pady=10)
 
 
 def create_settings_frame(frame):
@@ -150,7 +141,6 @@ create_info_button(monopoly_frame)
 create_info_button(recollection_frame)
 create_info_button(map_frame)
 create_settings_frame(settings_frame)
-create_log_frame(log_frame)
 
 
 def find_widget_by_name(parent, widget_name):
