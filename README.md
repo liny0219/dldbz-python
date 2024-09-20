@@ -1,5 +1,5 @@
 # <center> dldbz-python
-### <center>项目贡献者: 夜宵, GGBond, ◕‿◕, Wlog, 章鱼哥
+### <center>项目贡献者: 夜宵, GGBond, Wlog, ◕‿◕, 章鱼哥
 
 #### 介绍
 仅供交流学习用，请勿用于任何商业盈利
