@@ -177,7 +177,7 @@ class Monopoly():
     def check_in_game_title(self):
         if self.state == State.Title:
             return
-        if self.state != State.Unknow:
+        if self.state and self.state != State.Unknow:
             return
         if world.check_game_title(self.screenshot):
             self.btn_center_confirm()
@@ -186,7 +186,7 @@ class Monopoly():
     def check_in_game_continue(self):
         if self.state == State.Continue:
             return
-        if self.state != State.Unknow:
+        if self.state and self.state != State.Unknow:
             return
         if self.check_continue():
             self.on_continue()
@@ -195,7 +195,7 @@ class Monopoly():
     def check_in_world(self):
         if self.state == State.World:
             return
-        if self.state != State.Unknow:
+        if self.state and self.state != State.Unknow:
             return
         if world.check_in_world(self.screenshot):
             self.btn_menu_monopoly()
@@ -204,12 +204,11 @@ class Monopoly():
     def check_in_monopoly_page(self):
         if self.state == State.MonopolyPage:
             return
-        if self.state != State.Unknow and self.state != State.Finised:
-            return
-        if self.check_page_monopoly():
-            self.select_monopoly()
-            self.btn_setting_monopoly()
-            return State.MonopolyPage
+        if not self.state or self.state == State.Unknow or self.state == State.Finised:
+            if self.check_page_monopoly():
+                self.select_monopoly()
+                self.btn_setting_monopoly()
+                return State.MonopolyPage
 
     def check_in_monopoly_setting(self):
         if self.state == State.MonopolySetting or self.state == State.MonopolyMap:
@@ -253,7 +252,8 @@ class Monopoly():
             input_bp = 0
             if self.cfg_check_roll_rule == 1:
                 number = self.check_map_distance(self.screenshot)
-                input_bp = self.check_roll_rule(number)
+                if self.is_number(number):
+                    input_bp = self.check_roll_rule(number)
                 max_bp = self.check_bp_number(self.screenshot)
                 self.update_ui(f"距离终点 {number}，当前BP: {max_bp}")
                 if input_bp > max_bp:
@@ -300,22 +300,11 @@ class Monopoly():
             return True
         return False
 
-    def check_in_monopoly_round(self, round_state):
-        if round_state == State.World \
-                or round_state == State.Unknow \
-                or round_state == State.Finised \
-                or round_state == State.Title \
-                or round_state == State.Continue \
-                or round_state == State.MonopolyPage \
-                or round_state == State.MonopolySetting:
-
-            return False
-        return True
-
     def shot(self):
         self.update_ui("-----------开始截图", 'debug')
         self.screenshot = engine.device.screenshot(format='opencv')
         self.update_ui("-----------截图完成", 'debug')
+        return self.screenshot
 
     def start(self):
         try:
@@ -337,7 +326,7 @@ class Monopoly():
                     pre_round_state = None
                     round_state = None
                     round_check_state = None
-                    self.check_deamon(wait_duration)
+                    self.check_in_app(wait_duration)
 
                     turn_check_state = self.check_in_game_title()
                     if turn_check_state:
@@ -375,7 +364,7 @@ class Monopoly():
                     in_map = False
                     while not self.thread_stoped():
                         self.update_ui(f"地图检查", 'debug')
-                        self.check_state()
+                        self.check_idle_wait()
                         round_state = None
                         self.shot()
                         if self.check_in_battle():
@@ -410,9 +399,11 @@ class Monopoly():
                                 round_state = self.state
 
                         if not round_state:
-                            round_state = self.check_in_world()
-                            if not round_state:
-                                round_state = self.check_continue()
+                            if self.check_in_world():
+                                round_state = State.World
+                            if not round_state and self.check_continue():
+                                round_state = State.Continue
+                                self.on_continue()
                             if round_state:
                                 self.state = round_state
                                 in_map = False
@@ -433,9 +424,10 @@ class Monopoly():
                             break
 
                         round_duration = time.time() - self.round_time_start
-                        if self.check_deamon(round_duration):
+                        if self.check_in_app(round_duration):
                             self.state = State.Unknow
                             round_state = self.state
+                            in_map = False
                             break
 
                     if round_state:
@@ -451,13 +443,15 @@ class Monopoly():
                         world.btn_trim_click()
                         self.update_ui("未匹配到任何状态", 'debug')
                     self.pre_turn_state = turn_state
-                    self.check_state()
+                    self.check_idle_wait()
                 except Exception as e:
+                    time.sleep(3)
                     self.update_ui(f"地图循环出现异常！{e}")
         except Exception as e:
+            time.sleep(3)
             self.update_ui(f"挂机出现异常！{e}")
 
-    def check_state(self):
+    def check_idle_wait(self):
         wait_duration = time.time() - self.wait_time
         if wait_duration > self.cfg_wait_time:
             min = self.cfg_wait_time/60
@@ -467,14 +461,18 @@ class Monopoly():
             self.state = State.Unknow
             self.reset_round()
             time.sleep(3)
+            return State.Unknow
 
-    def check_deamon(self, time):
+    def check_in_app(self, time):
         time = int(time)
         if (time % self.cfg_check_time == 0 and time != self.pre_check_time) or self.pre_check_time == -1:
             self.pre_check_time = time
             if time > 0:
                 self.update_ui(f"本轮已经运行{time}秒,自检一次")
             return self.check_restart()
+
+    def is_number(self, value):
+        return isinstance(value, (int, float))
 
     def ocr_number(self, screenshot, crop_type="left"):
         # if type == 'origin' and not debug:
@@ -484,47 +482,61 @@ class Monopoly():
         width = screenshot.shape[1]
         crop_img = None
         scale_src = None
-        process_image_origin = None
-        result, process_image_origin = self.process_image(screenshot)
+        retry_src = None
+        list_img = []
+        result = self.process_image(screenshot)
 
-        # if not result:
-        retry_src = screenshot
-        self.write_ocr_log(result, screenshot, 'screenshot')
-
-        result, process_image_origin_retry = self.process_image(retry_src)
+        if not self.is_number(result):
+            retry_src = screenshot
+            self.write_ocr_log(result, screenshot, 'screenshot')
+            result = self.process_image(retry_src)
 
         self.write_ocr_log(result, retry_src, 'retry_src')
 
-        if not result:
+        if not self.is_number(result):
+            list_img.append(retry_src)
             crop_src = screenshot
             self.update_ui("未识别到距离，裁剪重试")
 
             if crop_type == "left":
-                crop_offset = 0.33
+                crop_offset = 0.31
                 crop_img = crop_src[:, int(crop_offset * width):]
             else:
                 crop_offset = 0.33
                 left = int(crop_offset * width)
                 right = int((1 - crop_offset) * width)
                 crop_img = crop_src[:, left:right]
-            result, process_image_crop = self.process_image(crop_img)
-            if result:
+            result = self.process_image(crop_img)
+            if self.is_number(result):
                 self.update_ui("裁剪识别成功")
 
         self.write_ocr_log(result, crop_img, 'crop_img')
 
-        if not result:
+        if not self.is_number(result):
+            list_img.append(crop_img)
             scale_src = screenshot
             self.update_ui("未识别到距离，缩小重试")
             offset = 10
             scale_image = cv2.copyMakeBorder(scale_src, offset, offset, offset, offset,
                                              cv2.BORDER_CONSTANT, value=[0, 0, 0])
             self.write_ocr_log(result, scale_image, '')
-            result, process_image_scale = self.process_image(scale_image)
-            if result:
+            result = self.process_image(scale_image)
+            if self.is_number(result):
                 self.update_ui("缩小识别成功")
 
         self.write_ocr_log(result, scale_src, 'scale_src')
+
+        if not self.is_number(result):
+            list_img.append(scale_image)
+            self.update_ui("未识别到距离，预处理重试")
+            for i in range(len(list_img)):
+                img = list_img[i]
+                if (len(img) == 0):
+                    continue
+                result = comparator.process_image(img)
+                self.write_ocr_log(result, img, f'process_image_{i}')
+            if self.is_number(result):
+                self.update_ui("预处理识别成功")
         return result
 
     def process_image(self, current_image, threshold=100):
@@ -541,10 +553,10 @@ class Monopoly():
             threshold_image = cv2.merge([b_thresh, g_thresh, r_thresh])
             image = threshold_image
         result = comparator.get_num_in_image(image)
-        return result, image
+        return result
 
     def write_ocr_log(self, result, current_image, type):
-        if result or not current_image:
+        if self.is_number(result) or len(current_image) == 0:
             return
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         debug_path = 'debug_images'
@@ -669,9 +681,11 @@ class Monopoly():
             return
         rule = self.cfg_crossing[crossing_index]
         move_step = self.check_move_distance(self.screenshot)
+        if not self.is_number(move_step):
+            self.update_ui(f"未检测到移动步数,{move_step}")
         self.update_crossing_msg(f"find-大富翁路口{crossing_index}，移动步数{move_step}")
         default = rule["default"]
-        if move_step is None:
+        if not self.is_number(move_step):
             if default:
                 self.update_crossing_msg(f"未检测到移动步数，使用默认方向{default}")
                 self.turn_direction(default)
@@ -773,24 +787,24 @@ class Monopoly():
         return -1
 
     def check_move_distance(self, screenshot):
+        number = None
         try:
             x, y, width, height = 863, 421, 30, 20
             currentshot = screenshot
+            if len(currentshot) == 0:
+                currentshot = self.shot()
             current_image = currentshot[y:y+height, x:x+width]
 
             number = self.ocr_number(current_image, crop_type="center")
-            retry = 1
-            max_retry = 2
-            while not number and retry < max_retry+1:
-                self.update_ui(f"check-剩余步数，重试次数{retry}，最大重试次数{max_retry}")
+            self.update_ui(f"check-剩余步数")
+            if not self.is_number(number):
                 time.sleep(self.cfg_check_roll_rule_wait)
-                self.shot()
+                currentshot = self.shot()
                 current_image = currentshot[y:y+height, x:x+width]
                 number = self.ocr_number(current_image)
-                retry += 1
             return number
         except Exception as e:
-            self.update_ui(f"check-剩余步数，重试次数{e},{number}")
+            self.update_ui(f"check-剩余步数异常{e},{number}")
             return None
 
     def check_confirm(self):
@@ -843,7 +857,7 @@ class Monopoly():
         coord = comparator.template_compare(f"./assets/monopoly/monopoly_continue.png", screenshot=self.screenshot)
         if coord:
             self.update_ui("find-继续游戏")
-            return True
+            return State.Continue
         return False
 
     def check_evtent(self):
@@ -874,20 +888,20 @@ class Monopoly():
         return False
 
     def check_map_distance(self, screenshot):
+        number = None
         try:
             x, y, width, height = 708, 480, 28, 20
             currentshot = screenshot
+            if len(currentshot) == 0:
+                currentshot = self.shot()
             current_image = currentshot[y:y+height, x:x+width]
             number = self.ocr_number(current_image)
-            retry = 1
-            max_retry = 2
-            while not number and retry < max_retry:
-                self.update_ui(f"检查距离失败，重试次数{retry}，最大重试次数{max_retry}")
+            if not self.is_number(number):
+                self.update_ui(f"检查距离失败")
                 time.sleep(self.cfg_check_roll_rule_wait)
-                self.shot()
+                currentshot = self.shot()
                 current_image = currentshot[y:y+height, x:x+width]
                 number = self.ocr_number(current_image)
-                retry += 1
             return number
         except Exception as e:
             self.update_ui(f"检查距离出现异常{e} {number}")
