@@ -702,7 +702,7 @@ class Monopoly():
             min_val, max_val = range_vals
             # 判断 move_step 是否在范围内
             if min_val <= move_step < max_val:
-                self.update_crossing_msg(f"find-大富翁路口{crossing_index}, 方向{direction}--规则剩余步数 {range_vals}")
+                self.update_crossing_msg(f"find-大富翁路口{crossing_index}, 方向{direction}--剩余步数规则 {range_vals}")
                 # 匹配到方向，执行相应的动作
                 self.turn_direction(direction)
                 break
