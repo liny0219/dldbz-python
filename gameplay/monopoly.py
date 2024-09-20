@@ -41,7 +41,6 @@ class Monopoly():
         self.cfg_check_roll_dice_interval = 0.2
         self.cfg_check_roll_dice_time = 2
         self.cfg_check_roll_rule = 1
-        self.cfg_check_roll_rule_time = 8
         self.cfg_check_roll_rule_wait = 0.2
         self.screenshot = None
         self.cfg_r801 = []
@@ -57,6 +56,7 @@ class Monopoly():
         self.pre_check_time = -1
         self.cfg_check_time = 120
         self.pre_crossing = -1
+        self.current_crossing = -1
         self.reset()
 
     def thread_stoped(self) -> bool:
@@ -78,7 +78,6 @@ class Monopoly():
         self.cfg_check_roll_dice_interval = float(cfg_monopoly.get("check_roll_dice_interval"))
         self.cfg_check_roll_dice_time = int(cfg_monopoly.get("check_roll_dice_time"))
         self.cfg_check_roll_rule = int(cfg_monopoly.get("check_roll_rule"))
-        self.cfg_check_roll_rule_time = int(cfg_monopoly.get("check_roll_rule_time"))
         self.cfg_check_roll_rule_wait = float(cfg_monopoly.get("check_roll_rule_wait"))
         self.cfg_r801 = cfg_monopoly.get("bp.801")
         self.cfg_r802 = cfg_monopoly.get("bp.802")
@@ -483,19 +482,23 @@ class Monopoly():
         #     current_image = cv2.imread(path)
 
         width = screenshot.shape[1]
+        crop_img = None
+        scale_src = None
         process_image_origin = None
         result, process_image_origin = self.process_image(screenshot)
 
-        if not result:
-            retry_src = screenshot
-            self.write_ocr_log(result, retry_src, type)
-            result, process_image_origin_retry = self.process_image(retry_src)
+        # if not result:
+        retry_src = screenshot
+        self.write_ocr_log(result, screenshot, 'screenshot')
+
+        result, process_image_origin_retry = self.process_image(retry_src)
+
+        self.write_ocr_log(result, retry_src, 'retry_src')
 
         if not result:
             crop_src = screenshot
-            crop_img = None
             self.update_ui("未识别到距离，裁剪重试")
-            self.write_ocr_log(result, crop_src, type)
+
             if crop_type == "left":
                 crop_offset = 0.33
                 crop_img = crop_src[:, int(crop_offset * width):]
@@ -508,16 +511,20 @@ class Monopoly():
             if result:
                 self.update_ui("裁剪识别成功")
 
+        self.write_ocr_log(result, crop_img, 'crop_img')
+
         if not result:
             scale_src = screenshot
             self.update_ui("未识别到距离，缩小重试")
             offset = 10
             scale_image = cv2.copyMakeBorder(scale_src, offset, offset, offset, offset,
                                              cv2.BORDER_CONSTANT, value=[0, 0, 0])
-            self.write_ocr_log(result, scale_image, type)
+            self.write_ocr_log(result, scale_image, '')
             result, process_image_scale = self.process_image(scale_image)
             if result:
                 self.update_ui("缩小识别成功")
+
+        self.write_ocr_log(result, scale_src, 'scale_src')
         return result
 
     def process_image(self, current_image, threshold=100):
@@ -537,7 +544,7 @@ class Monopoly():
         return result, image
 
     def write_ocr_log(self, result, current_image, type):
-        if result:
+        if result or not current_image:
             return
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         debug_path = 'debug_images'
@@ -662,14 +669,14 @@ class Monopoly():
             return
         rule = self.cfg_crossing[crossing_index]
         move_step = self.check_move_distance(self.screenshot)
-        self.update_ui(f"find-大富翁路口{crossing_index}，移动步数{move_step}")
+        self.update_crossing_msg(f"find-大富翁路口{crossing_index}，移动步数{move_step}")
         default = rule["default"]
         if move_step is None:
             if default:
-                self.update_ui(f"未检测到移动步数，使用默认方向{default}")
+                self.update_crossing_msg(f"未检测到移动步数，使用默认方向{default}")
                 self.turn_direction(default)
             else:
-                self.update_ui(f"未检测到移动步数，无默认方向")
+                self.update_crossing_msg(f"未检测到移动步数，无默认方向")
             return
 
         # 遍历 rule 的键
@@ -681,7 +688,7 @@ class Monopoly():
             min_val, max_val = range_vals
             # 判断 move_step 是否在范围内
             if min_val <= move_step < max_val:
-                self.update_ui(f"find-大富翁路口{crossing_index}, 方向{direction}--规则剩余步数 {range_vals}")
+                self.update_crossing_msg(f"find-大富翁路口{crossing_index}, 方向{direction}--规则剩余步数 {range_vals}")
                 # 匹配到方向，执行相应的动作
                 self.turn_direction(direction)
                 break
@@ -689,19 +696,19 @@ class Monopoly():
     def turn_direction(self, direction):
         if direction == "left":
             engine.device.click(402, 243)
-            self.update_ui("选择左转")
+            self.update_crossing_msg("选择左转")
         if direction == "right":
             engine.device.click(558, 243)
-            self.update_ui("选择右转")
+            self.update_crossing_msg("选择右转")
         if direction == "up":
             engine.device.click(480, 150)
-            self.update_ui("选择上转")
+            self.update_crossing_msg("选择上转")
         if direction == "down":
             engine.device.click(480, 330)
-            self.update_ui("选择下转")
+            self.update_crossing_msg("选择下转")
 
-    def update_crossing_msg(self, msg, crossing_index):
-        if crossing_index == self.pre_crossing:
+    def update_crossing_msg(self, msg):
+        if self.current_crossing == self.pre_crossing:
             return
         self.update_ui(msg)
 
@@ -738,7 +745,8 @@ class Monopoly():
             return -1
         current_crossing = self.check_crossing_index()
         if current_crossing != -1:
-            self.update_crossing_msg(f"当前在大富翁路口格子{current_crossing}", current_crossing)
+            self.current_crossing = current_crossing
+            self.update_crossing_msg(f"当前在大富翁路口格子{current_crossing}")
             return current_crossing
         return -1
 
@@ -772,7 +780,7 @@ class Monopoly():
 
             number = self.ocr_number(current_image, crop_type="center")
             retry = 1
-            max_retry = self.cfg_check_roll_rule_time
+            max_retry = 2
             while not number and retry < max_retry+1:
                 self.update_ui(f"check-剩余步数，重试次数{retry}，最大重试次数{max_retry}")
                 time.sleep(self.cfg_check_roll_rule_wait)
@@ -782,7 +790,7 @@ class Monopoly():
                 retry += 1
             return number
         except Exception as e:
-            self.update_ui(f"check-剩余步数，重试次数{e}")
+            self.update_ui(f"check-剩余步数，重试次数{e},{number}")
             return None
 
     def check_confirm(self):
@@ -872,8 +880,8 @@ class Monopoly():
             current_image = currentshot[y:y+height, x:x+width]
             number = self.ocr_number(current_image)
             retry = 1
-            max_retry = self.cfg_check_roll_rule_time
-            while not number and retry < max_retry+1:
+            max_retry = 2
+            while not number and retry < max_retry:
                 self.update_ui(f"检查距离失败，重试次数{retry}，最大重试次数{max_retry}")
                 time.sleep(self.cfg_check_roll_rule_wait)
                 self.shot()
@@ -882,7 +890,7 @@ class Monopoly():
                 retry += 1
             return number
         except Exception as e:
-            self.update_ui(f"检查距离出现异常{e}")
+            self.update_ui(f"检查距离出现异常{e} {number}")
             return None
 
     def check_roll_rule(self, number):

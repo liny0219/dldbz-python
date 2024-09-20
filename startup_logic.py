@@ -139,7 +139,7 @@ class Startup:
         if self.debug == 1:
             print(msg)
         # 展示时间到毫秒
-        current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
+        current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S %f")[:-3]
         message = f"[{current_time}] {msg}\n"
         print(message)
         self.log_update_data_debug.append(message)

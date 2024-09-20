@@ -58,7 +58,7 @@ notebook.add(settings_frame, text='设置')
 notebook.add(about_frame, text='关于')
 
 # 使用 grid 布局管理器
-app.grid_rowconfigure(3, weight=1)
+app.grid_rowconfigure(2, weight=1)
 app.grid_columnconfigure(0, weight=1)
 app.grid_columnconfigure(1, weight=1)
 app.grid_columnconfigure(2, weight=3)
@@ -98,8 +98,7 @@ def create_info_button(frame):
 
     # 右侧信息展示框架
     info_frame = tk.Frame(frame)
-    info_frame.pack(side='left', fill='both', expand=True, padx=10, pady=10)\
-
+    info_frame.pack(side='left', fill='both', expand=True, padx=10, pady=10)
 
     main_button = {"text": "大霸启动", "command": None}
     if frame == monopoly_frame:
@@ -128,12 +127,11 @@ def create_info_button(frame):
 
     # 右侧信息展示区
     message_text = tk.Text(info_frame, name="info_label", wrap=tk.WORD,
-                           font=default_font, height=15, state=tk.DISABLED)
-    message_text.pack(expand=True, fill='both')
+                           font=("Segoe UI", 10), height=15, state=tk.DISABLED)
+    message_text.pack(side='left', fill='both', expand=True, padx=10, pady=10)
 
     # 为右侧信息区添加滚动条
     message_scrollbar = tk.Scrollbar(info_frame, orient=tk.VERTICAL, command=message_text.yview)
-    message_text.config(yscrollcommand=message_scrollbar.set)
     message_scrollbar.pack(side='right', fill='y')
 
 
