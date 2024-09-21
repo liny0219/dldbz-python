@@ -15,14 +15,17 @@ class ConfigLoader:
             raise Exception(f"加载配置文件{self.config_file}出错': {e}")
 
     def get(self, key_path, default=None):
-        keys = key_path.split('.')
-        value = self.config_data
         try:
-            for key in keys:
-                value = value[key]
-            return value
-        except KeyError:
-            return default
+            keys = key_path.split('.')
+            value = self.config_data
+            try:
+                for key in keys:
+                    value = value[key]
+                return value
+            except KeyError:
+                return default
+        except Exception as e:
+            raise Exception(f"获取配置项{key_path}出错: {e}")
 
     def reload(self):
         self.config_data = self._load_config()
