@@ -53,6 +53,7 @@ class Monopoly():
         self.cfg_action_map = {}
         self.cfg_enemy_match_threshold = 0.5
         self.cfg_enemy_check = 0
+        self.cfg_bp_type = "max"
         self.total_finish_time = 0
         self.total_failed_time = 0
         self.pre_check_time = -1
@@ -70,27 +71,31 @@ class Monopoly():
     def set_config(self):
         reload_config()
         battle_pix.set(self.app_data)
-        self.cfg_ticket = int(cfg_monopoly.get("ticket"))
-        self.cfg_lv = int(cfg_monopoly.get("lv"))
-        self.cfg_type = cfg_monopoly.get("type")
-        self.cfg_crossing = cfg_monopoly.get(f"crossing.{self.cfg_type}")
-        self.cfg_auto_battle = int(cfg_monopoly.get("auto_battle"))
-        self.cfg_isContinue = int(cfg_monopoly.get("isContinue"))
-        self.cfg_check_interval = float(cfg_monopoly.get("check_interval"))
-        self.cfg_check_roll_dice_interval = float(cfg_monopoly.get("check_roll_dice_interval"))
-        self.cfg_check_roll_dice_time = int(cfg_monopoly.get("check_roll_dice_time"))
-        self.cfg_check_roll_rule = int(cfg_monopoly.get("check_roll_rule"))
-        self.cfg_check_roll_rule_wait = float(cfg_monopoly.get("check_roll_rule_wait"))
-        self.cfg_r801 = cfg_monopoly.get("bp.801")
-        self.cfg_r802 = cfg_monopoly.get("bp.802")
-        self.cfg_r803 = cfg_monopoly.get("bp.803")
-        self.cfg_enemy_map = cfg_monopoly.get("enemy")
-        self.cfg_action_map = cfg_monopoly.get("action")
-        self.cfg_enemy_match_threshold = float(cfg_monopoly.get("enemy_match_threshold"))
-        self.cfg_enemy_check = int(cfg_monopoly.get("enemy_check"))
-        self.cfg_round_time = int(cfg_monopoly.get("round_time"))*60
-        self.cfg_wait_time = int(cfg_monopoly.get("wait_time"))*60
-        self.cfg_check_time = int(cfg_monopoly.get("check_time"))
+        try:
+            self.cfg_ticket = int(cfg_monopoly.get("ticket"))
+            self.cfg_lv = int(cfg_monopoly.get("lv"))
+            self.cfg_type = cfg_monopoly.get("type")
+            self.cfg_crossing = cfg_monopoly.get(f"crossing.{self.cfg_type}")
+            self.cfg_auto_battle = int(cfg_monopoly.get("auto_battle"))
+            self.cfg_isContinue = int(cfg_monopoly.get("isContinue"))
+            self.cfg_check_interval = float(cfg_monopoly.get("check_interval"))
+            self.cfg_check_roll_dice_interval = float(cfg_monopoly.get("check_roll_dice_interval"))
+            self.cfg_check_roll_dice_time = int(cfg_monopoly.get("check_roll_dice_time"))
+            self.cfg_check_roll_rule = int(cfg_monopoly.get("check_roll_rule"))
+            self.cfg_check_roll_rule_wait = float(cfg_monopoly.get("check_roll_rule_wait"))
+            self.cfg_bp_type = cfg_monopoly.get("bp_type")
+            self.cfg_r801 = cfg_monopoly.get("bp.801")
+            self.cfg_r802 = cfg_monopoly.get("bp.802")
+            self.cfg_r803 = cfg_monopoly.get("bp.803")
+            self.cfg_enemy_map = cfg_monopoly.get("enemy")
+            self.cfg_action_map = cfg_monopoly.get("action")
+            self.cfg_enemy_match_threshold = float(cfg_monopoly.get("enemy_match_threshold"))
+            self.cfg_enemy_check = int(cfg_monopoly.get("enemy_check"))
+            self.cfg_round_time = int(cfg_monopoly.get("round_time"))*60
+            self.cfg_wait_time = int(cfg_monopoly.get("wait_time"))*60
+            self.cfg_check_time = int(cfg_monopoly.get("check_time"))
+        except Exception as e:
+            self.update_ui(f"读取配置异常{e},{traceback.format_exc()}")
 
     def reset_round(self):
         self.round_time_start = time.time()
@@ -252,14 +257,22 @@ class Monopoly():
         if self.can_roll_dice():
             new_state = State.MonopolyMap
             input_bp = 0
+            rule_text = ""
             if self.cfg_check_roll_rule == 1:
                 number = self.check_map_distance(self.screenshot)
                 if self.is_number(number):
                     input_bp = self.check_roll_rule(number)
+                    rule_text = f"期望: {input_bp},"
                 max_bp = self.check_bp_number(self.screenshot)
-                self.update_ui(f"距离终点 {number}，当前BP: {max_bp}")
-                if input_bp > max_bp:
-                    input_bp = max_bp
+                self.update_ui(f"距离终点 {number}，当前BP: {max_bp}, {rule_text} 模式: {self.cfg_bp_type}")
+                if self.cfg_bp_type == "max":
+                    if input_bp > max_bp:
+                        input_bp = max_bp
+                else:
+                    if input_bp == max_bp:
+                        input_bp = max_bp
+                    else:
+                        input_bp = 0
             self.roll_time += 1
             self.roll_dice(input_bp, self.roll_time)
 
@@ -959,12 +972,13 @@ class Monopoly():
         r_bp3 = screenshot[bp3[1], bp3[0]][2]  # 获取 R 通道
         limit = 80
         result = 0
-        if r_bp3 > limit:
-            result = 3
-        if r_bp2 > limit:
-            result = 2
         if r_bp1 > limit:
             result = 1
+        if r_bp2 > limit:
+            result = 2
+        if r_bp3 > limit:
+            result = 3
+
         print(f"r_bp1:{r_bp1},r_bp2:{r_bp2},r_bp3:{r_bp3}")
         del r_bp1
         del r_bp2

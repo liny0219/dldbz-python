@@ -78,6 +78,8 @@
   "info_check_roll_rule_wait": "扔骰子前等待时间,默认0.1,等待可以增加识别成功率,但会影响速度,自行调控",
   "check_roll_rule": "1",
   "check_roll_rule_wait": "0.1",
+  "bp_info":"bp_type说明: max-匹配规则时使用最大值, match-匹配规则只有bp数量一致才会使用",
+  "bp_type": "match",
   "bp": {
     "801": "[19,20,1],[21,19,2],[25,21,3]",
     "802": "[15,9,3]",
