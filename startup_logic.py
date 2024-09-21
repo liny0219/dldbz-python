@@ -180,7 +180,7 @@ class Startup:
             self.last_update_time = datetime.now()
 
         if datetime.now() - self.last_update_time >= timedelta(minutes=5):
-            self.log_file = self._generate_log_filename(self.log_file)
+            self.log_file = self._generate_log_filename(self.log_basename)
             self.last_update_time = datetime.now()
 
         if not file_path:

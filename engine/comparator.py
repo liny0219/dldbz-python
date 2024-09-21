@@ -9,8 +9,7 @@ from utils.image_process import check_image_similarity,  \
     color_match_all, color_match_count, color_in_image, find_target_in_image, crop_image
 from utils.singleton import singleton
 import uiautomator2 as u2
-from PIL import Image
-
+import gc
 import numpy as np
 
 
@@ -71,21 +70,25 @@ class Comparator:
         - rightdown_coordinate = (x2, y2): 区域的右下角坐标。
         - convert_gray: 是否转化为灰度图
         '''
+        try:
+            color_img = self.device.screenshot(format='opencv')
+            if (leftup_coordinate and rightdown_coordinate):
+                x1, y1 = leftup_coordinate
+                x2, y2 = rightdown_coordinate
+                color_img = color_img[y1:y2, x1:x2]
 
-        color_img = self.device.screenshot(format='opencv')
-        if (leftup_coordinate and rightdown_coordinate):
-            x1, y1 = leftup_coordinate
-            x2, y2 = rightdown_coordinate
-            color_img = color_img[y1:y2, x1:x2]
+            if save_path:
+                cv2.imwrite(save_path, color_img)
 
-        if save_path:
-            cv2.imwrite(save_path, color_img)
-
-        if convert_gray:
-            gray_img = cv2.cvtColor(color_img, cv2.COLOR_BGR2GRAY)
-            return gray_img
-        else:
-            return color_img
+            if convert_gray:
+                gray_img = cv2.cvtColor(color_img, cv2.COLOR_BGR2GRAY)
+                return gray_img
+            else:
+                return color_img
+        finally:
+            # 释放内存
+            del color_img
+            gc.collect()
 
     def _screenshot_cropped_image(self,
                                   leftup_coordinate=None,
@@ -218,7 +221,7 @@ class Comparator:
         # image_gray中最符合模板template_gray的区域的左上角, 右下角坐标. 且该区域与模板shape一致.
         target_leftup, target_rightdown = find_target_in_image(template_gray, cropped_screenshot_gray)
         # 第二次裁剪, 为了匹配模板template_gray的shape, 此时twice_cropped_screenshot_gray与template_gray有相同shape, 这之后才可调用比较相似度的函数
-        twice_cropped_screenshot_gray = cropped_screenshot_gray[target_leftup[1]                                                                : target_rightdown[1], target_leftup[0]: target_rightdown[0]]
+        twice_cropped_screenshot_gray = cropped_screenshot_gray[target_leftup[1]: target_rightdown[1], target_leftup[0]: target_rightdown[0]]
 
         # 检查是否匹配
         is_match = check_image_similarity(twice_cropped_screenshot_gray, template_gray, match_threshold)
@@ -304,7 +307,8 @@ class Comparator:
         # print(f"template_path:{template_path} target_leftup: {target_leftup}, target_rightdown: {target_rightdown}")
 
         # 第二次裁剪, 为了匹配模板template_gray的shape, 此时twice_cropped_screenshot_gray与template_gray有相同shape, 这之后才可调用比较相似度的函数
-        twice_cropped_screenshot_gray = cropped_screenshot_gray[target_leftup[1]: target_rightdown[1], target_leftup[0]: target_rightdown[0]]
+        twice_cropped_screenshot_gray = cropped_screenshot_gray[target_leftup[1]
+            : target_rightdown[1], target_leftup[0]: target_rightdown[0]]
 
         # 检查是否匹配
         is_match = check_image_similarity(twice_cropped_screenshot_gray, template_gray, match_threshold)
@@ -326,20 +330,25 @@ class Comparator:
         :param tolerance: int, 颜色匹配的容忍度
         :return: bool, 如果所有给定的点的颜色与相应的期望颜色匹配，返回True
         """
-        if screenshot is None:
-            screenshot = self.device.screenshot(format='opencv')  # 返回的是一个numpy.ndarray对象
         for (x, y, expected_color) in points_with_colors:
-            expected_color = tuple(expected_color)  # 将列表转换为元组
-            # 在numpy数组中使用[y, x]方式获取颜色，并注意BGR到RGB的转换
-            actual_color = screenshot[y, x][::-1]  # 切片[::-1]用于将BGR转换为RGB
-            if debug == 1:
-                print(f"actual_color: {actual_color}, expected_color: {expected_color}")
-            if any(abs(actual_color[i] - expected_color[i]) > tolerance for i in range(3)):
+            try:
+                expected_color = tuple(expected_color)  # 将列表转换为元组
+                # 在numpy数组中使用[y, x]方式获取颜色，并注意BGR到RGB的转换
+                actual_color = screenshot[y, x][::-1]  # 切片[::-1]用于将BGR转换为RGB
                 if debug == 1:
                     print(f"actual_color: {actual_color}, expected_color: {expected_color}")
-                    cb(x, y, actual_color, expected_color, tolerance)
-            if not all(abs(actual_color[i] - expected_color[i]) <= tolerance for i in range(3)):
-                return False
+                if any(abs(actual_color[i] - expected_color[i]) > tolerance for i in range(3)):
+                    if debug == 1:
+                        print(f"actual_color: {actual_color}, expected_color: {expected_color}")
+                        if cb is not None:
+                            cb(x, y, actual_color, expected_color, tolerance)
+                if not all(abs(actual_color[i] - expected_color[i]) <= tolerance for i in range(3)):
+                    return False
+            finally:
+                # 释放内存
+                del actual_color
+        del screenshot  # 删除 screenshot 对象，释放内存
+        gc.collect()    # 强制执行垃圾回收
         return True
 
     def get_num_in_image(self, image_path):
