@@ -10,6 +10,8 @@ from app_data import AppData
 import json
 import os
 from enum import Enum
+import gc
+import traceback
 
 
 class State(Enum):
@@ -302,6 +304,10 @@ class Monopoly():
 
     def shot(self):
         self.update_ui("-----------开始截图", 'debug')
+        if self.screenshot is not None:
+            del self.screenshot
+            self.screenshot = None
+            gc.collect()
         self.screenshot = engine.device.screenshot(format='opencv')
         self.update_ui("-----------截图完成", 'debug')
         return self.screenshot
@@ -446,10 +452,10 @@ class Monopoly():
                     self.check_idle_wait()
                 except Exception as e:
                     time.sleep(3)
-                    self.update_ui(f"地图循环出现异常！{e}")
+                    self.update_ui(f"地图循环出现异常！{e},{traceback.format_exc()}")
         except Exception as e:
             time.sleep(3)
-            self.update_ui(f"挂机出现异常！{e}")
+            self.update_ui(f"挂机出现异常！{e},{traceback.format_exc()}")
 
     def check_idle_wait(self):
         wait_duration = time.time() - self.wait_time
@@ -475,6 +481,8 @@ class Monopoly():
         return isinstance(value, (int, float))
 
     def ocr_number(self, screenshot, crop_type="left"):
+        if screenshot is None:
+            return None
         width = screenshot.shape[1]
         crop_img = None
         scale_src = None
@@ -532,28 +540,50 @@ class Monopoly():
                 process_img = comparator.process_image(pro_img, threshold_value=120)
                 result = comparator.get_num_in_image(process_img)
                 self.write_ocr_log(result, process_img, f'process_image_{i}')
+                del pro_img
+                del process_img
             if self.is_number(result):
                 self.update_ui("预处理识别成功")
+        del crop_img
+        del scale_src
+        del retry_src
+        del list_img
         return result
 
     def process_image(self, current_image, threshold=100):
-        resized_image = cv2.resize(current_image, None, fx=3.0, fy=3.0, interpolation=cv2.INTER_CUBIC)
-        image = resized_image
-        # 分离图像的 BGR 通道
-        if len(resized_image.shape) == 3:
-            b_channel, g_channel, r_channel = cv2.split(resized_image)
-            # 对每个通道应用阈值操作
-            _, b_thresh = cv2.threshold(b_channel, threshold, 255, cv2.THRESH_BINARY)
-            _, g_thresh = cv2.threshold(g_channel, threshold, 255, cv2.THRESH_BINARY)
-            _, r_thresh = cv2.threshold(r_channel, threshold, 255, cv2.THRESH_BINARY)
-            # 将阈值处理后的通道合并回彩色图像
-            threshold_image = cv2.merge([b_thresh, g_thresh, r_thresh])
-            image = threshold_image
-        result = comparator.get_num_in_image(image)
+        result = None
+        try:
+            if current_image is None or len(current_image) == 0:
+                return None
+            resized_image = cv2.resize(current_image, None, fx=3.0, fy=3.0, interpolation=cv2.INTER_CUBIC)
+            image = resized_image
+            # 分离图像的 BGR 通道
+            if resized_image is None or len(resized_image) == 0:
+                return None
+            if len(resized_image.shape) == 3:
+                b_channel, g_channel, r_channel = cv2.split(resized_image)
+                # 对每个通道应用阈值操作
+                _, b_thresh = cv2.threshold(b_channel, threshold, 255, cv2.THRESH_BINARY)
+                _, g_thresh = cv2.threshold(g_channel, threshold, 255, cv2.THRESH_BINARY)
+                _, r_thresh = cv2.threshold(r_channel, threshold, 255, cv2.THRESH_BINARY)
+                # 将阈值处理后的通道合并回彩色图像
+                threshold_image = cv2.merge([b_thresh, g_thresh, r_thresh])
+                image = threshold_image
+            if image is None or len(image) == 0:
+                return None
+            result = comparator.get_num_in_image(image)
+        except Exception as e:
+            self.update_ui(f"process_image异常{e},{traceback.format_exc()}")
+        finally:
+            del current_image
+            del resized_image
+            del image
         return result
 
     def write_ocr_log(self, result, current_image, type):
         if self.is_number(result) or len(current_image) == 0:
+            return
+        if current_image is None or len(current_image) == 0:
             return
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         debug_path = 'debug_images'
@@ -562,17 +592,6 @@ class Monopoly():
         engine.cleanup_large_files(debug_path, 10)  # 清理大于 10 MB 的文件
         cv2.imwrite(os.path.join(debug_path, file_name), current_image)
         return file_name
-
-    def write_awards_with_timestamp(self, award_list, file_path):
-        try:
-            with open(file_path, 'a', encoding='utf-8') as file:
-                # 获取当前时间，格式化为 YYYY-MM-DD HH:MM:SS
-                current_time = time.strftime('%Y-%m-%d %H:%M:%S', time.localtime())
-                strAward = json.dumps(award_list, ensure_ascii=False)
-                file.write(f"{current_time}: {strAward}\n")
-            print(f"成功写入文件：{file_path}")
-        except Exception as e:
-            print(f"写入文件时出错: {e}")
 
     def roll_dice(self, bp=0, roll_time=None):
         start_point = (846, 440)
@@ -886,6 +905,8 @@ class Monopoly():
 
     def check_map_distance(self, screenshot):
         number = None
+        if (screenshot is None):
+            return 0
         try:
             x, y, width, height = 708, 480, 28, 20
             currentshot = screenshot
@@ -928,6 +949,8 @@ class Monopoly():
             return 0
 
     def check_bp_number(self, screenshot):
+        if screenshot is None:
+            return 0
         bp3 = [865, 456]
         bp2 = [848, 456]
         bp1 = [832, 456]
@@ -935,14 +958,18 @@ class Monopoly():
         r_bp2 = screenshot[bp2[1], bp2[0]][2]  # 获取 R 通道
         r_bp3 = screenshot[bp3[1], bp3[0]][2]  # 获取 R 通道
         limit = 80
+        result = 0
         if r_bp3 > limit:
-            return 3
+            result = 3
         if r_bp2 > limit:
-            return 2
+            result = 2
         if r_bp1 > limit:
-            return 1
+            result = 1
         print(f"r_bp1:{r_bp1},r_bp2:{r_bp2},r_bp3:{r_bp3}")
-        return 0
+        del r_bp1
+        del r_bp2
+        del r_bp3
+        return result
 
     def on_get_enmey(self):
         try:
