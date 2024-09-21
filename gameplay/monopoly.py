@@ -716,7 +716,7 @@ class Monopoly():
         move_step = self.check_move_distance(self.screenshot)
         if not self.is_number(move_step):
             self.update_ui(f"未检测到移动步数,{move_step}")
-        self.update_crossing_msg(f"find-大富翁路口{crossing_index}，移动步数{move_step}")
+        self.update_crossing_msg(f"find-大富翁路口{crossing_index}, 移动步数{move_step}")
         default = rule["default"]
         if not self.is_number(move_step):
             if default:
@@ -726,19 +726,33 @@ class Monopoly():
                 self.update_crossing_msg(f"未检测到移动步数，无默认方向")
             return
 
-        # 遍历 rule 的键
-        for direction, range_str in rule.items():
-            if direction == "default":
-                continue
-            # 获取范围值，假设格式为 "x,y"，例如 "1,3"
-            range_vals = list(map(int, range_str.split(',')))
-            min_val, max_val = range_vals
-            # 判断 move_step 是否在范围内
-            if min_val <= move_step < max_val:
-                self.update_crossing_msg(f"find-大富翁路口{crossing_index}, 方向{direction}--剩余步数规则 {range_vals}")
-                # 匹配到方向，执行相应的动作
-                self.turn_direction(direction)
-                break
+        direction_result = None
+
+        try:
+            # 遍历 rule 的键
+            for direction, range_str in rule.items():
+                if direction == "default":
+                    continue
+                rule_json = f"[{range_str}]"
+                ranges = json.loads(rule_json)
+                for start, end in ranges:
+                    if start <= move_step < end:
+                        self.update_crossing_msg(
+                            f"find-大富翁路口{crossing_index}规则, 方向{direction}--剩余步数规则 {start}<={move_step}<{end}")
+                        # 匹配到方向，执行相应的动作
+                        direction_result = direction
+                        break
+                if direction_result is not None:
+                    break
+            if direction_result is None:
+                direction_result = default
+                self.update_crossing_msg(f"匹配不到任何规则使用默认转向{default}")
+                if default is None:
+                    self.update_crossing_msg(f"没有设置默认转向,将会卡住,请设置配置")
+        except Exception as e:
+            self.update_ui(f"解析选择方向自定义规则异常{e}")
+            return None
+        self.turn_direction(direction_result)
 
     def turn_direction(self, direction):
         if direction == "left":
