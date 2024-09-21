@@ -94,8 +94,10 @@ class Monopoly():
             self.cfg_round_time = int(cfg_monopoly.get("round_time"))*60
             self.cfg_wait_time = int(cfg_monopoly.get("wait_time"))*60
             self.cfg_check_time = int(cfg_monopoly.get("check_time"))
+            return True
         except Exception as e:
-            self.update_ui(f"读取配置异常{e},{traceback.format_exc()}")
+            self.update_ui(f"{e}")
+            return False
 
     def reset_round(self):
         self.round_time_start = time.time()
@@ -327,7 +329,9 @@ class Monopoly():
 
     def start(self):
         try:
-            self.set_config()
+            if not self.set_config():
+                self.update_ui("配置文件加载失败", 'error')
+                return
             self.reset()
             if self.enemy and self.action and self.cfg_enemy_check == 1:
                 self.find_enemy = True

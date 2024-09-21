@@ -23,9 +23,9 @@ class ConfigLoader:
                     value = value[key]
                 return value
             except KeyError:
-                return default
+                raise Exception(f"配置文件:{self.config_file}, 获取配置项{key_path}出错")
         except Exception as e:
-            raise Exception(f"获取配置项{key_path}出错: {e}")
+            raise Exception(f"配置文件:{self.config_file}, 获取配置项{key_path}出错")
 
     def reload(self):
         self.config_data = self._load_config()
