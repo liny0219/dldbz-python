@@ -551,23 +551,39 @@ class Monopoly():
         return result
 
     def process_image(self, current_image, threshold=100):
-        resized_image = cv2.resize(current_image, None, fx=3.0, fy=3.0, interpolation=cv2.INTER_CUBIC)
-        image = resized_image
-        # 分离图像的 BGR 通道
-        if len(resized_image.shape) == 3:
-            b_channel, g_channel, r_channel = cv2.split(resized_image)
-            # 对每个通道应用阈值操作
-            _, b_thresh = cv2.threshold(b_channel, threshold, 255, cv2.THRESH_BINARY)
-            _, g_thresh = cv2.threshold(g_channel, threshold, 255, cv2.THRESH_BINARY)
-            _, r_thresh = cv2.threshold(r_channel, threshold, 255, cv2.THRESH_BINARY)
-            # 将阈值处理后的通道合并回彩色图像
-            threshold_image = cv2.merge([b_thresh, g_thresh, r_thresh])
-            image = threshold_image
-        result = comparator.get_num_in_image(image)
+        result = None
+        try:
+            if current_image is None or len(current_image) == 0:
+                return None
+            resized_image = cv2.resize(current_image, None, fx=3.0, fy=3.0, interpolation=cv2.INTER_CUBIC)
+            image = resized_image
+            # 分离图像的 BGR 通道
+            if resized_image is None or len(resized_image) == 0:
+                return None
+            if len(resized_image.shape) == 3:
+                b_channel, g_channel, r_channel = cv2.split(resized_image)
+                # 对每个通道应用阈值操作
+                _, b_thresh = cv2.threshold(b_channel, threshold, 255, cv2.THRESH_BINARY)
+                _, g_thresh = cv2.threshold(g_channel, threshold, 255, cv2.THRESH_BINARY)
+                _, r_thresh = cv2.threshold(r_channel, threshold, 255, cv2.THRESH_BINARY)
+                # 将阈值处理后的通道合并回彩色图像
+                threshold_image = cv2.merge([b_thresh, g_thresh, r_thresh])
+                image = threshold_image
+            if image is None or len(image) == 0:
+                return None
+            result = comparator.get_num_in_image(image)
+        except Exception as e:
+            self.update_ui(f"process_image异常{e},{traceback.format_exc()}")
+        finally:
+            del current_image
+            del resized_image
+            del image
         return result
 
     def write_ocr_log(self, result, current_image, type):
         if self.is_number(result) or len(current_image) == 0:
+            return
+        if current_image is None or len(current_image) == 0:
             return
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         debug_path = 'debug_images'
