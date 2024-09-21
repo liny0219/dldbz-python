@@ -86,11 +86,11 @@ class Engine:
         self.start_app()
         self.update_ui(f"重启成功")
 
-    def long_press_and_drag(self, start, end, duration=0.2):
+    def long_press_and_drag(self, start, end, duration=0.3):
         start_x, start_y = start
         end_x, end_y = end
         self.device.long_click(start_x, start_y, duration / 1000)  # 注意这里duration需要转换为秒
-        self.device.drag(start_x, start_y, end_x, end_y, duration=0.1)  # 滑动操作持续0.5秒
+        self.device.drag(start_x, start_y, end_x, end_y, duration=0.2)  # 滑动操作持续0.5秒
 
     def ensure_directory_exists(self, directory):
         # 检查目录是否存在
