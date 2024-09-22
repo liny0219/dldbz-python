@@ -81,12 +81,19 @@ class Startup:
     def set_message_text(self, message_text):
         self.message_text = message_text
 
-    def set_port_ui(self, entry: tk.Entry, port_var: tk.StringVar):
+    def set_port_ui(self, entry: tk.Entry, port_val: tk.StringVar):
         self.port_entry = entry
-        self.port_value = port_var
+        self.port_value = port_val
         with open(path_cfg_statrup, 'r', encoding='utf-8') as file:
             data = json.load(file)
             self.port_value.set(data['adb_port'])
+
+    def set_exe_ui(self, entry: tk.Entry, port_val: tk.StringVar):
+        self.exe_entry = entry
+        self.exe_value = port_val
+        with open(path_cfg_statrup, 'r', encoding='utf-8') as file:
+            data = json.load(file)
+            self.exe_value.set(data['exe_path'])
 
     def on_close(self):
         self.update_ui("正在关闭程序，请稍等...")
@@ -249,7 +256,7 @@ class Startup:
         coordinate_getter = GetCoord(self.app_data)
         coordinate_getter.show_coordinates_window()
 
-    def btn_set_custom_port(self):
+    def btn_set_exe_path(self):
         # 弹出警告框
         response = tkinter.messagebox.askokcancel("配置修改警告",
                                                   "请注意，修改配置后需要重启程序才能生效。是否继续修改？")
@@ -258,7 +265,14 @@ class Startup:
                 user_input = self.port_entry.get()
                 update_json_config(path_cfg_statrup, 'adb_port', user_input)
             else:
-                self.update_ui("帮助文档(readme.txt)不存在，请检查！")
+                self.update_ui("配置文件(startup.json)不存在，请检查！")
+
+    def btn_set_exe_path(self):
+        if os.path.exists(path_cfg_statrup):
+            user_input = self.exe_entry.get()
+            update_json_config(path_cfg_statrup, 'exe_path', user_input)
+        else:
+            self.update_ui("配置文件(startup.json)不存在，请检查！")
 
     def btn_set_mumu_port(self):
         # 弹出警告框

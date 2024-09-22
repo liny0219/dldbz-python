@@ -5,7 +5,7 @@ from startup_logic import Startup
 from utils.config_loader import cfg_version
 # 创建主窗口
 app = tk.Tk()
-app.title(f"歧路茶馆v{cfg_version.get('version')}")
+app.title(f"大霸茶馆v{cfg_version.get('version')}")
 app.geometry("800x600")  # 增加窗口宽度
 icon_path = 'image/icon_title.ico'
 app.iconbitmap(icon_path)
@@ -45,7 +45,7 @@ settings_frame.grid(padx=10, pady=5)
 about_frame = tk.Frame(notebook, name="about_frame")
 about_frame.grid(padx=10, pady=5)
 
-Label(about_frame, text=f"歧路茶馆 v{cfg_version.get('version')}", font=bold_font).pack(pady=10)
+Label(about_frame, text=f"大霸茶馆 v{cfg_version.get('version')}", font=bold_font).pack(pady=10)
 Label(about_frame, text="仅供交流学习用，请勿用于任何商业盈利", font=default_font).pack(pady=10)
 Label(about_frame, text="贡献者: 夜宵, GGBond, Wlog, 章鱼哥, ◕‿◕", font=default_font).pack(pady=10)
 Label(about_frame, text="©2024", font=default_font).pack(pady=10)
@@ -71,24 +71,33 @@ def create_map_frame(frame):
 
 def create_settings_frame(frame):
 
-    label = tk.Label(frame, text="当前端口:")
-    label.grid(row=0, column=0, padx=2, pady=2)
-    entry_var = tk.StringVar()
-    entry = tk.Entry(frame, textvariable=entry_var, width=30)
+    label_port = tk.Label(frame, text="当前端口:")
+    label_port.grid(row=0, column=0, padx=2, pady=2)
+    entry_port_val = tk.StringVar()
+    entry = tk.Entry(frame, textvariable=entry_port_val, width=30)
     entry.grid(row=0, column=1, padx=10, pady=10)
-    startup.set_port_ui(entry, entry_var)
-    submit_button = tk.Button(frame, text="修改端口", width=15, height=1, command=startup.btn_set_custom_port)
-    submit_button.grid(row=0, column=2, padx=10, pady=10)
+    startup.set_port_ui(entry, entry_port_val)
+    btn_port_setting = tk.Button(frame, text="修改端口", width=15, height=1, command=startup.btn_set_exe_path)
+    btn_port_setting.grid(row=0, column=2, padx=10, pady=10)
+
+    label_exe = tk.Label(frame, text="模拟器路径:")
+    label_exe.grid(row=1, column=0, padx=2, pady=2)
+    entry_exe_val = tk.StringVar()
+    entry = tk.Entry(frame, textvariable=entry_exe_val, width=30)
+    entry.grid(row=1, column=1, padx=10, pady=10)
+    startup.set_exe_ui(entry, entry_exe_val)
+    btn_exe_setting = tk.Button(frame, text="设置路径", width=15, height=1, command=startup.btn_set_exe_path)
+    btn_exe_setting.grid(row=1, column=2, padx=10, pady=10)
 
     tk.Button(frame, text="设置雷电端口", command=startup.btn_set_ld_port,
-              font=("Segoe UI", 10), width=30, height=1).grid(row=1, column=0, padx=10, pady=10)
+              font=("Segoe UI", 10), width=30, height=1).grid(row=2, column=0, padx=10, pady=10)
     tk.Button(frame, text="设置mumu端口", command=startup.btn_set_mumu_port,
-              font=("Segoe UI", 10), width=30, height=1).grid(row=1, column=1, padx=10, pady=10)
+              font=("Segoe UI", 10), width=30, height=1).grid(row=2, column=1, padx=10, pady=10)
 
     tk.Button(frame, text="启动设置", command=startup.open_startup_config,
-              font=("Segoe UI", 10), width=30, height=1).grid(row=2, column=0, padx=10, pady=10)
+              font=("Segoe UI", 10), width=30, height=1).grid(row=3, column=0, padx=10, pady=10)
     tk.Button(frame, text="游戏盘设置", command=startup.open_monopoly_config,
-              font=("Segoe UI", 10), width=30, height=1).grid(row=2, column=1, padx=10, pady=10)
+              font=("Segoe UI", 10), width=30, height=1).grid(row=3, column=1, padx=10, pady=10)
 
 
 def create_info_button(frame):
