@@ -98,6 +98,8 @@ def create_settings_frame(frame):
               font=("Segoe UI", 10), width=30, height=1).grid(row=3, column=0, padx=10, pady=10)
     tk.Button(frame, text="游戏盘设置", command=startup.open_monopoly_config,
               font=("Segoe UI", 10), width=30, height=1).grid(row=3, column=1, padx=10, pady=10)
+    tk.Button(frame, text="打开日志", command=startup.open_log,
+              font=("Segoe UI", 10), width=30, height=1).grid(row=3, column=2, padx=10, pady=10)
 
 
 def create_info_button(frame):

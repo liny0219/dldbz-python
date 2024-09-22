@@ -305,6 +305,12 @@ class Startup:
         else:
             self.update_ui("配置文件(monopoly.json)不存在，请检查！")
 
+    def open_log(self):
+        if os.path.exists(self.log_path):
+            os.startfile(self.log_path)
+        else:
+            self.update_ui("目前没有日志文件，请先运行程序！")
+
     def open_startup_config(self):
         # 弹出警告框
         response = tkinter.messagebox.askokcancel("配置修改警告",

@@ -179,8 +179,9 @@ class Engine:
             except Exception as e:
                 print(f"无法删除文件 {file_path}，错误信息: {e}")
 
-    def check_and_delete(self, directory, size_limit=1024*1024):
+    def check_and_delete(self, directory, size_in_mb=1):
         # 获取目录的总大小
+        size_limit = size_in_mb * 1024 * 1024
         total_size = self.get_directory_size(directory)
         print(f"目录总大小: {total_size / (1024 * 1024):.2f} MB")
 
