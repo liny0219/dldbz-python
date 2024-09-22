@@ -427,6 +427,8 @@ class Monopoly():
                             if not round_state and self.check_continue():
                                 round_state = State.Continue
                                 self.on_continue()
+                            if not round_state and self.check_page_monopoly():
+                                round_state = State.Unknow
                             if round_state:
                                 self.state = round_state
                                 in_map = False
