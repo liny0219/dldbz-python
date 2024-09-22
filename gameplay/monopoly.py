@@ -663,22 +663,22 @@ class Monopoly():
         if (self.thread_stoped()):
             return False
         if self.cfg_type == "801":
-            return self.find_previlege()
+            return self.find_power()
         if self.cfg_type == "802":
-            return self.find_treasure()
+            return self.find_wealth()
         if self.cfg_type == "803":
-            return self.find_reputation()
+            return self.find_fame()
 
-    def find_reputation(self):
-        template_path = "./assets/monopoly/find_reputation.png"
+    def find_fame(self):
+        template_path = "./assets/monopoly/find_fame.png"
         return comparator.template_compare(template_path, self.crood_range, True, screenshot=self.screenshot)
 
-    def find_treasure(self):
-        template_path = "./assets/monopoly/find_treasure.png"
+    def find_wealth(self):
+        template_path = "./assets/monopoly/find_wealth.png"
         return comparator.template_compare(template_path, self.crood_range, True, screenshot=self.screenshot)
 
-    def find_previlege(self):
-        template_path = "./assets/monopoly/find_previlege.png"
+    def find_power(self):
+        template_path = "./assets/monopoly/find_power.png"
         return comparator.template_compare(template_path, self.crood_range, True, screenshot=self.screenshot)
 
     def set_game_mode(self):
@@ -821,13 +821,13 @@ class Monopoly():
 
         if self.cfg_type == "801":
             num = [46, 36, 30, 15]
-            strType = "previlege"
+            strType = "power"
         if self.cfg_type == "802":
             num = [45, 34, 10]
-            strType = "treasure"
+            strType = "wealth"
         if self.cfg_type == "803":
             num = [41, 20]
-            strType = "reputation"
+            strType = "fame"
         if not num or not strType:
             return -1
         for i in range(len(num)):
