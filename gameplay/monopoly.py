@@ -119,7 +119,7 @@ class Monopoly():
         self.started_count = 0
         self.finished_count = 0
         self.begin_turn = 0
-        self.pre_turn_state = State.Unknow
+        self.pre_state = State.Unknow
         self.total_finish_time = 0
         self.total_failed_time = 0
         self.restart = 0
@@ -139,7 +139,7 @@ class Monopoly():
         self.roll_time = 0
         self.reported_end = False
         self.reported_finish = False
-        self.pre_turn_state = State.Unknow
+        self.pre_state = State.Unknow
         self.started_count += 1
 
     def report_end(self):
@@ -267,6 +267,7 @@ class Monopoly():
     def check_in_monopoly_map(self):
         new_state = None
         if self.can_roll_dice():
+            self.shot()
             new_state = State.MonopolyMap
             input_bp = 0
             rule_text = ""
@@ -456,15 +457,22 @@ class Monopoly():
                         else:
                             in_map = True
                             self.state = round_state
-                            self.wait_time = time.time()
+                            if round_state != self.pre_state:
+                                self.update_ui(f"更新状态{self.state}")
+                                self.wait_time = time.time()
+                                self.pre_state = round_state
                             time.sleep(self.cfg_check_interval)
 
-                        if time.time() - self.round_time_start > self.cfg_round_time:
+                        round_duration = time.time() - self.round_time_start
+                        # 检查本轮等待超时
+                        if round_duration > self.cfg_round_time:
+                            exe_manager.stop_exe()
                             self.state = State.Unknow
                             round_state = self.state
+                            in_map = False
                             break
 
-                        round_duration = time.time() - self.round_time_start
+                        # 检查本轮APP状态
                         if self.check_state(round_duration):
                             self.state = State.Unknow
                             round_state = self.state
@@ -476,14 +484,14 @@ class Monopoly():
 
                     if turn_state and turn_state != State.Unknow:
                         self.update_ui(f"当前状态{self.state}", 'debug')
-                        if turn_state != self.pre_turn_state:
+                        if turn_state != self.pre_state:
                             self.update_ui(f"更新状态{self.state}")
                             self.wait_time = time.time()
                     else:
                         self.state = State.Unknow
                         world.btn_trim_click()
                         self.update_ui("未匹配到任何状态", 'debug')
-                    self.pre_turn_state = turn_state
+                    self.pre_state = turn_state
 
                 except Exception as e:
                     self.error_loop(e)
@@ -499,12 +507,13 @@ class Monopoly():
             self.update_ui(f"地图循环出现异常！{e}")
 
     def check_idle_wait(self):
+        self.update_ui("check-检查空闲等待", 'debug')
         self.check_in_exe()
         self.wait_duration = time.time() - self.wait_time
         if self.wait_duration > self.cfg_wait_time:
             min = self.cfg_wait_time/60
             self.error(f"{int(min)}分钟未匹配到任何执行函数，重启游戏")
-            if len(exe_manager.exe_path) > 0:
+            if exe_manager.exe_path and len(exe_manager.exe_path) > 0:
                 self.update_ui("由于设置模拟器路径,重启模拟器")
                 exe_manager.stop_exe()
             engine.restart_game()

@@ -11,6 +11,8 @@ class ExeManager:
 
     # 检查应用程序是否正在运行，并返回PID
     def is_exe_running(self):
+        if self.exe_path is None or len(self.exe_path) == 0:
+            return None
         for process in psutil.process_iter(['pid', 'exe']):
             try:
                 if process.info['exe'] == self.exe_path:
