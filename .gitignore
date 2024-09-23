@@ -15,6 +15,7 @@ bin-release/
 .settings/
 build
 dist
+exe_extracted
 log.txt
 cropped_image.png
 
