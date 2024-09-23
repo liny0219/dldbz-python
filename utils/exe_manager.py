@@ -66,20 +66,3 @@ class ExeManager:
             self.exe_path = new_exe_path
         else:
             print(f"新路径 {new_exe_path} 不存在。无法设置。")
-
-
-# 示例用法
-if __name__ == "__main__":
-    exe_path = r"C:\path\to\your_app.exe"  # 初始exe路径
-    manager = ExeManager()
-    manager.set_exe_path(exe_path)
-
-    # 调用类的方法
-    manager.restart_exe()  # 重启应用程序
-
-    # 动态设置新的 exe 路径
-    new_exe_path = r"C:\new\path\to\another_app.exe"
-    manager.set_exe_path(new_exe_path)
-
-    # 使用新路径进行操作
-    manager.restart_exe()  # 重启新的应用程序

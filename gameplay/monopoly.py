@@ -62,8 +62,6 @@ class Monopoly():
         self.cfg_bp_type = "max"
         self.total_finish_time = 0
         self.total_failed_time = 0
-        self.pre_check_time = -1
-        self.cfg_check_time = 120
         self.pre_crossing = -1
         self.current_crossing = -1
         self.is_running = True
@@ -100,7 +98,6 @@ class Monopoly():
             self.cfg_enemy_check = int(cfg_monopoly.get("enemy_check"))
             self.cfg_round_time = int(cfg_monopoly.get("round_time"))*60
             self.cfg_wait_time = int(cfg_monopoly.get("wait_time"))*60
-            self.cfg_check_time = int(cfg_monopoly.get("check_time"))
             self.cfg_exe_path = cfg_startup.get("exe_path")
             exe_manager.set_exe_path(self.cfg_exe_path)
             return True
@@ -500,9 +497,10 @@ class Monopoly():
 
     def error_loop(self, e):
         time.sleep(3)
-        # err_trace = traceback.format_exc()
-        if "device offline" in str(e):
+        if "device offline" in str(e) or ("device" in str(e) and "not found" in str(e)):
             self.update_ui(f"连接断开")
+            if not engine.reconnect():
+                exe_manager.start_exe()
         else:
             self.update_ui(f"地图循环出现异常！{e}")
 
@@ -524,12 +522,7 @@ class Monopoly():
             return State.Unknow
 
     def check_state(self, time):
-        time = int(time)
-        if (time % self.cfg_check_time == 0 and time != self.pre_check_time) or self.pre_check_time == -1:
-            self.pre_check_time = time
-            if time > 0:
-                self.update_ui(f"本轮已经运行{time}秒,自检一次")
-            return self.check_in_app()
+        return self.check_in_app()
 
     def check_in_exe(self):
         if exe_manager.exe_path is None or len(exe_manager.exe_path) == 0:
@@ -538,7 +531,6 @@ class Monopoly():
             if self.is_running == False:
                 self.is_running = True
                 time.sleep(5)
-                self.pre_check_time = -1
                 self.check_in_app()
         else:
             self.is_running = False

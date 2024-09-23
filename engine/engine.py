@@ -59,6 +59,15 @@ class Engine:
         self.device = u2.connect(addr)
         comparator.set_device(self.device)
 
+    def reconnect(self):
+        try:
+            addr = cfg_startup.get('adb_port')
+            self.device = u2.connect(addr)
+            comparator.set_device(self.device)
+            return True
+        except Exception as e:
+            return False
+
     def check_in_app(self):
         current_app = self.device.app_current()
         self.package_name = current_app['package']

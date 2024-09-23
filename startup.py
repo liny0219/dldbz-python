@@ -52,7 +52,7 @@ Label(about_frame, text="©2024", font=default_font).pack(pady=10)
 
 # 添加到Notebook
 notebook.add(monopoly_frame, text='游戏盘')
-notebook.add(recollection_frame, text='追忆之书')
+notebook.add(recollection_frame, text='追忆之书(未完善)')
 notebook.add(map_frame, text='大地图')
 notebook.add(settings_frame, text='设置')
 notebook.add(about_frame, text='关于')
