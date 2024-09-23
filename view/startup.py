@@ -75,7 +75,7 @@ class AppModule:
         # 关于页面内容
         Label(about_frame, text=f"大霸茶馆 v{cfg_version.get('version')}", font=("Segoe UI", 18, 'bold')).pack(pady=10)
         Label(about_frame, text="仅供交流学习用，请勿用于任何商业盈利", font=("Segoe UI", 12)).pack(pady=10)
-        Label(about_frame, text="贡献者: 夜宵, GGBond, Wlog, 章鱼哥, ◕‿◕", font=("Segoe UI", 12)).pack(pady=10)
+        Label(about_frame, text="贡献者: 大霸茶馆", font=("Segoe UI", 12)).pack(pady=10)
         Label(about_frame, text="©2024", font=("Segoe UI", 12)).pack(pady=10)
 
     def _create_settings_frame(self, frame):
