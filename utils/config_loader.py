@@ -8,18 +8,24 @@ class ConfigLoader:
         self.config_data = self._load_config()
 
     def _load_config(self):
-        with open(self.config_file, 'r', encoding='utf-8') as file:
-            return json.load(file)
+        try:
+            with open(self.config_file, 'r', encoding='utf-8') as file:
+                return json.load(file)
+        except Exception as e:
+            raise Exception(f"加载配置文件{self.config_file}出错': {e}")
 
     def get(self, key_path, default=None):
-        keys = key_path.split('.')
-        value = self.config_data
         try:
-            for key in keys:
-                value = value[key]
-            return value
-        except KeyError:
-            return default
+            keys = key_path.split('.')
+            value = self.config_data
+            try:
+                for key in keys:
+                    value = value[key]
+                return value
+            except KeyError:
+                raise Exception(f"配置文件:{self.config_file}, 获取配置项{key_path}出错")
+        except Exception as e:
+            raise Exception(f"配置文件:{self.config_file}, 获取配置项{key_path}出错")
 
     def reload(self):
         self.config_data = self._load_config()

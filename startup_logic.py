@@ -1,5 +1,6 @@
 from __future__ import annotations
 import datetime
+from datetime import datetime, timedelta
 import os
 import sys
 import tkinter as tk
@@ -16,7 +17,6 @@ from engine.world import world
 from engine.comparator import comparator
 from utils.config_loader import cfg_startup, update_json_config
 import tkinter as tk
-from tkinter import messagebox
 import psutil
 import json
 
@@ -32,8 +32,10 @@ class Startup:
         self.debug = cfg_startup.get('debug')
         self.inited = False
         self.is_busy = False
-        self.log_file = 'log.txt'
-        self.log_file_debug = 'log_debug.txt'
+        self.log_path = 'log'
+        self.log_basename = 'log/log'
+        self.log_file = None
+        self.last_update_time = datetime.now()
         self.monopoly = None
         self.log_update_count_max = 10
         self.log_update_data = []
@@ -129,8 +131,7 @@ class Startup:
         self.update_ui("休息一下，停止当前操作...")
         if self.app_data.thread is not None:
             self.app_data.thread.stop()
-        self.write_to_file()
-        self.write_to_file(self.log_file_debug)
+        self.write_to_file(self.log_file)
 
     def update_ui(self, msg, type='info'):
         if not self.message_text:
@@ -138,12 +139,12 @@ class Startup:
         if self.debug == 1:
             print(msg)
         # 展示时间到毫秒
-        current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")[:-3]
+        current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S %f")[:-3]
         message = f"[{current_time}] {msg}\n"
         print(message)
         self.log_update_data_debug.append(message)
         if len(self.log_update_data_debug) >= self.log_update_count_max*10:
-            self.write_to_file(self.log_file_debug)
+            self.write_to_file(self.log_file)
         if type == 'debug' and self.debug == 0:
             return
         self.log_update_data.append(message)
@@ -167,17 +168,29 @@ class Startup:
         self.message_text.config(state=tk.DISABLED)
         self.message_text.see(tk.END)
 
+    def _generate_log_filename(self, log_file_base):
+        """根据当前时间生成日志文件名"""
+        current_time = datetime.now().strftime("%Y-%m-%d_%H-%M")
+        return f"{log_file_base}_{current_time}.txt"
+
     def write_to_file(self, file_path=None):
+
+        if not self.log_file:
+            self.log_file = self._generate_log_filename(self.log_basename)
+            self.last_update_time = datetime.now()
+
+        if datetime.now() - self.last_update_time >= timedelta(minutes=5):
+            self.log_file = self._generate_log_filename(self.log_basename)
+            self.last_update_time = datetime.now()
+
         if not file_path:
             file_path = self.log_file
-        if file_path == self.log_file_debug:
-            for debug in self.log_update_data_debug:
-                engine.write_to_file(debug, file_path)
-                self.log_update_data_debug = []
-        if file_path == self.log_file:
-            for msg in self.log_update_data:
-                engine.write_to_file(msg, file_path)
-                self.log_update_data = []
+
+        engine.ensure_directory_exists(self.log_path)
+
+        for debug in self.log_update_data_debug:
+            engine.write_to_file(debug, file_path)
+            self.log_update_data_debug = []
 
     def _evt_run_stationary(self):
         self.init_engine()
@@ -193,9 +206,8 @@ class Startup:
         if not self.inited:
             self.update_ui("初始化引擎失败，请检查设备连接！")
             return
-        engine.delete_if_larger_than(self.log_file, 1)
-        engine.delete_if_larger_than(self.log_file_debug, 1)
-        current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        engine.check_and_delete(self.log_path, 1)
+        current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         message = f"[{current_time}] 游戏盘开始\n"
         engine.write_to_file(message, self.log_file)
         self.monopoly = Monopoly(self.app_data)
@@ -208,14 +220,6 @@ class Startup:
             return
         recollection = Recollection(self.app_data)
         recollection.start()
-        engine.delete_file(self.log_file)
-
-    def open_log(self):
-        if os.path.exists(self.log_file):
-            os.startfile(self.log_file)
-        else:
-            self.update_ui(f"日志文件{self.log_file}不存在，请检查！")
-            tkinter.messagebox.askokcancel("提示", f"日志文件{self.log_file}不存在，请检查！")
 
     def open_monopoly_log(self):
         if not self.monopoly:
@@ -299,7 +303,7 @@ class Startup:
                 self.update_ui("配置文件(startup.json)不存在，请检查！")
 
     def update_message_label(self, text):
-        current_time = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         message = f"[{current_time}] {text}\n"
         self.message_text.config(state=tk.NORMAL)
         self.message_text.insert(tk.END, message)

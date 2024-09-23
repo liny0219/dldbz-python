@@ -86,11 +86,22 @@ class Engine:
         self.start_app()
         self.update_ui(f"重启成功")
 
-    def long_press_and_drag(self, start, end, duration=0.2):
+    def long_press_and_drag(self, start, end, duration=0.3):
         start_x, start_y = start
         end_x, end_y = end
-        self.device.long_click(start_x, start_y, duration / 1000)  # 注意这里duration需要转换为秒
-        self.device.drag(start_x, start_y, end_x, end_y, duration=0.1)  # 滑动操作持续0.5秒
+        self.device.swipe(start_x, start_y, end_x, end_y, duration=duration)  # 滑动操作持续0.5秒
+
+    def ensure_directory_exists(self, directory):
+        # 检查目录是否存在
+        if not os.path.exists(directory):
+            try:
+                # 如果目录不存在，则创建
+                os.makedirs(directory)
+                print(f"目录 {directory} 已创建。")
+            except Exception as e:
+                print(f"创建目录失败: {e}")
+        else:
+            print(f"目录 {directory} 已存在。")
 
     def write_to_file(self, str, file_path):
         try:
@@ -146,6 +157,39 @@ class Engine:
                 print(f"文件不存在: {file_path}")
         except Exception as e:
             print(f"处理文件时出错: {e}")
+
+    def get_directory_size(self, directory):
+        total_size = 0
+        # 遍历目录中的所有文件和子目录
+        for dirpath, dirnames, filenames in os.walk(directory):
+            for filename in filenames:
+                file_path = os.path.join(dirpath, filename)
+                if os.path.isfile(file_path):
+                    total_size += os.path.getsize(file_path)
+        return total_size
+
+    def delete_files_in_directory(self, directory):
+        # 遍历目录中的所有文件
+        for filename in os.listdir(directory):
+            file_path = os.path.join(directory, filename)
+            try:
+                if os.path.isfile(file_path):
+                    os.remove(file_path)  # 删除文件
+                    print(f"已删除文件: {file_path}")
+            except Exception as e:
+                print(f"无法删除文件 {file_path}，错误信息: {e}")
+
+    def check_and_delete(self, directory, size_limit=1024*1024):
+        # 获取目录的总大小
+        total_size = self.get_directory_size(directory)
+        print(f"目录总大小: {total_size / (1024 * 1024):.2f} MB")
+
+        # 如果目录大小超过限制，则删除目录中的所有文件
+        if total_size > size_limit:
+            print(f"目录大小超过 {size_limit / (1024 * 1024)} MB，正在删除目录中的所有文件...")
+            self.delete_files_in_directory(directory)
+        else:
+            print("目录大小未超过限制，不执行删除操作。")
 
     def press(self, coordinate, T=None, operate_latency=500):
         if not T:

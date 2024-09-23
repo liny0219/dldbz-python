@@ -1,27 +1,30 @@
 import tkinter as tk
 import tkinter.ttk as ttk
+from tkinter import Label
 from startup_logic import Startup
 from utils.config_loader import cfg_version
-
 # 创建主窗口
 app = tk.Tk()
 app.title(f"歧路茶馆v{cfg_version.get('version')}")
 app.geometry("800x600")  # 增加窗口宽度
-
+icon_path = 'image/icon_title.ico'
+app.iconbitmap(icon_path)
 startup = Startup(app)
 # 创建样式对象
 style = ttk.Style()
 
+# font_path = "fonts/FZSTK.TTF"  # 字体路径
+default_font = ("Segoe UI", 12)  # 默认字体大小为12
+bold_font = ("Segoe UI", 18, 'bold')  # 粗体字，大小为18
 # 配置'TNotebook.Tab'的样式
 style.configure('TNotebook.Tab', font=('Segoe UI', '12', 'bold'), padding=[20, 8])
 
-
 # 顶部子标题标签居中显示
-message_label = tk.Label(app, text="歧路旅人休息站", font=("Segoe UI", 18, "bold"))
+message_label = tk.Label(app, text="歧路旅人休息站", font=bold_font)
 message_label.grid(row=0, column=0, columnspan=2, pady=10)
 
 # 统计信息标签，放置在子标题下方
-stats_label = tk.Label(app, text="项目贡献者: 夜宵, GGBond, Wlog, 章鱼哥, ◕‿◕", font=("Segoe UI", 12))
+stats_label = tk.Label(app, text="大霸启动!", font=default_font)
 stats_label.grid(row=1, column=0, columnspan=2, pady=5)
 
 notebook = ttk.Notebook(app)
@@ -35,22 +38,27 @@ recollection_frame = tk.Frame(notebook, name="recollection_frame")
 
 map_frame = tk.Frame(notebook, name="map_frame")
 
-settings_frame = tk.Frame(notebook)
+settings_frame = tk.Frame(notebook, name="settings_frame")
 settings_frame.grid(padx=10, pady=5)
 
-log_frame = tk.Frame(notebook)
-log_frame.grid(padx=10, pady=5)
+
+about_frame = tk.Frame(notebook, name="about_frame")
+about_frame.grid(padx=10, pady=5)
+
+Label(about_frame, text=f"歧路茶馆 v{cfg_version.get('version')}", font=bold_font).pack(pady=10)
+Label(about_frame, text="仅供交流学习用，请勿用于任何商业盈利", font=default_font).pack(pady=10)
+Label(about_frame, text="贡献者: 夜宵, GGBond, Wlog, 章鱼哥, ◕‿◕", font=default_font).pack(pady=10)
+Label(about_frame, text="©2024", font=default_font).pack(pady=10)
 
 # 添加到Notebook
 notebook.add(monopoly_frame, text='游戏盘')
 notebook.add(recollection_frame, text='追忆之书')
 notebook.add(map_frame, text='大地图')
 notebook.add(settings_frame, text='设置')
-notebook.add(log_frame, text='日志')
-
+notebook.add(about_frame, text='关于')
 
 # 使用 grid 布局管理器
-app.grid_rowconfigure(3, weight=1)
+app.grid_rowconfigure(2, weight=1)
 app.grid_columnconfigure(0, weight=1)
 app.grid_columnconfigure(1, weight=1)
 app.grid_columnconfigure(2, weight=3)
@@ -59,13 +67,6 @@ app.grid_columnconfigure(2, weight=3)
 def create_map_frame(frame):
     tk.Button(frame, text="原地刷野", command=startup.on_stationary,
               font=("Segoe UI", 10), width=10, height=1).grid(row=0, column=0, padx=10, pady=10)
-
-
-def create_log_frame(frame):
-    tk.Button(frame, text="执行信息", command=startup.open_log,
-              font=("Segoe UI", 10), width=10, height=1).grid(row=0, column=0, padx=10, pady=10)
-    # tk.Button(frame, text="游戏盘奖励", command=startup.open_monopoly_log,
-    #           font=("Segoe UI", 10), width=10, height=1).grid(row=0, column=1, padx=10, pady=10)
 
 
 def create_settings_frame(frame):
@@ -97,8 +98,7 @@ def create_info_button(frame):
 
     # 右侧信息展示框架
     info_frame = tk.Frame(frame)
-    info_frame.pack(side='left', fill='both', expand=True, padx=10, pady=10)\
-
+    info_frame.pack(side='left', fill='both', expand=True, padx=10, pady=10)
 
     main_button = {"text": "大霸启动", "command": None}
     if frame == monopoly_frame:
@@ -127,12 +127,11 @@ def create_info_button(frame):
 
     # 右侧信息展示区
     message_text = tk.Text(info_frame, name="info_label", wrap=tk.WORD,
-                           font=("Segoe UI", 12), height=15, state=tk.DISABLED)
-    message_text.pack(expand=True, fill='both')
+                           font=("Segoe UI", 10), height=15, state=tk.DISABLED)
+    message_text.pack(side='left', fill='both', expand=True, padx=10, pady=10)
 
     # 为右侧信息区添加滚动条
     message_scrollbar = tk.Scrollbar(info_frame, orient=tk.VERTICAL, command=message_text.yview)
-    message_text.config(yscrollcommand=message_scrollbar.set)
     message_scrollbar.pack(side='right', fill='y')
 
 
@@ -140,7 +139,6 @@ create_info_button(monopoly_frame)
 create_info_button(recollection_frame)
 create_info_button(map_frame)
 create_settings_frame(settings_frame)
-create_log_frame(log_frame)
 
 
 def find_widget_by_name(parent, widget_name):

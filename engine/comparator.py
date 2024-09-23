@@ -9,8 +9,7 @@ from utils.image_process import check_image_similarity,  \
     color_match_all, color_match_count, color_in_image, find_target_in_image, crop_image
 from utils.singleton import singleton
 import uiautomator2 as u2
-from PIL import Image
-
+import gc
 import numpy as np
 
 
@@ -57,10 +56,11 @@ class Comparator:
             return gray_img
         else:
             return color_img
-    def _cropped_screenshot(self, 
-                            leftup_coordinate=None, 
-                            rightdown_coordinate=None, 
-                            convert_gray=True, 
+
+    def _cropped_screenshot(self,
+                            leftup_coordinate=None,
+                            rightdown_coordinate=None,
+                            convert_gray=True,
                             save_path=''):
         '''
         获取截屏.
@@ -70,26 +70,30 @@ class Comparator:
         - rightdown_coordinate = (x2, y2): 区域的右下角坐标。
         - convert_gray: 是否转化为灰度图
         '''
+        try:
+            color_img = self.device.screenshot(format='opencv')
+            if (leftup_coordinate and rightdown_coordinate):
+                x1, y1 = leftup_coordinate
+                x2, y2 = rightdown_coordinate
+                color_img = color_img[y1:y2, x1:x2]
 
-        color_img = self.device.screenshot(format='opencv')
-        if (leftup_coordinate and rightdown_coordinate):
-            x1, y1 = leftup_coordinate
-            x2, y2 = rightdown_coordinate
-            color_img = color_img[y1:y2, x1:x2]
+            if save_path:
+                cv2.imwrite(save_path, color_img)
 
-        if save_path:
-            cv2.imwrite(save_path, color_img)
+            if convert_gray:
+                gray_img = cv2.cvtColor(color_img, cv2.COLOR_BGR2GRAY)
+                return gray_img
+            else:
+                return color_img
+        finally:
+            # 释放内存
+            del color_img
+            gc.collect()
 
-        if convert_gray:
-            gray_img = cv2.cvtColor(color_img, cv2.COLOR_BGR2GRAY)
-            return gray_img
-        else:
-            return color_img
-
-    def _screenshot_cropped_image(self,  
-                                  leftup_coordinate=None, 
-                                  rightdown_coordinate=None, 
-                                  convert_gray=True, 
+    def _screenshot_cropped_image(self,
+                                  leftup_coordinate=None,
+                                  rightdown_coordinate=None,
+                                  convert_gray=True,
                                   save_path=''):
         '''
         获取截屏.
@@ -99,13 +103,13 @@ class Comparator:
         - rightdown_coordinate = (x2, y2): 区域的右下角坐标。
         - convert_gray: 是否转化为灰度图
         '''
-        return self._cropped_screenshot(leftup_coordinate, 
-                                        rightdown_coordinate, 
-                                        convert_gray, 
+        return self._cropped_screenshot(leftup_coordinate,
+                                        rightdown_coordinate,
+                                        convert_gray,
                                         save_path)
 
-    def _cropped_image(self,  leftup_coordinate=None, 
-                       rightdown_coordinate=None, convert_gray=True, 
+    def _cropped_image(self,  leftup_coordinate=None,
+                       rightdown_coordinate=None, convert_gray=True,
                        save_path='', screenshot=None):
         '''
         获取截屏.
@@ -209,7 +213,7 @@ class Comparator:
         asset_path = self.resource_path(template_path)
         template_gray = self._template_image(asset_path)
 
-        # 若未指定coordinate, leftup_coordinate与rightdown_coordinate都是None, 
+        # 若未指定coordinate, leftup_coordinate与rightdown_coordinate都是None,
         # 此时_cropped_image对应参数接受None, 则默认截取全屏
         cropped_screenshot_gray = self._screenshot_cropped_image(
             leftup_coordinate, rightdown_coordinate, save_path=save_path)
@@ -232,25 +236,24 @@ class Comparator:
                     return get_abs_center_coord(leftup_coordinate, target_leftup, target_rightdown)
                 else:  # 如果未指定背景图片, 默认背景图片就是全图, 返回全屏的绝对坐标
                     return get_abs_center_coord((0, 0), target_leftup, target_rightdown)
-    def template_in_image(self, 
-                          gray_image, 
-                          template_path, 
-                          leftup_coordinate=None, 
-                          rightdown_coordinate=None, 
+
+    def template_in_image(self,
+                          gray_image,
+                          template_path,
+                          leftup_coordinate=None,
+                          rightdown_coordinate=None,
                           return_center_coord=False,
                           match_threshold=0.95):
-        
+
         if (leftup_coordinate and rightdown_coordinate):
             gray_image = crop_image(gray_image, leftup_coordinate, rightdown_coordinate)
-        
-        
+
         template_image = self._template_image(template_path)
 
         target_leftup, target_rightdown = find_target_in_image(template_image, gray_image)
 
-        gray_image = gray_image[target_leftup[1]: target_rightdown[1], target_leftup[0] : target_rightdown[0]]
-        
-        
+        gray_image = gray_image[target_leftup[1]: target_rightdown[1], target_leftup[0]: target_rightdown[0]]
+
         is_match = check_image_similarity(gray_image, template_image, match_threshold)
         if not return_center_coord:  # 如果不需要返回目标中心坐标
             return is_match
@@ -264,8 +267,8 @@ class Comparator:
                     return get_abs_center_coord((0, 0), target_leftup, target_rightdown)
 
     def template_compare(self, template_path, coordinate=None,
-                         return_center_coord=False, save_path='', 
-                         match_threshold=0.9, screenshot=None, 
+                         return_center_coord=False, save_path='',
+                         match_threshold=0.9, screenshot=None,
                          pack=True, gray=True):
         '''
         检查指定区域的图像是否存在指定图像模板。
@@ -293,7 +296,7 @@ class Comparator:
             asset_path = self.resource_path(template_path)
 
         template_gray = self._template_image(asset_path)
-        # 若未指定coordinate, leftup_coordinate与rightdown_coordinate都是None, 
+        # 若未指定coordinate, leftup_coordinate与rightdown_coordinate都是None,
         # 此时_cropped_image对应参数接受None, 则默认截取全屏
         cropped_screenshot_gray = self._cropped_image(
             leftup_coordinate, rightdown_coordinate, save_path=save_path, screenshot=screenshot)
@@ -327,20 +330,25 @@ class Comparator:
         :param tolerance: int, 颜色匹配的容忍度
         :return: bool, 如果所有给定的点的颜色与相应的期望颜色匹配，返回True
         """
-        if screenshot is None:
-            screenshot = self.device.screenshot(format='opencv')  # 返回的是一个numpy.ndarray对象
         for (x, y, expected_color) in points_with_colors:
-            expected_color = tuple(expected_color)  # 将列表转换为元组
-            # 在numpy数组中使用[y, x]方式获取颜色，并注意BGR到RGB的转换
-            actual_color = screenshot[y, x][::-1]  # 切片[::-1]用于将BGR转换为RGB
-            if debug == 1:
-                print(f"actual_color: {actual_color}, expected_color: {expected_color}")
-            if any(abs(actual_color[i] - expected_color[i]) > tolerance for i in range(3)):
+            try:
+                expected_color = tuple(expected_color)  # 将列表转换为元组
+                # 在numpy数组中使用[y, x]方式获取颜色，并注意BGR到RGB的转换
+                actual_color = screenshot[y, x][::-1]  # 切片[::-1]用于将BGR转换为RGB
                 if debug == 1:
                     print(f"actual_color: {actual_color}, expected_color: {expected_color}")
-                    cb(x, y, actual_color, expected_color, tolerance)
-            if not all(abs(actual_color[i] - expected_color[i]) <= tolerance for i in range(3)):
-                return False
+                if any(abs(actual_color[i] - expected_color[i]) > tolerance for i in range(3)):
+                    if debug == 1:
+                        print(f"actual_color: {actual_color}, expected_color: {expected_color}")
+                        if cb is not None:
+                            cb(x, y, actual_color, expected_color, tolerance)
+                if not all(abs(actual_color[i] - expected_color[i]) <= tolerance for i in range(3)):
+                    return False
+            finally:
+                # 释放内存
+                del actual_color
+        del screenshot  # 删除 screenshot 对象，释放内存
+        gc.collect()    # 强制执行垃圾回收
         return True
 
     def get_num_in_image(self, image_path):

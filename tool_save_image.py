@@ -3,8 +3,6 @@ from engine.comparator import comparator
 
 engine.connect()
 comparator.set_device(engine.device)
-# comparator._screenshot_cropped_image([508, 255], [708, 275], save_path="./assets/monopoly/find_previlege.png")
-comparator._screenshot_cropped_image([218, 292], [234, 330], save_path="./assets/monopoly/btn_options3.png")
-# comparator._screenshot_cropped_image([507, 227], [707, 245], save_path="./assets/monopoly/find_treasure.png")
+
 # comparator._cropped_screenshot([334, 250], [473, 266], save_path="./assets/monopoly/monopoly_continue.png")
 # comparator._cropped_screenshot([163, 139], [191, 147], save_path="./image/802/1.png")
