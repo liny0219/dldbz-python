@@ -25,7 +25,7 @@ path_cfg_statrup = 'config/startup.json'
 exe_manager = ExeManager()
 
 
-class Startup:
+class StartupLogic:
     def __init__(self, app: tk.Tk):
         self.app_data = AppData(update_ui=self.update_ui)
         self.app = app

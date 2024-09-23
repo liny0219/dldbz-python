@@ -27,7 +27,7 @@ for package in packages:
 datas += [('assets', 'assets'),('fonts', 'fonts')]
 
 # 主脚本路径
-main_script = 'startup.py'
+main_script = 'main.py'
 
 a = Analysis([main_script],
              pathex=['.'],
