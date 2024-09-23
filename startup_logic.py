@@ -11,6 +11,7 @@ from gameplay.recollection import Recollection
 from gameplay.stationary import Stationary
 from tool_get_coord import GetCoord
 from app_data import AppData
+from utils.exe_manager import ExeManager
 from utils.stoppable_thread import StoppableThread
 from engine.engine import engine
 from engine.world import world
@@ -21,6 +22,7 @@ import psutil
 import json
 
 path_cfg_statrup = 'config/startup.json'
+exe_manager = ExeManager()
 
 
 class Startup:
@@ -49,7 +51,13 @@ class Startup:
             engine.set(self.app_data)
             world.set(self.app_data)
             battle.set(self.app_data)
-            engine.connect()
+            exe_manager.set_exe_path(cfg_startup.get('exe_path'))
+            if not engine.connect():
+                if exe_manager.exe_path:
+                    exe_manager.restart_exe()
+                else:
+                    self.update_ui("连接失败,启动模拟器失败,请先设置模拟器路径！")
+                    return
             try:
                 comparator.init_ocr()
                 self.update_ui("初始化OCR成功", 0)

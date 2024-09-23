@@ -3,8 +3,10 @@ import subprocess
 import os
 import time
 import platform
+from utils.singleton import singleton
 
 
+@singleton
 class ExeManager:
     def __init__(self):
         self.exe_path = None

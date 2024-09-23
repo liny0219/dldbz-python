@@ -33,8 +33,10 @@ class Engine:
     def set(self, app_data: AppData):
         self.app_data = app_data
         try:
-            self.connect()
-            self.update_ui("连接设备成功", 0)
+            if self.connect():
+                self.update_ui("连接设备成功", 0)
+            else:
+                self.update_ui("连接设备失败", 0)
         except Exception as e:
             self.update_ui(f"连接设备失败: {e}")
 
@@ -53,11 +55,16 @@ class Engine:
         self.app_data and self.app_data.update_ui(msg, type)
 
     def connect(self):
-        if self.device:
-            return
-        addr = cfg_startup.get('adb_port')
-        self.device = u2.connect(addr)
-        comparator.set_device(self.device)
+        try:
+            if self.device:
+                return True
+            addr = cfg_startup.get('adb_port')
+            self.device = u2.connect(addr)
+            comparator.set_device(self.device)
+            return True
+        except Exception as e:
+            self.update_ui(f"连接设备失败: {e}")
+            return False
 
     def reconnect(self):
         try:
@@ -69,6 +76,8 @@ class Engine:
             return False
 
     def check_in_app(self):
+        if not self.device:
+            engine.reconnect()
         current_app = self.device.app_current()
         self.package_name = current_app['package']
         self.update_ui(f"当前应用包名: {self.package_name}", 'debug')
@@ -79,6 +88,8 @@ class Engine:
         self.device.app_start(self.cfg_package_name)
 
     def check_in_game(self):
+        if not self.device:
+            return False
         activity = self.device.app_current().get('activity')
         if activity == game_activity:
             return True
