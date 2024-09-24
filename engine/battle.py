@@ -10,7 +10,7 @@ import time
 from utils.wait import wait_either, wait_until, wait_until_not
 
 if TYPE_CHECKING:
-    from app_data import AppData
+    from app_data import app_data
 
 
 @singleton
@@ -42,7 +42,7 @@ class Battle:
         self.cfg_allswitch = './assets/battle/allswitch.png'
         self.cfg_allboost = './assets/battle/allboost.png'
 
-    def set(self, app_data: AppData):
+    def set(self, app_data: app_data):
         self.app_data = app_data
         self.set_hook()
 

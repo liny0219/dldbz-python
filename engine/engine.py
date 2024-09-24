@@ -9,7 +9,7 @@ from utils.config_loader import cfg_startup, cfg_engine
 import time
 
 if TYPE_CHECKING:
-    from app_data import AppData
+    from app_data import app_data
 
 appName = "com.netease.ma167"
 appNameBilibili = "com.netease.ma167.bilibili"
@@ -30,7 +30,7 @@ class Engine:
         self.cfg_operate_latency = 500
         self.cfg_default_sleep_ms = 10
 
-    def set(self, app_data: AppData):
+    def set(self, app_data: app_data):
         self.app_data = app_data
         try:
             if self.connect():

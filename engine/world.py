@@ -5,7 +5,7 @@ from engine.comparator import comparator
 from utils.singleton import singleton
 
 if TYPE_CHECKING:
-    from app_data import AppData
+    from app_data import app_data
 
 
 @singleton
@@ -14,7 +14,7 @@ class World:
         self.global_data = None
         self.debug = False
 
-    def set(self, global_data: AppData):
+    def set(self, global_data: app_data):
         self.global_data = global_data
 
     def thread_stoped(self) -> bool:
@@ -29,7 +29,7 @@ class World:
             return False
         self.update_ui("check-世界中", 'debug')
         if comparator.template_compare(f"./assets/world/world_menu_main.png",  match_threshold=0.8, screenshot=screenshot):
-            self.update_ui("find-在大富翁选择界面中", 'debug')
+            self.update_ui("find-在世界中", 'debug')
             return True
         else:
             return False

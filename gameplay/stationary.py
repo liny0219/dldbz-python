@@ -1,6 +1,6 @@
 from __future__ import annotations
 import time
-from app_data import AppData
+from app_data import app_data
 from engine.world import world
 from engine.battle_pix import battle_pix
 from engine.engine import engine
@@ -8,7 +8,7 @@ from utils.config_loader import cfg_recollection
 
 
 class Stationary:
-    def __init__(self, app_data: AppData):
+    def __init__(self, app_data: app_data):
         self.loop = int(cfg_recollection.get("common.loop"))
         self.app_data = app_data
         self.Timestartup = time.time()  # 程序启动时间

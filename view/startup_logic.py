@@ -7,11 +7,11 @@ import time
 import tkinter as tk
 import tkinter.messagebox
 from engine.battle import battle
-from gameplay.monopoly import Monopoly
+from gameplay.monopoly.index import Monopoly
 from gameplay.recollection import Recollection
 from gameplay.stationary import Stationary
 from tool_get_coord import GetCoord
-from app_data import AppData
+from app_data import app_data
 from utils.exe_manager import ExeManager
 from utils.stoppable_thread import StoppableThread
 from engine.engine import engine
@@ -28,7 +28,7 @@ exe_manager = ExeManager()
 
 class StartupLogic:
     def __init__(self, app: tk.Tk):
-        self.app_data = AppData(update_ui=self.update_ui)
+        self.app_data = app_data(update_ui=self.update_ui)
         self.app = app
         self.stats_label = None
         self.message_text = None
@@ -227,7 +227,7 @@ class StartupLogic:
         current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         message = f"[{current_time}] 游戏盘开始\n"
         engine.write_to_file(message, self.log_file)
-        self.monopoly = Monopoly(self.app_data)
+        self.monopoly = Monopoly()
         self.monopoly.start()
 
     def _evt_recollection(self):
