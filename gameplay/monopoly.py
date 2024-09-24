@@ -5,13 +5,16 @@ from engine.comparator import comparator
 from engine.world import world
 from engine.engine import engine
 from engine.battle_pix import battle_pix
-from utils.config_loader import cfg_monopoly, reload_config
+from utils.config_loader import cfg_monopoly, reload_config, cfg_startup
 from app_data import AppData
 import json
 import os
 from enum import Enum
 import gc
 import traceback
+
+from utils.exe_manager import ExeManager
+from utils.stoppable_thread import StoppableThread
 
 
 class State(Enum):
@@ -26,6 +29,9 @@ class State(Enum):
     Battle = 7,
     BattleInRound = 8,
     BattleAutoStay = 9
+
+
+exe_manager = ExeManager()
 
 
 class Monopoly():
@@ -45,6 +51,7 @@ class Monopoly():
         self.cfg_check_roll_rule = 1
         self.cfg_check_roll_rule_wait = 0.2
         self.screenshot = None
+        self.wait_duration = 0
         self.cfg_r801 = []
         self.cfg_r802 = []
         self.cfg_r803 = []
@@ -56,10 +63,9 @@ class Monopoly():
         self.cfg_bp_type = "max"
         self.total_finish_time = 0
         self.total_failed_time = 0
-        self.pre_check_time = -1
-        self.cfg_check_time = 120
         self.pre_crossing = -1
         self.current_crossing = -1
+        self.is_running = True
         self.reset()
 
     def thread_stoped(self) -> bool:
@@ -93,7 +99,8 @@ class Monopoly():
             self.cfg_enemy_check = int(cfg_monopoly.get("enemy_check"))
             self.cfg_round_time = int(cfg_monopoly.get("round_time"))*60
             self.cfg_wait_time = int(cfg_monopoly.get("wait_time"))*60
-            self.cfg_check_time = int(cfg_monopoly.get("check_time"))
+            self.cfg_exe_path = cfg_startup.get("exe_path")
+            exe_manager.set_exe_path(self.cfg_exe_path)
             return True
         except Exception as e:
             self.update_ui(f"{e}")
@@ -105,11 +112,12 @@ class Monopoly():
         self.roll_time = 0
 
     def reset(self):
+        self.wait_duration = 0
         self.pre_count = 0
         self.started_count = 0
         self.finished_count = 0
         self.begin_turn = 0
-        self.pre_turn_state = State.Unknow
+        self.pre_state = State.Unknow
         self.total_finish_time = 0
         self.total_failed_time = 0
         self.restart = 0
@@ -129,7 +137,7 @@ class Monopoly():
         self.roll_time = 0
         self.reported_end = False
         self.reported_finish = False
-        self.pre_turn_state = State.Unknow
+        self.pre_state = State.Unknow
         self.started_count += 1
 
     def report_end(self):
@@ -170,7 +178,7 @@ class Monopoly():
             self.update_ui(f"{msg1},{msg2},{msg3}", 'stats')
             self.reported_end = True
 
-    def check_restart(self):
+    def check_in_app(self):
         self.is_in_app = engine.check_in_app()
         if not self.is_in_app:
             self.update_ui("未检查到游戏")
@@ -257,6 +265,7 @@ class Monopoly():
     def check_in_monopoly_map(self):
         new_state = None
         if self.can_roll_dice():
+            self.shot()
             new_state = State.MonopolyMap
             input_bp = 0
             rule_text = ""
@@ -318,14 +327,32 @@ class Monopoly():
         return False
 
     def shot(self):
-        self.update_ui("-----------开始截图", 'debug')
-        if self.screenshot is not None:
-            del self.screenshot
-            self.screenshot = None
-            gc.collect()
-        self.screenshot = engine.device.screenshot(format='opencv')
-        self.update_ui("-----------截图完成", 'debug')
-        return self.screenshot
+        try:
+            self.update_ui("-----------开始截图", 'debug')
+            if self.screenshot is not None:
+                del self.screenshot
+                self.screenshot = None
+                gc.collect()
+            self.screenshot = engine.device.screenshot(format='opencv')
+            self.update_ui("-----------截图完成", 'debug')
+            return self.screenshot
+        except Exception as e:
+            self.update_ui(f"截图异常{e}")
+            return None
+
+    def daemon(self):
+        try:
+            while not self.thread_stoped():
+                try:
+                    self.update_ui('守护线程检查')
+                    self.check_idle_wait()
+                    self.check_in_exe()
+                    self.check_in_app()
+                except Exception as e:
+                    self.update_ui(f"守护线程循环异常{e}")
+                time.sleep(30)
+        except Exception as e:
+            self.update_ui(f"守护线程异常停止{e}")
 
     def start(self):
         try:
@@ -336,20 +363,22 @@ class Monopoly():
             if self.enemy and self.action and self.cfg_enemy_check == 1:
                 self.find_enemy = True
             self.update_ui(f"大霸启动!", 'stats')
-            wait_duration = 0
+            self.wait_duration = 0
+            # 启动一个子线程守护进程,用来检查是否需要重启游戏
+            sub_thread = StoppableThread(target=self.daemon)
+            sub_thread.start()
             # 有空整体重构为有限状态机
             while not self.thread_stoped():
                 try:
                     self.update_ui(f"全量检查", 'debug')
                     time.sleep(self.cfg_check_interval)
-                    self.shot()
 
                     turn_state = None
                     turn_check_state = None
                     pre_round_state = None
                     round_state = None
                     round_check_state = None
-                    self.check_in_app(wait_duration)
+                    self.shot()
 
                     turn_check_state = self.check_in_game_title()
                     if turn_check_state:
@@ -387,7 +416,6 @@ class Monopoly():
                     in_map = False
                     while not self.thread_stoped():
                         self.update_ui(f"地图检查", 'debug')
-                        self.check_idle_wait()
                         round_state = None
                         self.shot()
                         if self.check_in_battle():
@@ -440,16 +468,23 @@ class Monopoly():
                         else:
                             in_map = True
                             self.state = round_state
-                            self.wait_time = time.time()
+                            if round_state != self.pre_state:
+                                self.update_ui(f"更新状态{self.state}")
+                                self.wait_time = time.time()
+                                self.pre_state = round_state
                             time.sleep(self.cfg_check_interval)
 
-                        if time.time() - self.round_time_start > self.cfg_round_time:
+                        round_duration = time.time() - self.round_time_start
+                        # 检查本轮等待超时
+                        if round_duration > self.cfg_round_time:
+                            exe_manager.stop_exe()
                             self.state = State.Unknow
                             round_state = self.state
+                            in_map = False
                             break
 
-                        round_duration = time.time() - self.round_time_start
-                        if self.check_in_app(round_duration):
+                        # 检查本轮APP状态
+                        if self.check_in_app():
                             self.state = State.Unknow
                             round_state = self.state
                             in_map = False
@@ -460,27 +495,39 @@ class Monopoly():
 
                     if turn_state and turn_state != State.Unknow:
                         self.update_ui(f"当前状态{self.state}", 'debug')
-                        if turn_state != self.pre_turn_state:
+                        if turn_state != self.pre_state:
                             self.update_ui(f"更新状态{self.state}")
                             self.wait_time = time.time()
                     else:
                         self.state = State.Unknow
                         world.btn_trim_click()
                         self.update_ui("未匹配到任何状态", 'debug')
-                    self.pre_turn_state = turn_state
-                    self.check_idle_wait()
+                    self.pre_state = turn_state
+
                 except Exception as e:
-                    time.sleep(3)
-                    self.update_ui(f"地图循环出现异常！{e},{traceback.format_exc()}")
+                    self.error_loop(e)
         except Exception as e:
-            time.sleep(3)
-            self.update_ui(f"挂机出现异常！{e},{traceback.format_exc()}")
+            self.error_loop(e)
+
+    def error_loop(self, e):
+        time.sleep(3)
+        if "device offline" in str(e) or ("device" in str(e) and "not found" in str(e)):
+            self.update_ui(f"连接断开")
+            if not engine.reconnect():
+                exe_manager.start_exe()
+        else:
+            self.update_ui(f"地图循环出现异常！{e}")
 
     def check_idle_wait(self):
-        wait_duration = time.time() - self.wait_time
-        if wait_duration > self.cfg_wait_time:
+        self.update_ui("check-检查空闲等待", 'debug')
+        self.check_in_exe()
+        self.wait_duration = time.time() - self.wait_time
+        if self.wait_duration > self.cfg_wait_time:
             min = self.cfg_wait_time/60
             self.error(f"{int(min)}分钟未匹配到任何执行函数，重启游戏")
+            if exe_manager.exe_path and len(exe_manager.exe_path) > 0:
+                self.update_ui("由于设置模拟器路径,重启模拟器")
+                exe_manager.stop_exe()
             engine.restart_game()
             self.restart += 1
             self.state = State.Unknow
@@ -488,13 +535,19 @@ class Monopoly():
             time.sleep(3)
             return State.Unknow
 
-    def check_in_app(self, time):
-        time = int(time)
-        if (time % self.cfg_check_time == 0 and time != self.pre_check_time) or self.pre_check_time == -1:
-            self.pre_check_time = time
-            if time > 0:
-                self.update_ui(f"本轮已经运行{time}秒,自检一次")
-            return self.check_restart()
+    def check_in_exe(self):
+        if exe_manager.exe_path is None or len(exe_manager.exe_path) == 0:
+            return
+        if exe_manager.is_exe_running():
+            if self.is_running == False:
+                self.is_running = True
+                time.sleep(5)
+                self.check_in_app()
+        else:
+            self.is_running = False
+            self.update_ui("模拟器未运行,等待启动")
+            time.sleep(2)
+            exe_manager.start_exe()
 
     def is_number(self, value):
         return isinstance(value, (int, float))
