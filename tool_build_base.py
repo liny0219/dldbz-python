@@ -5,7 +5,7 @@ import json
 import zipfile
 
 
-def zip_directory(source_dir, output_dir, output_zip_name):
+def zip_directory(source_dir, output_dir, output_zip_name, top_level_dir):
     """将指定目录压缩成 ZIP 文件并输出到指定目录."""
     # 创建输出目录（如果不存在）
     if not os.path.exists(output_dir):
@@ -20,8 +20,8 @@ def zip_directory(source_dir, output_dir, output_zip_name):
             for file in files:
                 # 获取文件的完整路径
                 file_path = os.path.join(root, file)
-                # 将文件写入 ZIP，保持相对路径（去掉源目录根目录部分）
-                zipf.write(file_path, os.path.relpath(file_path, source_dir))
+                # 将文件写入 ZIP，保持相对路径（添加顶层目录）
+                zipf.write(file_path, os.path.join(top_level_dir, os.path.relpath(file_path, source_dir)))
     print(f"压缩完成，ZIP 文件已保存到: {output_zip}")
 
 
@@ -120,6 +120,7 @@ def main(version='1.0.0'):
 
     new_version = update_version_in_json(version, json_file)  # 更新 JSON 文件中的版本号并获取新版本
     zip_filename = f'大霸茶馆v{new_version}.zip'
+    zip_filename_dir = f'大霸茶馆v{new_version}'
     replace_version_in_spec(spec_file, new_version, tmp_spec_file)  # 替换 spec 文件中的版本号并保存到 tmp.spec
 
     run_pyinstaller(tmp_spec_file)  # 使用更新后的 tmp.spec 进行打包
@@ -135,4 +136,4 @@ def main(version='1.0.0'):
         shutil.move(os.path.join(dist_dir, filename), os.path.join(package_dir, filename))
     copy_files_and_directories(package_dir, items_to_copy)
     copy_md_as_txt('readme.md', package_dir, 'readme.txt')
-    zip_directory(package_dir, publish_dir, zip_filename)
+    zip_directory(package_dir, publish_dir, zip_filename, zip_filename_dir)

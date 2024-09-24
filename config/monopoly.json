@@ -1,16 +1,14 @@
 {
-  "type_info": "设置type 801-80权利,802-80富足,803-80名声,round_time设置每轮等待时间",
   "type": "801",
   "ticket": "0",
   "lv": "5",
   "auto_battle": "1",
-  "isContinue": "1",
+  "isContinue": "0",
   "round_time": "12",
   "wait_time": "5",
   "check_interval": "0.1",
   "check_roll_dice_time": "2",
   "check_roll_dice_interval": "0.1",
-  "info_crossing": "设置路口转向,801-80权利,802-80富足,803-80名声,注意设置错误会导致卡住",
   "crossing": {
     "801": [
       {
@@ -56,7 +54,6 @@
       }
     ]
   },
-  "info_enemy": "设置识别敌人图片配置与对应行动,enemy_match_threshold图片容差",
   "enemy_check": "1",
   "enemy_match_threshold": "0.5",
   "enemy": {
@@ -64,7 +61,6 @@
       "赫尔米尼亚": "./image/802/01.png"
     }
   },
-  "info_action": "设置识别的敌人对应执行的行动,",
   "action": {
     "802": {
       "赫尔米尼亚": [
@@ -72,12 +68,8 @@
       ]
     }
   },
-  "info_check_roll_rule": "0-不使用自定义扔骰子规则,默认只投一次,1-使用自定义扔骰子规则",
-  "info_bp": "[100,50,0],[50,30,1],[30,0,3]说明从100(包含)到50(不包含),使用0bp,从50(包含)到30(不包含)使用1bp,从30(包含)到0(包含)使用3bp",
-  "info_check_roll_rule_wait": "扔骰子前等待时间,默认0.1,等待可以增加识别成功率,但会影响速度,自行调控",
   "check_roll_rule": "1",
   "check_roll_rule_wait": "0.1",
-  "bp_info":"bp_type说明: max-匹配规则时使用最大值, match-匹配规则只有bp数量一致才会使用",
   "bp_type": "max",
   "bp": {
     "801": "[19,20,1],[21,19,2],[25,21,3]",
