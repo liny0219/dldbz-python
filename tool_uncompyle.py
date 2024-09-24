@@ -3,7 +3,7 @@ import os
 
 def run_uncompyle6():
     # 设置相对路径
-    pyc_file = os.path.join("exe_extracted", "PYZ-00.pyz_extracted", "view", "startup.pyc")
+    pyc_file = os.path.join("exe_extracted", "PYZ-00.pyz_extracted", "view", "startup.cp37-win_amd64.pyd")
     
     # 构建 uncompyle6 命令
     command = ['uncompyle6', '-o', '.', pyc_file]

@@ -45,7 +45,10 @@ def copy_files_and_directories(dest_dir, items_to_copy):
         dst_path = os.path.join(dest_dir, dst)
         try:
             if os.path.isdir(src):
-                shutil.copytree(src, dst_path, dirs_exist_ok=True)
+                # 如果目标目录已经存在，先删除它
+                if os.path.exists(dst_path):
+                    shutil.rmtree(dst_path)
+                shutil.copytree(src, dst_path)  # Python 3.8 之前没有 dirs_exist_ok
                 print(f"复制目录: {src} 到 {dst_path}")
             else:
                 os.makedirs(os.path.dirname(dst_path), exist_ok=True)
@@ -103,7 +106,7 @@ def replace_version_in_spec(spec_file, new_version, output_file):
 
 
 def main(version='1.0.0'):
-    spec_file = 'startup.spec'
+    spec_file = 'main.spec'
     dist_dir = 'dist'
     json_file = 'config/version.json'
     publish_dir = 'publish'
