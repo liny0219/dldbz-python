@@ -27,7 +27,7 @@ class App:
         self.style.configure('TNotebook.Tab', font=('Segoe UI', '12', 'bold'), padding=[20, 8])
 
     def create_widgets(self):
-        message_label = tk.Label(self.app, text="歧路旅人休息站", font=self.bold_font)
+        message_label = tk.Label(self.app, text="完全免费脚本,歧路旅人休息站,群号213459239", font=self.bold_font)
         message_label.grid(row=0, column=0, columnspan=2, pady=10)
 
         stats_label = tk.Label(self.app, text="大霸启动!", font=self.default_font)
@@ -56,7 +56,6 @@ class App:
 
         Label(about_frame, text=f"大霸茶馆 v{cfg_version.get('version')}", font=self.bold_font).pack(pady=10)
         Label(about_frame, text="仅供交流学习用，请勿用于任何商业盈利", font=self.default_font).pack(pady=10)
-        Label(about_frame, text="贡献者: 夜宵, GGBond, Wlog, 章鱼哥, ◕‿◕", font=self.default_font).pack(pady=10)
         Label(about_frame, text="©2024", font=self.default_font).pack(pady=10)
 
         notebook.add(self.monopoly_frame, text='游戏盘')
