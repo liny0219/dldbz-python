@@ -46,18 +46,19 @@ class StartupLogic:
 
     def init_engine_thread(self):
         engine.set_config()
+
         if self.inited:
             return
         try:
+            exe_manager.set_exe_path(cfg_startup.get('exe_path'))
             if exe_manager.exe_path and not exe_manager.is_exe_running():
-                    exe_manager.start_exe()
-                    time.sleep(5)
+                exe_manager.start_exe()
+            time.sleep(5)
             engine.set(self.app_data)
             world.set(self.app_data)
             battle.set(self.app_data)
-            exe_manager.set_exe_path(cfg_startup.get('exe_path'))
             not engine.connect()
-                
+
             try:
                 comparator.init_ocr()
                 self.update_ui("初始化OCR成功", 0)
@@ -78,6 +79,7 @@ class StartupLogic:
             return
         self.is_busy = True
         self.update_ui("正在初始化...")
+
         # 创建线程执行初始化操作
         thread = StoppableThread(target=self.init_engine_thread)
         thread.start()
