@@ -68,13 +68,14 @@ class Stationary:
                         turn_direction = 1
 
                     in_battle = battle_pix.is_in_battle(self.screenshot)
-                    if in_battle:
+                    is_auto_battle_stay = battle_pix.is_auto_battle_stay(self.screenshot)
+                    is_round = battle_pix.is_in_round(self.screenshot)
+                    if in_battle or is_auto_battle_stay or is_round:
                         is_match = 'is_in_battle'
-                        is_auto_stay = battle_pix.is_auto_battle_stay()
-                        if not is_auto_stay and battle_pix.is_in_round(self.screenshot):
+                        if not is_auto_battle_stay and is_round:
                             is_match = 'is_in_round'
                             battle_pix.btn_auto_battle()
-                        elif battle_pix.is_auto_battle_stay():
+                        elif is_auto_battle_stay:
                             is_match = 'is_auto_battle_stay'
                             battle_pix.btn_auto_battle_start()
                         else:
