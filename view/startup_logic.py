@@ -3,6 +3,7 @@ import datetime
 from datetime import datetime, timedelta
 import os
 import sys
+import time
 import tkinter as tk
 import tkinter.messagebox
 from engine.battle import battle
@@ -25,7 +26,7 @@ path_cfg_statrup = 'config/startup.json'
 exe_manager = ExeManager()
 
 
-class Startup:
+class StartupLogic:
     def __init__(self, app: tk.Tk):
         self.app_data = AppData(update_ui=self.update_ui)
         self.app = app
@@ -48,16 +49,15 @@ class Startup:
         if self.inited:
             return
         try:
+            if exe_manager.exe_path and not exe_manager.is_exe_running():
+                    exe_manager.start_exe()
+                    time.sleep(5)
             engine.set(self.app_data)
             world.set(self.app_data)
             battle.set(self.app_data)
             exe_manager.set_exe_path(cfg_startup.get('exe_path'))
-            if not engine.connect():
-                if exe_manager.exe_path:
-                    exe_manager.restart_exe()
-                else:
-                    self.update_ui("连接失败,启动模拟器失败,请先设置模拟器路径！")
-                    return
+            not engine.connect()
+                
             try:
                 comparator.init_ocr()
                 self.update_ui("初始化OCR成功", 0)

@@ -1,7 +1,7 @@
 import tkinter as tk
 import tkinter.ttk as ttk
 from tkinter import Label
-from startup_logic import Startup
+from view.startup_logic import StartupLogic
 from utils.config_loader import cfg_version
 # 创建主窗口
 app = tk.Tk()
@@ -9,7 +9,7 @@ app.title(f"大霸茶馆v{cfg_version.get('version')}")
 app.geometry("800x600")  # 增加窗口宽度
 icon_path = 'image/icon_title.ico'
 app.iconbitmap(icon_path)
-startup = Startup(app)
+startup = StartupLogic(app)
 # 创建样式对象
 style = ttk.Style()
 

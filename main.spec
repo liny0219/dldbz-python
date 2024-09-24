@@ -3,12 +3,16 @@
 from PyInstaller.utils.hooks import collect_all
 block_cipher = None
 
-# 导入 PyInstaller 的收集功能
-
 # 初始化空的数据和二进制文件列表
 datas = []
-binaries = []
-hiddenimports = []
+binaries = [ ('build/lib/*.pyd', '.'),]  # 只打包加密后的 .pyd 文件
+hiddenimports = [  'cv2', 
+    'easyocr',
+    'torch', 
+    'scipy',
+    'numpy',
+    'PIL', 
+    'skimage',]
 
 # 列出所有需要自动处理的依赖库
 packages = [
@@ -24,10 +28,10 @@ for package in packages:
     hiddenimports += pkg_hiddenimports
 
 # 添加手动指定的数据目录
-datas += [('assets', 'assets'),('fonts', 'fonts')]
+datas += [('assets', 'assets'), ('fonts', 'fonts')]
 
 # 主脚本路径
-main_script = 'startup.py'
+main_script = 'main.py'
 
 a = Analysis([main_script],
              pathex=['.'],
@@ -37,7 +41,7 @@ a = Analysis([main_script],
              hookspath=[],
              hooksconfig={},
              runtime_hooks=[],
-             excludes=[],
+             excludes=['*.py'],  # 排除所有 .py 文件
              win_no_prefer_redirects=False,
              win_private_assemblies=False,
              cipher=block_cipher,
