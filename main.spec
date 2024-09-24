@@ -3,11 +3,9 @@
 from PyInstaller.utils.hooks import collect_all
 block_cipher = None
 
-# 导入 PyInstaller 的收集功能
-
 # 初始化空的数据和二进制文件列表
 datas = []
-binaries = []
+binaries = []  # 只打包加密后的 .pyd 文件
 hiddenimports = []
 
 # 列出所有需要自动处理的依赖库
@@ -24,10 +22,10 @@ for package in packages:
     hiddenimports += pkg_hiddenimports
 
 # 添加手动指定的数据目录
-datas += [('assets', 'assets'),('fonts', 'fonts')]
+datas += [('assets', 'assets'), ('fonts', 'fonts')]
 
 # 主脚本路径
-main_script = 'startup.py'
+main_script = 'main.py'
 
 a = Analysis([main_script],
              pathex=['.'],
@@ -37,7 +35,7 @@ a = Analysis([main_script],
              hookspath=[],
              hooksconfig={},
              runtime_hooks=[],
-             excludes=[],
+             excludes=[], 
              win_no_prefer_redirects=False,
              win_private_assemblies=False,
              cipher=block_cipher,
@@ -51,7 +49,7 @@ exe = EXE(pyz,
           a.binaries,
           a.zipfiles,
           a.datas,
-          name='歧路茶馆v${version}',
+          name='大霸茶馆v${version}',
           debug=False,
           bootloader_ignore_signals=False,
           strip=False,
