@@ -349,10 +349,10 @@ class Monopoly():
                     self.check_in_exe()
                     self.check_in_app()
                 except Exception as e:
-                    self.update_ui(f"守护线程异常{e}")
+                    self.update_ui(f"守护线程循环异常{e}")
                 time.sleep(30)
         except Exception as e:
-            self.update_ui(f"守护线程异常{e}")
+            self.update_ui(f"守护线程异常停止{e}")
 
     def start(self):
         try:
