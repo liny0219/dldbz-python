@@ -5,14 +5,8 @@ block_cipher = None
 
 # 初始化空的数据和二进制文件列表
 datas = []
-binaries = [ ('build/lib/*.pyd', '.'),]  # 只打包加密后的 .pyd 文件
-hiddenimports = [  'cv2', 
-    'easyocr',
-    'torch', 
-    'scipy',
-    'numpy',
-    'PIL', 
-    'skimage',]
+binaries = []  # 只打包加密后的 .pyd 文件
+hiddenimports = []
 
 # 列出所有需要自动处理的依赖库
 packages = [
@@ -41,7 +35,7 @@ a = Analysis([main_script],
              hookspath=[],
              hooksconfig={},
              runtime_hooks=[],
-             excludes=['*.py'],  # 排除所有 .py 文件
+             excludes=[], 
              win_no_prefer_redirects=False,
              win_private_assemblies=False,
              cipher=block_cipher,

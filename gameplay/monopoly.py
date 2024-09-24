@@ -14,6 +14,7 @@ import gc
 import traceback
 
 from utils.exe_manager import ExeManager
+from utils.stoppable_thread import StoppableThread
 
 
 class State(Enum):
@@ -339,6 +340,20 @@ class Monopoly():
             self.update_ui(f"截图异常{e}")
             return None
 
+    def daemon(self):
+        try:
+            while not self.thread_stoped():
+                try:
+                    self.update_ui('守护线程检查')
+                    self.check_idle_wait()
+                    self.check_in_exe()
+                    self.check_in_app()
+                except Exception as e:
+                    self.update_ui(f"守护线程异常{e}")
+                time.sleep(30)
+        except Exception as e:
+            self.update_ui(f"守护线程异常{e}")
+
     def start(self):
         try:
             if not self.set_config():
@@ -349,6 +364,9 @@ class Monopoly():
                 self.find_enemy = True
             self.update_ui(f"大霸启动!", 'stats')
             self.wait_duration = 0
+            # 启动一个子线程守护进程,用来检查是否需要重启游戏
+            sub_thread = StoppableThread(target=self.daemon)
+            sub_thread.start()
             # 有空整体重构为有限状态机
             while not self.thread_stoped():
                 try:
@@ -360,9 +378,6 @@ class Monopoly():
                     pre_round_state = None
                     round_state = None
                     round_check_state = None
-                    self.check_in_exe()
-                    self.check_state(self.wait_duration)
-                    self.check_idle_wait()
                     self.shot()
 
                     turn_check_state = self.check_in_game_title()
@@ -401,7 +416,6 @@ class Monopoly():
                     in_map = False
                     while not self.thread_stoped():
                         self.update_ui(f"地图检查", 'debug')
-                        self.check_idle_wait()
                         round_state = None
                         self.shot()
                         if self.check_in_battle():
@@ -470,7 +484,7 @@ class Monopoly():
                             break
 
                         # 检查本轮APP状态
-                        if self.check_state(round_duration):
+                        if self.check_in_app():
                             self.state = State.Unknow
                             round_state = self.state
                             in_map = False
@@ -520,9 +534,6 @@ class Monopoly():
             self.reset_round()
             time.sleep(3)
             return State.Unknow
-
-    def check_state(self, time):
-        return self.check_in_app()
 
     def check_in_exe(self):
         if exe_manager.exe_path is None or len(exe_manager.exe_path) == 0:

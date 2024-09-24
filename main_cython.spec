@@ -12,6 +12,7 @@ hiddenimports = []
 # 列出所有需要自动处理的依赖库
 packages = [
     'uiautomator2'
+    'easyocr'
 ]
 
 # 获取 build/lib 目录下的所有目录
