@@ -1,6 +1,6 @@
 from __future__ import annotations
 import time
-from app_data import app_data
+from app_data import AppData
 from engine.engine import engine
 from engine.battle import battle
 from utils.config_loader import cfg_recollection
@@ -9,7 +9,7 @@ from utils.wait import wait_until
 
 
 class Recollection:
-    def __init__(self, app_data: app_data):
+    def __init__(self, app_data: AppData):
         self.loop = int(cfg_recollection.get("common.loop"))
         self.app_data = app_data
         self.Timestartup = time.time()  # 程序启动时间

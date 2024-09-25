@@ -18,7 +18,7 @@ def check_map_info_confirm(monopoly: Monopoly):
     check_list = [flod, unflod]
     for check in check_list:
         if comparator.match_point_color(check, screenshot=monopoly.screenshot):
-            monopoly.update_ui("find-信息确认界面", 'debug')
+            app_data.update_ui("find-信息确认界面", 'debug')
             btn_center_confirm()
             return True
     return False

@@ -79,7 +79,7 @@ def ocr_number(screenshot, crop_type="left"):
     return result
 
 
-def process_image(self, current_image, threshold=100):
+def process_image(current_image, threshold=100):
     result = None
     try:
         if current_image is None or len(current_image) == 0:
@@ -110,7 +110,7 @@ def process_image(self, current_image, threshold=100):
     return result
 
 
-def write_ocr_log(self, result, current_image, type):
+def write_ocr_log(result, current_image, type):
     if is_number(result) or len(current_image) == 0:
         return
     if current_image is None or len(current_image) == 0:

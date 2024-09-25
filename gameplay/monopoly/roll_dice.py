@@ -5,7 +5,7 @@ from gameplay.monopoly.action import btn_center_confirm
 from gameplay.monopoly.config import config
 
 
-def roll_dice(self, bp=0, roll_time=None):
+def roll_dice(bp=0, roll_time=None):
     start_point = (846, 440)
     x, y = start_point
     if bp > 0:
@@ -16,7 +16,8 @@ def roll_dice(self, bp=0, roll_time=None):
         engine.device.click(x, y)
     if bp == 0:
         engine.device.click(x, y)
-    app_data.update_ui(f"第{roll_time}次投骰子, BP: {bp}")
+    msg = f"第{roll_time}次投骰子, BP: {bp}"
+    app_data.update_ui(msg)
     for i in range(config.cfg_check_roll_dice_time):
         time.sleep(config.cfg_check_roll_dice_interval)
         btn_center_confirm()

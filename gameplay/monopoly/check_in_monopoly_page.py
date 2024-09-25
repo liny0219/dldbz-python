@@ -16,5 +16,5 @@ def check_in_monopoly_page(monopoly: Monopoly):
     if not monopoly.state or monopoly.state == State.Unknow or monopoly.state == State.Finised:
         if check_in_select_monopoly(monopoly):
             select_monopoly(monopoly)
-            btn_setting_monopoly(monopoly)
+            btn_setting_monopoly()
             return State.MonopolyPage

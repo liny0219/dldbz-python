@@ -6,14 +6,13 @@ from utils.stoppable_thread import StoppableThread
 from utils.config_loader import cfg_startup
 import cv2
 if TYPE_CHECKING:
-    from app_data import app_data
+    from app_data import AppData
 
 
 @singleton
 class GetCoord:
-    def __init__(self, app_data: app_data):
+    def __init__(self, app_data: AppData):
         self.device = engine.device  # 确保这里正确获取设备实例
-        self.app_data = engine.app_data
         self.img = None
         self.app_data = app_data
         self.update_ui = app_data.update_ui

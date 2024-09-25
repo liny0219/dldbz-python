@@ -5,7 +5,7 @@ from engine.comparator import comparator
 from utils.singleton import singleton
 
 if TYPE_CHECKING:
-    from app_data import app_data
+    from app_data import AppData
 
 
 @singleton
@@ -14,7 +14,7 @@ class World:
         self.global_data = None
         self.debug = False
 
-    def set(self, global_data: app_data):
+    def set(self, global_data: AppData):
         self.global_data = global_data
 
     def thread_stoped(self) -> bool:

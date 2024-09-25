@@ -1,10 +1,11 @@
+from __future__ import annotations
+from typing import TYPE_CHECKING
 import os
 from app_data import app_data
 from engine.engine import engine
 from engine.comparator import comparator
 from gameplay.monopoly.config import config
-from __future__ import annotations
-from typing import TYPE_CHECKING
+
 
 if TYPE_CHECKING:
     from gameplay.monopoly.index import Monopoly

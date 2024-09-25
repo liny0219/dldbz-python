@@ -6,14 +6,13 @@ from engine.world import world
 from engine.engine import engine
 from engine.battle_pix import battle_pix
 from utils.config_loader import cfg_monopoly, reload_config, cfg_startup
-from app_data import AppData
+from app_data import app_data
 import json
 import os
 from enum import Enum
 import gc
 import traceback
 
-from utils.exe_manager import ExeManager
 from utils.stoppable_thread import StoppableThread
 
 
@@ -31,11 +30,8 @@ class State(Enum):
     BattleAutoStay = 9
 
 
-exe_manager = ExeManager()
-
-
 class Monopoly():
-    def __init__(self, app_data: AppData):
+    def __init__(self, app_data: app_data):
         self.app_data = app_data
         self.debug = True
         self.crood_range = [(474, 116), (937, 397)]
@@ -100,7 +96,6 @@ class Monopoly():
             self.cfg_round_time = int(cfg_monopoly.get("round_time"))*60
             self.cfg_wait_time = int(cfg_monopoly.get("wait_time"))*60
             self.cfg_exe_path = cfg_startup.get("exe_path")
-            exe_manager.set_exe_path(self.cfg_exe_path)
             return True
         except Exception as e:
             self.update_ui(f"{e}")
@@ -477,7 +472,6 @@ class Monopoly():
                         round_duration = time.time() - self.round_time_start
                         # 检查本轮等待超时
                         if round_duration > self.cfg_round_time:
-                            exe_manager.stop_exe()
                             self.state = State.Unknow
                             round_state = self.state
                             in_map = False
@@ -513,8 +507,6 @@ class Monopoly():
         time.sleep(3)
         if "device offline" in str(e) or ("device" in str(e) and "not found" in str(e)):
             self.update_ui(f"连接断开")
-            if not engine.reconnect():
-                exe_manager.start_exe()
         else:
             self.update_ui(f"地图循环出现异常！{e}")
 
@@ -525,9 +517,6 @@ class Monopoly():
         if self.wait_duration > self.cfg_wait_time:
             min = self.cfg_wait_time/60
             self.error(f"{int(min)}分钟未匹配到任何执行函数，重启游戏")
-            if exe_manager.exe_path and len(exe_manager.exe_path) > 0:
-                self.update_ui("由于设置模拟器路径,重启模拟器")
-                exe_manager.stop_exe()
             engine.restart_game()
             self.restart += 1
             self.state = State.Unknow
@@ -536,18 +525,9 @@ class Monopoly():
             return State.Unknow
 
     def check_in_exe(self):
-        if exe_manager.exe_path is None or len(exe_manager.exe_path) == 0:
-            return
-        if exe_manager.is_exe_running():
-            if self.is_running == False:
-                self.is_running = True
-                time.sleep(5)
-                self.check_in_app()
-        else:
-            self.is_running = False
-            self.update_ui("模拟器未运行,等待启动")
-            time.sleep(2)
-            exe_manager.start_exe()
+        self.is_running = False
+        self.update_ui("模拟器未运行,等待启动")
+        time.sleep(2)
 
     def is_number(self, value):
         return isinstance(value, (int, float))
@@ -665,7 +645,7 @@ class Monopoly():
         cv2.imwrite(os.path.join(debug_path, file_name), current_image)
         return file_name
 
-    def roll_dice(self, bp=0, roll_time=None):
+    def roll_dice(bp=0, roll_time=None):
         start_point = (846, 440)
         x, y = start_point
         if bp > 0:

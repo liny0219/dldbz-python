@@ -15,7 +15,7 @@ from gameplay.monopoly.check_in_monopoly_setting import check_in_monopoly_settin
 from gameplay.monopoly.check_in_select_monopoly import check_in_select_monopoly
 from gameplay.monopoly.check_in_world import check_in_world
 from gameplay.monopoly.check_in_game_title import check_in_game_title
-from gameplay.monopoly.config import config, exe_manager, set_config
+from gameplay.monopoly.config import config, set_config
 from gameplay.monopoly.constants import State
 from gameplay.monopoly.daemon import daemon
 from utils.stoppable_thread import StoppableThread
@@ -91,10 +91,9 @@ class Monopoly():
         time.sleep(3)
         if "device offline" in str(e) or ("device" in str(e) and "not found" in str(e)):
             app_data.update_ui(f"连接断开")
-            if not engine.reconnect():
-                exe_manager.start_exe()
+            engine.reconnect()
         else:
-            app_data.update_ui(f"地图循环出现异常！{e}")
+            app_data.update_ui(f"发生错误{e}")
 
     def start(self):
         try:
@@ -219,7 +218,6 @@ class Monopoly():
                         round_duration = time.time() - self.round_time_start
                         # 检查本轮等待超时
                         if round_duration > config.cfg_round_time:
-                            exe_manager.stop_exe()
                             self.state = State.Unknow
                             round_state = self.state
                             in_map = False

@@ -1,9 +1,6 @@
 from app_data import app_data
 from engine.battle_pix import battle_pix
-from utils.exe_manager import ExeManager
 from utils.config_loader import reload_config, cfg_monopoly, cfg_startup
-
-exe_manager = ExeManager()
 
 
 class config:
@@ -57,7 +54,6 @@ def set_config():
         config.cfg_round_time = int(cfg_monopoly.get("round_time"))*60
         config.cfg_wait_time = int(cfg_monopoly.get("wait_time"))*60
         config.cfg_exe_path = cfg_startup.get("exe_path")
-        exe_manager.set_exe_path(config.cfg_exe_path)
         return True
     except Exception as e:
         app_data.update_ui(f"{e}")

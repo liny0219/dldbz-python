@@ -5,14 +5,13 @@ from utils.stoppable_thread import StoppableThread
 
 
 @singleton
-class app_data:
-    def __init__(self, update_ui: Callable[[str, str], None] = None, thread: StoppableThread = None):
-        self.thread = thread
-        self.update_ui = update_ui
+class AppData:
+    def __init__(self):
+        self.thread: StoppableThread = None
+        self.update_ui: Callable[[str, str], None] = None
 
     def thread_stoped(self) -> bool:
         return self.thread and self.thread.stopped()
 
-    def set(self, update_ui: Callable[[str, str], None] = None, thread: StoppableThread = None):
-        self.thread = thread
-        self.update_ui = update_ui
+
+app_data = AppData()

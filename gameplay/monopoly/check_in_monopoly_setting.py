@@ -16,7 +16,7 @@ def check_in_monopoly_setting(monopoly: Monopoly):
     if monopoly.state == State.MonopolySetting or monopoly.state == State.MonopolyMap:
         return
     if check_in_setting(monopoly):
-        report_finish()
+        report_finish(monopoly)
         app_data.update_ui(f"设置大富翁挑战设定")
         select_game_mode()
         app_data.update_ui(f"开始大富翁,当前第 {monopoly.started_count+1} 轮")

@@ -5,7 +5,7 @@ from engine.comparator import comparator
 from utils.singleton import singleton
 
 if TYPE_CHECKING:
-    from app_data import app_data
+    from app_data import AppData
 
 
 @singleton
@@ -17,7 +17,7 @@ class BattleVee:
         self.cfg_attack = './assets/battle/attack.png'
         self.cfg_auto_battle_stay = './assets/battle/auto_battle_stay.png'
 
-    def set(self, app_data: app_data):
+    def set(self, app_data: AppData):
         self.app_data = app_data
 
     def thread_stoped(self) -> bool:

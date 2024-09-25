@@ -21,5 +21,5 @@ def check_map_final_confirm(monopoly: Monopoly):
     return False
 
 
-def btn_final_confirm(self):
+def btn_final_confirm():
     engine.device.click(480, 410)
