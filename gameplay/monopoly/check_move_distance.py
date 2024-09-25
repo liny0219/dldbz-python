@@ -17,11 +17,12 @@ def check_move_distance(monopoly: Monopoly):
         currentshot = monopoly.screenshot
         if len(currentshot) == 0:
             currentshot = monopoly.shot()
-        current_image = currentshot[y:y+height, x:x+width]
-
-        number = ocr_number(current_image, crop_type="center")
         app_data.update_ui(f"check-剩余步数")
+        current_image = currentshot[y:y+height, x:x+width]
+        number = ocr_number(current_image, crop_type="center")
+
         if not is_number(number):
+            app_data.update_ui(f"check-剩余步数失败")
             time.sleep(config.cfg_check_roll_rule_wait)
             currentshot = monopoly.shot()
             current_image = currentshot[y:y+height, x:x+width]

@@ -11,17 +11,17 @@ if TYPE_CHECKING:
 @singleton
 class World:
     def __init__(self):
-        self.global_data = None
+        self.app_data = None
         self.debug = False
 
     def set(self, global_data: AppData):
-        self.global_data = global_data
+        self.app_data = global_data
 
     def thread_stoped(self) -> bool:
-        return self.global_data and self.global_data.thread_stoped()
+        return self.app_data and self.app_data.thread_stoped()
 
     def update_ui(self, msg: str, type='info'):
-        self.global_data and self.global_data.update_ui(msg, type)
+        self.app_data and self.app_data.update_ui(msg, type)
 
     def check_in_world(self, screenshot=None):
         """检查游戏世界中，通过左下角菜单的颜色来判断"""
@@ -41,6 +41,16 @@ class World:
         self.update_ui("check-游戏开始界面", 'debug')
         if comparator.template_compare(f"./assets/world/game_title.png", screenshot=screenshot):
             self.update_ui("find-在游戏开始界面")
+            return True
+        else:
+            return False
+
+    def check_net_state(self, screenshot=None):
+        """检查网络状态"""
+        if (self.thread_stoped()):
+            return False
+        if comparator.template_compare(f"./assets/world/reconnect.png", screenshot=screenshot):
+            self.update_ui("find-在重连界面")
             return True
         else:
             return False

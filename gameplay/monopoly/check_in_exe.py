@@ -8,5 +8,5 @@ if TYPE_CHECKING:
     from gameplay.monopoly.index import Monopoly
 
 
-def check_in_exe(monoploly: Monopoly):
+def check_in_exe(y):
     pass

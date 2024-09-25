@@ -13,4 +13,5 @@ class State(Enum):
     MonopolyMap = 6,
     Battle = 7,
     BattleInRound = 8,
-    BattleAutoStay = 9
+    BattleAutoStay = 9,
+    NetError = 10,

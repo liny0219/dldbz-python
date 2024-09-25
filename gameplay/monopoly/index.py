@@ -106,8 +106,9 @@ class Monopoly():
             app_data.update_ui(f"大霸启动!", 'stats')
             self.wait_duration = 0
             # 启动一个子线程守护进程,用来检查是否需要重启游戏
-            sub_thread = StoppableThread(target=lambda: daemon(self))
-            sub_thread.start()
+            app_data.monopoly_deamon_thread = StoppableThread(target=lambda: daemon(self))
+            app_data.monopoly_deamon_thread.start()
+            app_data.update_ui(f"守护线程启动", 'debug')
             # 有空整体重构为有限状态机
             while not app_data.thread_stoped():
                 try:

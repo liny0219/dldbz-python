@@ -143,6 +143,8 @@ class StartupLogic:
         self.update_ui("休息一下，停止当前操作...")
         if self.app_data.thread is not None:
             self.app_data.thread.stop()
+        if self.app_data.monopoly_deamon_thread is not None:
+            self.app_data.monopoly_deamon_thread.stop()
         self.write_to_file(self.log_file)
 
     def update_ui(self, msg, type='info'):

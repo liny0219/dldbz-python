@@ -6,6 +6,7 @@ from utils.config_loader import reload_config, cfg_monopoly, cfg_startup
 class config:
     cfg_ticket = 0
     cfg_lv = 0
+    cfg_net_retry = 1
     cfg_type = ""
     cfg_crossing = ""
     cfg_auto_battle = 0
