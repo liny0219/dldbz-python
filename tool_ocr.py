@@ -2,8 +2,9 @@ import easyocr
 import cv2
 from engine.engine import engine
 from engine.comparator import comparator
-from gameplay.monopoly import Monopoly
-from app_data import AppData
+from gameplay.monopoly.index import Monopoly
+from app_data import app_data
+from gameplay.monopoly.ocr import ocr_number
 
 
 def shot():
@@ -33,7 +34,7 @@ def monopoly():
     path = 'debug_images/current_image_20240917_023028_origin.png'
     test_image = cv2.imread(path)
     comparator.init_ocr()
-    Monopoly(AppData).ocr_number(test_image, debug=True)
+    ocr_number(test_image, debug=True)
 
 
 # 初始化 EasyOCR 读者对象
