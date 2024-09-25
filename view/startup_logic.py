@@ -3,7 +3,6 @@ import datetime
 from datetime import datetime, timedelta
 import os
 import sys
-import time
 import tkinter as tk
 import tkinter.messagebox
 from engine.battle import battle
