@@ -21,7 +21,6 @@ class App:
 
         self.create_widgets()
         self.app.protocol("WM_DELETE_WINDOW", lambda: self.startup.on_close())
-        self.app.mainloop()
 
     def configure_styles(self):
         self.style.configure('TNotebook.Tab', font=('Segoe UI', '12', 'bold'), padding=[20, 8])
@@ -115,16 +114,6 @@ class App:
         btn_port_setting = tk.Button(frame, text="修改端口", width=15, height=1, command=self.startup.btn_set_exe_path)
         btn_port_setting.grid(row=0, column=2, padx=10, pady=10)
 
-        label_exe = tk.Label(frame, text="模拟器路径:")
-        label_exe.grid(row=1, column=0, padx=2, pady=2)
-        entry_exe_val = tk.StringVar()
-        entry = tk.Entry(frame, textvariable=entry_exe_val, width=30)
-        entry.grid(row=1, column=1, padx=10, pady=10)
-        self.startup.set_exe_ui(entry, entry_exe_val)
-
-        btn_exe_setting = tk.Button(frame, text="设置路径", width=15, height=1, command=self.startup.btn_set_exe_path)
-        btn_exe_setting.grid(row=1, column=2, padx=10, pady=10)
-
         tk.Button(frame, text="设置雷电端口", command=self.startup.btn_set_ld_port,
                   font=("Segoe UI", 10), width=30, height=1).grid(row=2, column=0, padx=10, pady=10)
         tk.Button(frame, text="设置mumu端口", command=self.startup.btn_set_mumu_port,
@@ -157,3 +146,6 @@ class App:
             self.startup.set_message_text(info_label)
         else:
             print("未找到info_label")
+
+    def run(self):
+        self.app.mainloop()
