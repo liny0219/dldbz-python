@@ -13,7 +13,6 @@ if TYPE_CHECKING:
 class GetCoord:
     def __init__(self, app_data: AppData):
         self.device = engine.device  # 确保这里正确获取设备实例
-        self.app_data = engine.app_data
         self.img = None
         self.app_data = app_data
         self.update_ui = app_data.update_ui

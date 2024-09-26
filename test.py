@@ -3,13 +3,13 @@ from engine.comparator import comparator
 from engine.world import world
 from engine.engine import engine
 from engine.battle_pix import battle_pix
-from gameplay.monopoly import Monopoly
+from gameplay.monopoly.index import Monopoly
 import os
 engine.connect()
 cfg_enemy_map = cfg_monopoly.get("enemy")
 cfg_action_map = cfg_monopoly.get("action")
 update_ui = print
-## test find enemy
+# test find enemy
 # def on_get_enmey():
 #     screenshot = comparator._screenshot_cropped_image(convert_gray=False)
 #     enemy = cfg_enemy_map.get('802')
@@ -26,9 +26,9 @@ update_ui = print
 
 #         normalized_path =  os.path.normpath(value)
 #         result = comparator.template_compare(
-#             normalized_path, [(15, 86), (506, 448)], 
-#             return_center_coord=True, 
-#             match_threshold=0.5, 
+#             normalized_path, [(15, 86), (506, 448)],
+#             return_center_coord=True,
+#             match_threshold=0.5,
 #             screenshot=screenshot, pack=False)
 #         print(result)
 
@@ -64,7 +64,7 @@ update_ui = print
 # print(a.get('802'))
 
 
-## test event
+# test event
 def check_evtent():
     update_ui("check-事件", 'debug')
     screenshot = comparator._screenshot_cropped_image(convert_gray=False)
@@ -77,4 +77,6 @@ def check_evtent():
         engine.device.click(x + offfset, y)
         return True
     return False
+
+
 check_evtent()

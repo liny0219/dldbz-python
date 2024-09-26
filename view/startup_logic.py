@@ -6,7 +6,7 @@ import sys
 import tkinter as tk
 import tkinter.messagebox
 from engine.battle import battle
-from gameplay.monopoly import Monopoly
+from gameplay.monopoly.index import Monopoly
 from gameplay.recollection import Recollection
 from gameplay.stationary import Stationary
 from tool_get_coord import GetCoord
@@ -23,9 +23,10 @@ import json
 path_cfg_statrup = 'config/startup.json'
 
 
-class Startup:
+class StartupLogic:
     def __init__(self, app: tk.Tk):
-        self.app_data = AppData(update_ui=self.update_ui)
+        self.app_data = AppData()
+        self.app_data.update_ui = self.update_ui
         self.app = app
         self.stats_label = None
         self.message_text = None
@@ -43,13 +44,15 @@ class Startup:
 
     def init_engine_thread(self):
         engine.set_config()
+
         if self.inited:
             return
         try:
             engine.set(self.app_data)
             world.set(self.app_data)
             battle.set(self.app_data)
-            engine.connect()
+            not engine.connect()
+
             try:
                 comparator.init_ocr()
                 self.update_ui("初始化OCR成功", 0)
@@ -70,6 +73,7 @@ class Startup:
             return
         self.is_busy = True
         self.update_ui("正在初始化...")
+
         # 创建线程执行初始化操作
         thread = StoppableThread(target=self.init_engine_thread)
         thread.start()
@@ -81,12 +85,19 @@ class Startup:
     def set_message_text(self, message_text):
         self.message_text = message_text
 
-    def set_port_ui(self, entry: tk.Entry, port_var: tk.StringVar):
+    def set_port_ui(self, entry: tk.Entry, port_val: tk.StringVar):
         self.port_entry = entry
-        self.port_value = port_var
+        self.port_value = port_val
         with open(path_cfg_statrup, 'r', encoding='utf-8') as file:
             data = json.load(file)
             self.port_value.set(data['adb_port'])
+
+    def set_exe_ui(self, entry: tk.Entry, port_val: tk.StringVar):
+        self.exe_entry = entry
+        self.exe_value = port_val
+        with open(path_cfg_statrup, 'r', encoding='utf-8') as file:
+            data = json.load(file)
+            self.exe_value.set(data['exe_path'])
 
     def on_close(self):
         self.update_ui("正在关闭程序，请稍等...")
@@ -131,6 +142,8 @@ class Startup:
         self.update_ui("休息一下，停止当前操作...")
         if self.app_data.thread is not None:
             self.app_data.thread.stop()
+        if self.app_data.monopoly_deamon_thread is not None:
+            self.app_data.monopoly_deamon_thread.stop()
         self.write_to_file(self.log_file)
 
     def update_ui(self, msg, type='info'):
@@ -210,7 +223,8 @@ class Startup:
         current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         message = f"[{current_time}] 游戏盘开始\n"
         engine.write_to_file(message, self.log_file)
-        self.monopoly = Monopoly(self.app_data)
+
+        self.monopoly = Monopoly()
         self.monopoly.start()
 
     def _evt_recollection(self):
@@ -249,7 +263,7 @@ class Startup:
         coordinate_getter = GetCoord(self.app_data)
         coordinate_getter.show_coordinates_window()
 
-    def btn_set_custom_port(self):
+    def btn_set_exe_path(self):
         # 弹出警告框
         response = tkinter.messagebox.askokcancel("配置修改警告",
                                                   "请注意，修改配置后需要重启程序才能生效。是否继续修改？")
@@ -258,7 +272,14 @@ class Startup:
                 user_input = self.port_entry.get()
                 update_json_config(path_cfg_statrup, 'adb_port', user_input)
             else:
-                self.update_ui("帮助文档(readme.txt)不存在，请检查！")
+                self.update_ui("配置文件(startup.json)不存在，请检查！")
+
+    def btn_set_exe_path(self):
+        if os.path.exists(path_cfg_statrup):
+            user_input = self.exe_entry.get()
+            update_json_config(path_cfg_statrup, 'exe_path', user_input)
+        else:
+            self.update_ui("配置文件(startup.json)不存在，请检查！")
 
     def btn_set_mumu_port(self):
         # 弹出警告框
@@ -290,6 +311,12 @@ class Startup:
             os.startfile(file_path)
         else:
             self.update_ui("配置文件(monopoly.json)不存在，请检查！")
+
+    def open_log(self):
+        if os.path.exists(self.log_path):
+            os.startfile(self.log_path)
+        else:
+            self.update_ui("目前没有日志文件，请先运行程序！")
 
     def open_startup_config(self):
         # 弹出警告框
