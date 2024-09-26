@@ -4,5 +4,4 @@ from engine.comparator import comparator
 engine.connect()
 comparator.set_device(engine.device)
 
-# comparator._cropped_screenshot([334, 250], [473, 266], save_path="./assets/monopoly/monopoly_continue.png")
-# comparator._cropped_screenshot([163, 139], [191, 147], save_path="./image/802/1.png")
+comparator._cropped_screenshot([558, 300], [601, 319], save_path="./assets/monopoly/reconnect.png")

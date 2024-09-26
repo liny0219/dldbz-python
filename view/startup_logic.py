@@ -3,16 +3,14 @@ import datetime
 from datetime import datetime, timedelta
 import os
 import sys
-import time
 import tkinter as tk
 import tkinter.messagebox
 from engine.battle import battle
-from gameplay.monopoly import Monopoly
+from gameplay.monopoly.index import Monopoly
 from gameplay.recollection import Recollection
 from gameplay.stationary import Stationary
 from tool_get_coord import GetCoord
 from app_data import AppData
-from utils.exe_manager import ExeManager
 from utils.stoppable_thread import StoppableThread
 from engine.engine import engine
 from engine.world import world
@@ -23,12 +21,12 @@ import psutil
 import json
 
 path_cfg_statrup = 'config/startup.json'
-exe_manager = ExeManager()
 
 
 class StartupLogic:
     def __init__(self, app: tk.Tk):
-        self.app_data = AppData(update_ui=self.update_ui)
+        self.app_data = AppData()
+        self.app_data.update_ui = self.update_ui
         self.app = app
         self.stats_label = None
         self.message_text = None
@@ -50,10 +48,6 @@ class StartupLogic:
         if self.inited:
             return
         try:
-            exe_manager.set_exe_path(cfg_startup.get('exe_path'))
-            if exe_manager.exe_path and not exe_manager.is_exe_running():
-                exe_manager.start_exe()
-            time.sleep(5)
             engine.set(self.app_data)
             world.set(self.app_data)
             battle.set(self.app_data)
@@ -148,6 +142,8 @@ class StartupLogic:
         self.update_ui("休息一下，停止当前操作...")
         if self.app_data.thread is not None:
             self.app_data.thread.stop()
+        if self.app_data.monopoly_deamon_thread is not None:
+            self.app_data.monopoly_deamon_thread.stop()
         self.write_to_file(self.log_file)
 
     def update_ui(self, msg, type='info'):
@@ -227,7 +223,8 @@ class StartupLogic:
         current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         message = f"[{current_time}] 游戏盘开始\n"
         engine.write_to_file(message, self.log_file)
-        self.monopoly = Monopoly(self.app_data)
+
+        self.monopoly = Monopoly()
         self.monopoly.start()
 
     def _evt_recollection(self):
