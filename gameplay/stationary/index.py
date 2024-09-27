@@ -35,8 +35,8 @@ class Stationary:
             battle_count = 0
             cfg_stationary.reload()
             run_enabled = cfg_stationary.get("run_enabled")
-            max_battle_count = cfg_stationary.get("max_battle_count")
-            max_run_count = cfg_stationary.get("max_run_count")
+            max_battle_count = int(cfg_stationary.get("max_battle_count"))
+            max_run_count = int(cfg_stationary.get("max_run_count"))
             run_count = max_battle_count
 
             turn_direction = 1
@@ -86,12 +86,12 @@ class Stationary:
                         if world_round_settle:
                             world_round_settle = False
 
-                            if battle_count >= max_battle_count and not is_run:
+                            if run_enabled and battle_count >= max_battle_count and not is_run:
                                 self.update_ui(f"战斗次数{battle_count}达到上限{max_battle_count}, 开始逃跑")
                                 is_run = True
                                 run_count = 0
 
-                            if run_count >= max_run_count and is_run:
+                            if run_enabled and run_count >= max_run_count and is_run:
                                 self.update_ui(f"逃跑次数{run_count}达到上限{max_run_count}，开始战斗")
                                 is_run = False
                                 battle_count = 0

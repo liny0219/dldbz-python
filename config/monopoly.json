@@ -58,7 +58,7 @@
     "enemy_match_threshold": "0.5",
     "enemy": {
         "802": {
-            "赫尔米尼亚": "./image/802/01.png"
+            "赫尔米尼亚": "./image/check_enmey/802/01.png"
         }
     },
     "action": {
