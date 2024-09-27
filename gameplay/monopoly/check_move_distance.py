@@ -16,7 +16,7 @@ def check_move_distance(monopoly: Monopoly):
         currentshot = monopoly.screenshot
         if len(currentshot) == 0:
             currentshot = monopoly.shot()
-        app_data.update_ui(f"check-剩余步数")
+        app_data.update_ui(f"check-剩余步数", 'debug')
         current_image = currentshot[y:y+height, x:x+width]
         number = ocr_number(current_image, crop_type="center", type="move_distance")
 
