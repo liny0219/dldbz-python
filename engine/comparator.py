@@ -120,7 +120,7 @@ class Comparator:
         - convert_gray: 是否转化为灰度图
         '''
         color_img = screenshot
-        if (leftup_coordinate and rightdown_coordinate):
+        if (len(leftup_coordinate) == 2 and len(rightdown_coordinate) == 2):
             x1, y1 = leftup_coordinate
             x2, y2 = rightdown_coordinate
             color_img = color_img[y1:y2, x1:x2]
@@ -284,7 +284,7 @@ class Comparator:
         '''
         leftup_coordinate = None,
         rightdown_coordinate = None
-        if coordinate:
+        if coordinate is not None:
             leftup_coordinate = coordinate[0]
             rightdown_coordinate = coordinate[1]
         # else:

@@ -21,14 +21,16 @@ def btn_continue():
 def on_continue():
     if config.cfg_isContinue == 0:
         btn_not_continue()
+        app_data.update_ui("点击-不继续游戏")
     else:
         btn_continue()
+        app_data.update_ui("点击-继续游戏")
 
 
 def check_in_continue(monopoly: Monopoly):
-    app_data.update_ui("check-是否继续游戏", 'debug')
+    app_data.update_ui("check-是否继续游戏弹窗", 'debug')
     coord = comparator.template_compare(f"./assets/monopoly/monopoly_continue.png", screenshot=monopoly.screenshot)
     if coord:
-        app_data.update_ui("find-继续游戏")
+        app_data.update_ui("find-是否继续游戏弹窗")
         return State.Continue
     return False

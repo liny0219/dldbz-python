@@ -8,7 +8,7 @@ from engine.engine import engine
 from engine.comparator import comparator
 
 
-def ocr_number(screenshot, crop_type="left"):
+def ocr_number(screenshot, crop_type="left", type="ocr"):
     if screenshot is None:
         return None
     width = screenshot.shape[1]
@@ -23,7 +23,7 @@ def ocr_number(screenshot, crop_type="left"):
         write_ocr_log(result, screenshot, 'screenshot')
         result = process_image(retry_src)
 
-    write_ocr_log(result, retry_src, 'retry_src')
+    write_ocr_log(result, retry_src, f'{type}_retry_src')
 
     if not is_number(result):
         list_img.append(retry_src)
@@ -42,7 +42,7 @@ def ocr_number(screenshot, crop_type="left"):
         if is_number(result):
             app_data.update_ui("裁剪识别成功")
 
-    write_ocr_log(result, crop_img, 'crop_img')
+    write_ocr_log(result, crop_img, f'{type}_crop_img')
 
     if not is_number(result):
         list_img.append(crop_img)
@@ -56,22 +56,8 @@ def ocr_number(screenshot, crop_type="left"):
         if is_number(result):
             app_data.update_ui("缩小识别成功")
 
-    write_ocr_log(result, scale_src, 'scale_src')
+    write_ocr_log(result, scale_src, f'{type}_scale_src')
 
-    if not is_number(result):
-        list_img.append(scale_image)
-        app_data.update_ui("未识别到距离，预处理重试")
-        for i in range(len(list_img)):
-            pro_img = list_img[i]
-            if (len(pro_img) == 0):
-                continue
-            process_img = comparator.process_image(pro_img, threshold_value=120)
-            result = comparator.get_num_in_image(process_img)
-            write_ocr_log(result, process_img, f'process_image_{i}')
-            del pro_img
-            del process_img
-        if is_number(result):
-            app_data.update_ui("预处理识别成功")
     del crop_img
     del scale_src
     del retry_src
@@ -110,6 +96,75 @@ def process_image(current_image, threshold=100):
     return result
 
 
+cache_distance = {}
+cache_move = {}
+
+
+def init_ocr_cache(type):
+    image_dir_distance = os.path.join("image", "distance", type)
+    image_dir_step = os.path.join("image", "distance", type)
+    init_distance_cache(image_dir_distance)
+    init_distance_cache(image_dir_step)
+
+
+def init_distance_cache(image_dir):
+    if not check_directory_exists(image_dir):  # 确保目录存在
+        return None
+
+    files = sorted(
+        [f for f in os.listdir(image_dir) if f.endswith(".png")],
+        key=lambda x: int(x.replace(".png", "")),  # 提取文件名前的数字并转换为整数
+        reverse=True  # 倒序排列
+    )
+    for image_name in files:
+        image_path = os.path.join(image_dir, image_name)
+        # todo 后续改为存储二值化图片,减少每次比较的IO操作
+        # image = cv2.imread(image_path, cv2.IMREAD_UNCHANGED)
+        # # 二值化，阈值为128，超过的变成255，以下的变成0
+        # _, binary_image = cv2.threshold(image, 128, 255, cv2.THRESH_BINARY)
+        # cache[image_name.replace(".png", "")] = binary_image
+        cache_distance[image_name.replace(".png", "")] = image_path
+
+
+def init_move_cache(image_dir):
+    if not check_directory_exists(image_dir):  # 确保目录存在
+        return None
+
+    files = sorted(
+        [f for f in os.listdir(image_dir) if f.endswith(".png")],
+        key=lambda x: int(x.replace(".png", "")),  # 提取文件名前的数字并转换为整数
+        reverse=True  # 倒序排列
+    )
+    for image_name in files:
+        image_path = os.path.join(image_dir, image_name)
+        # todo 后续改为存储二值化图片,减少每次比较的IO操作
+        # image = cv2.imread(image_path, cv2.IMREAD_UNCHANGED)
+        # # 二值化，阈值为128，超过的变成255，以下的变成0
+        # _, binary_image = cv2.threshold(image, 128, 255, cv2.THRESH_BINARY)
+        # cache[image_name.replace(".png", "")] = binary_image
+        cache_move[image_name.replace(".png", "")] = image_path
+
+
+def match_distance_template_in_directory(screenshot, threshold=0.7):
+    if screenshot is None or len(screenshot) == 0:  # 确保截图不为空
+        return None
+    for key in cache_distance.keys():
+        path = cache_distance[key]
+        if comparator.template_compare(path, screenshot=screenshot, match_threshold=threshold):
+            return key
+    return None
+
+
+def match_move_template_in_directory(screenshot, threshold=0.7):
+    if screenshot is None or len(screenshot) == 0:  # 确保截图不为空
+        return None
+    for key in cache_move.keys():
+        path = cache_move[key]
+        if comparator.template_compare(path, screenshot=screenshot, match_threshold=threshold):
+            return key
+    return None
+
+
 def write_ocr_log(result, current_image, type):
     if is_number(result) or len(current_image) == 0:
         return
@@ -126,3 +181,12 @@ def write_ocr_log(result, current_image, type):
 
 def is_number(value):
     return isinstance(value, (int, float))
+
+
+def check_directory_exists(directory_path):
+    if os.path.isdir(directory_path):
+        print(f"目录存在: {directory_path}")
+        return True
+    else:
+        print(f"目录不存在: {directory_path}")
+        return False

@@ -32,6 +32,9 @@ class BattleVee:
     def btn_auto_battle_start(self):
         engine.device.click(825, 482)
 
+    def btn_auto_battle_stop(self):
+        engine.device.click(480, 472)
+
     def btn_quit_battle(self):
         engine.device.click(440, 482)
 
@@ -104,6 +107,42 @@ class BattleVee:
             self.cfg_auto_battle_stay, [(705, 450), (946, 520)],  screenshot=screenshot)
         if result:
             self.update_ui("find-在自动战斗停留界面中", 'debug')
+            return True
+        return False
+
+    def is_cat(self, screenshot=None):
+        if self.is_cat50(screenshot):
+            return True
+        if self.is_cat55(screenshot):
+            return True
+        if self.is_cat70(screenshot):
+            return True
+        return False
+
+    def is_cat55(self, screenshot=None):
+        self.update_ui("check-猫55界面中", 'debug')
+        result = comparator.template_compare(
+            './assets/cat/55.png',  screenshot=screenshot)
+        if result:
+            self.update_ui("find-猫55界面中", 'debug')
+            return True
+        return False
+
+    def is_cat50(self, screenshot=None):
+        self.update_ui("check-猫50界面中", 'debug')
+        result = comparator.template_compare(
+            './assets/cat/50.png',  screenshot=screenshot)
+        if result:
+            self.update_ui("find-猫50界面中", 'debug')
+            return True
+        return False
+
+    def is_cat70(self, screenshot=None):
+        self.update_ui("check-猫70界面中", 'debug')
+        result = comparator.template_compare(
+            './assets/cat/70.png',  screenshot=screenshot)
+        if result:
+            self.update_ui("find-猫70界面中", 'debug')
             return True
         return False
 

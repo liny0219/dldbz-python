@@ -18,6 +18,7 @@ from gameplay.monopoly.check_in_game_title import check_in_game_title
 from gameplay.monopoly.config import config, set_config
 from gameplay.monopoly.constants import State
 from gameplay.monopoly.daemon import daemon
+from gameplay.monopoly.ocr import init_ocr_cache
 from utils.stoppable_thread import StoppableThread
 
 
@@ -97,9 +98,11 @@ class Monopoly():
 
     def start(self):
         try:
+
             if not set_config():
                 app_data.update_ui("配置文件加载失败", 'error')
                 return
+            init_ocr_cache(config.cfg_type)
             self.reset_turn()
             if self.enemy and self.action and config.cfg_enemy_check == 1:
                 self.find_enemy = True

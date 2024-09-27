@@ -20,6 +20,9 @@ def check_map_end(monopoly: Monopoly):
         (164, 175, [53, 43, 31]),
         (442, 113, [236, 235, 233])]
     if comparator.match_point_color(points_with_colors, screenshot=monopoly.screenshot):
-        app_data.update_ui("find-结算")
+        app_data.update_ui("find-结算", 'debug')
+        return True
+    if comparator.template_compare("./assets/monopoly/finish.png", screenshot=monopoly.screenshot):
+        app_data.update_ui("find-结算", 'debug')
         return True
     return False
