@@ -8,7 +8,7 @@ import tkinter.messagebox
 from engine.battle import battle
 from gameplay.monopoly.index import Monopoly
 from gameplay.recollection import Recollection
-from gameplay.stationary import Stationary
+from gameplay.stationary.index import Stationary
 from tool_get_coord import GetCoord
 from app_data import AppData
 from utils.stoppable_thread import StoppableThread
@@ -17,10 +17,11 @@ from engine.world import world
 from engine.comparator import comparator
 from utils.config_loader import cfg_startup, update_json_config
 import tkinter as tk
-import psutil
 import json
 
 path_cfg_statrup = 'config/startup.json'
+path_cfg_stationary = 'config/stationary.json'
+path_cfg_monopoly = 'config/monopoly.json'
 
 
 class StartupLogic:
@@ -103,15 +104,6 @@ class StartupLogic:
         self.update_ui("正在关闭程序，请稍等...")
         if self.app_data.thread:
             self.app_data.thread.stop()
-        for proc in psutil.process_iter(['pid', 'name']):
-            if 'adb' in proc.info['name']:
-                print(f"终止进程: {proc.info['name']} (PID: {proc.info['pid']})")
-                proc.terminate()
-                try:
-                    proc.wait(3)
-                except psutil.TimeoutExpired:
-                    print(f"强制终止进程: {proc.info['name']}")
-                    proc.kill()
         self.on_stop()
         self.app.quit()
         self.app.destroy()
@@ -339,3 +331,9 @@ class StartupLogic:
 
     def update_stats_label(self, stats):
         self.stats_label.config(text=stats)
+
+    def set_stationary_config(self, text, key):
+        update_json_config(path_cfg_stationary, key, text)
+
+    def set_monopoly_config(self, text, key):
+        update_json_config(path_cfg_monopoly, key, text)

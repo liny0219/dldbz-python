@@ -11,7 +11,7 @@ def report_end(monopoly: Monopoly):
     if not monopoly.reported_finish:
         monopoly.finished_count += 1
         monopoly.reported_finish = True
-        app_data.update_ui(f"find-完成一局", 'debug')
+        app_data.update_ui(f"find-完成一局")
 
 
 def report_finish(monopoly: Monopoly):

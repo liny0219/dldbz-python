@@ -136,4 +136,5 @@ def main(version='1.0.0'):
         shutil.move(os.path.join(dist_dir, filename), os.path.join(package_dir, filename))
     copy_files_and_directories(package_dir, items_to_copy)
     copy_md_as_txt('readme.md', package_dir, 'readme.txt')
+    copy_md_as_txt('更新说明.md', package_dir, '更新说明.txt')
     zip_directory(package_dir, publish_dir, zip_filename, zip_filename_dir)
