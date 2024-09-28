@@ -86,20 +86,6 @@ class StartupLogic:
     def set_message_text(self, message_text):
         self.message_text = message_text
 
-    def set_port_ui(self, entry: tk.Entry, port_val: tk.StringVar):
-        self.port_entry = entry
-        self.port_value = port_val
-        with open(path_cfg_statrup, 'r', encoding='utf-8') as file:
-            data = json.load(file)
-            self.port_value.set(data['adb_port'])
-
-    def set_exe_ui(self, entry: tk.Entry, port_val: tk.StringVar):
-        self.exe_entry = entry
-        self.exe_value = port_val
-        with open(path_cfg_statrup, 'r', encoding='utf-8') as file:
-            data = json.load(file)
-            self.exe_value.set(data['exe_path'])
-
     def on_close(self):
         self.update_ui("正在关闭程序，请稍等...")
         if self.app_data.thread:
@@ -255,48 +241,6 @@ class StartupLogic:
         coordinate_getter = GetCoord(self.app_data)
         coordinate_getter.show_coordinates_window()
 
-    def btn_set_exe_path(self):
-        # 弹出警告框
-        response = tkinter.messagebox.askokcancel("配置修改警告",
-                                                  "请注意，修改配置后需要重启程序才能生效。是否继续修改？")
-        if response:
-            if os.path.exists(path_cfg_statrup):
-                user_input = self.port_entry.get()
-                update_json_config(path_cfg_statrup, 'adb_port', user_input)
-            else:
-                self.update_ui("配置文件(startup.json)不存在，请检查！")
-
-    def btn_set_exe_path(self):
-        if os.path.exists(path_cfg_statrup):
-            user_input = self.exe_entry.get()
-            update_json_config(path_cfg_statrup, 'exe_path', user_input)
-        else:
-            self.update_ui("配置文件(startup.json)不存在，请检查！")
-
-    def btn_set_mumu_port(self):
-        # 弹出警告框
-        response = tkinter.messagebox.askokcancel("配置修改警告",
-                                                  "请注意，修改配置后需要重启程序才能生效。是否继续修改？")
-        if response:
-            if os.path.exists(path_cfg_statrup):
-                str_port = "127.0.0.1:16384"
-                update_json_config(path_cfg_statrup, 'adb_port', str_port)
-                self.port_value.set(str_port)
-            else:
-                self.update_ui("帮助文档(readme.txt)不存在，请检查！")
-
-    def btn_set_ld_port(self):
-        # 弹出警告框
-        response = tkinter.messagebox.askokcancel("配置修改警告",
-                                                  "请注意，修改配置后需要重启程序才能生效。是否继续打开配置文件？")
-        if response:
-            if os.path.exists(path_cfg_statrup):
-                str_port = "127.0.0.1:5555"
-                update_json_config(path_cfg_statrup, 'adb_port', str_port)
-                self.port_value.set(str_port)
-            else:
-                self.update_ui("帮助文档(readme.txt)不存在，请检查！")
-
     def open_monopoly_config(self):
         file_path = os.path.join('config', 'monopoly.json')
         if os.path.exists(file_path):
@@ -331,6 +275,12 @@ class StartupLogic:
 
     def update_stats_label(self, stats):
         self.stats_label.config(text=stats)
+
+    def set_startup_config(self, text, key):
+        response = tkinter.messagebox.askokcancel("配置修改警告",
+                                                  "请注意，修改配置后需要重启程序才能生效。是否继续打开配置文件？")
+        if response:
+            update_json_config(path_cfg_statrup, key, text)
 
     def set_stationary_config(self, text, key):
         update_json_config(path_cfg_stationary, key, text)
