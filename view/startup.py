@@ -2,7 +2,7 @@ import tkinter as tk
 import tkinter.ttk as ttk
 from tkinter import Label
 from view.startup_logic import StartupLogic
-from utils.config_loader import cfg_version, cfg_stationary, cfg_monopoly
+from utils.config_loader import cfg_version, cfg_stationary, cfg_monopoly, cfg_startup
 from PIL import Image, ImageTk
 
 
@@ -201,27 +201,17 @@ class App:
         print(f"选中的选项: {option}")
 
     def create_settings_frame(self, frame):
-        label_port = tk.Label(frame, text="当前端口:")
-        label_port.grid(row=0, column=0, padx=2, pady=2)
-        entry_port_val = tk.StringVar()
-        entry = tk.Entry(frame, textvariable=entry_port_val, width=30)
-        entry.grid(row=0, column=1, padx=10, pady=10)
-        self.startup.set_port_ui(entry, entry_port_val)
-
-        btn_port_setting = tk.Button(frame, text="修改端口", width=15, height=1, command=self.startup.btn_set_exe_path)
-        btn_port_setting.grid(row=0, column=2, padx=10, pady=10)
-
-        tk.Button(frame, text="设置雷电端口", command=self.startup.btn_set_ld_port,
-                  font=("Segoe UI", 10), width=30, height=1).grid(row=2, column=0, padx=10, pady=10)
-        tk.Button(frame, text="设置mumu端口", command=self.startup.btn_set_mumu_port,
-                  font=("Segoe UI", 10), width=30, height=1).grid(row=2, column=1, padx=10, pady=10)
+        adb_port = cfg_startup.get("adb_port")
+        self.input_port = InputComponent(
+            frame, "当前端口:", lambda text: self.startup.set_startup_config(text, 'adb_port'), default_value=adb_port, entry_width=30)
+        self.input_port.grid(row=0, column=0, columnspan=3, pady=10)
 
         tk.Button(frame, text="启动设置", command=self.startup.open_startup_config,
-                  font=("Segoe UI", 10), width=30, height=1).grid(row=3, column=0, padx=10, pady=10)
+                  font=("Segoe UI", 10), width=30, height=1).grid(row=2, column=0, padx=10, pady=10)
         tk.Button(frame, text="游戏盘设置", command=self.startup.open_monopoly_config,
-                  font=("Segoe UI", 10), width=30, height=1).grid(row=3, column=1, padx=10, pady=10)
+                  font=("Segoe UI", 10), width=30, height=1).grid(row=2, column=1, padx=10, pady=10)
         tk.Button(frame, text="打开日志", command=self.startup.open_log,
-                  font=("Segoe UI", 10), width=30, height=1).grid(row=3, column=2, padx=10, pady=10)
+                  font=("Segoe UI", 10), width=30, height=1).grid(row=2, column=2, padx=10, pady=10)
 
     def find_widget_by_name(self, parent, widget_name):
         """递归查找具有指定name的组件"""
@@ -294,7 +284,7 @@ class ComboBoxComponent:
 
 
 class InputComponent:
-    def __init__(self, master, label_text, on_submit, default_value=0, label_width=8):
+    def __init__(self, master, label_text, on_submit, default_value=0, label_width=8, entry_width=10):
         self.frame = tk.Frame(master)
 
         # 创建标签
@@ -302,7 +292,7 @@ class InputComponent:
         self.label.pack(side=tk.LEFT)
 
         # 创建输入框
-        self.entry = tk.Entry(self.frame, width=10)
+        self.entry = tk.Entry(self.frame, width=entry_width)
         self.entry.pack(side=tk.LEFT, fill=tk.X)
         self.entry.insert(0, str(default_value))  # 设置默认值
         # 创建确定按钮
@@ -312,6 +302,10 @@ class InputComponent:
     def pack(self, **kwargs):
         # 使用显式传递来避免重复传递参数问题
         self.frame.pack(**kwargs)
+
+    def grid(self, **kwargs):
+        # 使用显式传递来避免重复传递参数问题
+        self.frame.grid(**kwargs)
 
     def set_value(self, value):
         self.entry.delete(0, tk.END)  # 清除输入框现有内容
