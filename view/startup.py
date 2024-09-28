@@ -2,14 +2,17 @@ import tkinter as tk
 import tkinter.ttk as ttk
 from tkinter import Label
 from view.startup_logic import StartupLogic
-from utils.config_loader import cfg_version
+from utils.config_loader import cfg_version, cfg_stationary, cfg_monopoly
+from PIL import Image, ImageTk
 
 
 class App:
     def __init__(self):
         self.app = tk.Tk()
         self.app.title(f"大霸茶馆v{cfg_version.get('version')}")
-        self.app.geometry("800x600")  # 增加窗口宽度
+        width = 900
+        height = 600
+        self.app.geometry(f"{width}x{height}")  # 增加窗口宽度
         icon_path = 'image/icon_title.ico'
         self.app.iconbitmap(icon_path)
         self.startup = StartupLogic(self.app)
@@ -19,8 +22,33 @@ class App:
         self.bold_font = ("Segoe UI", 18, 'bold')
         self.configure_styles()
 
+        left_label, left_image = self.load_and_display_image('image/2b.png')
+        left_label.place(x=width-110, y=10)
+        self.left_image = left_image
+
+        right_label, right_image = self.load_and_display_image('image/2a.png')
+        right_label.place(x=10, y=10)
+        self.right_image = right_image
+
         self.create_widgets()
         self.app.protocol("WM_DELETE_WINDOW", lambda: self.startup.on_close())
+
+    def load_and_display_image(self, image_path):
+        # 使用Pillow加载图片
+        original_image = Image.open(image_path)
+
+        # 设置目标宽度
+        target_width = 100
+        aspect_ratio = original_image.height / original_image.width
+        target_height = int(target_width * aspect_ratio)
+
+        # 调整图片大小
+        resized_image = original_image.resize((target_width, target_height), Image.LANCZOS)
+        image = ImageTk.PhotoImage(resized_image)
+
+        # 创建标签并显示图片
+        label = tk.Label(self.app, image=image)
+        return label, image
 
     def configure_styles(self):
         self.style.configure('TNotebook.Tab', font=('Segoe UI', '12', 'bold'), padding=[20, 8])
@@ -73,8 +101,9 @@ class App:
         button_frame = tk.Frame(frame)
         button_frame.pack(side='left', fill='y', padx=10, pady=10)
 
-        info_frame = tk.Frame(frame)
-        info_frame.pack(side='left', fill='both', expand=True, padx=10, pady=10)
+        info_frame = tk.Frame(frame, width=500)
+        info_frame.pack_propagate(0)
+        info_frame.pack(side='left', fill='y', padx=10, pady=10)
 
         main_button = {"text": "大霸启动", "command": self.startup.on_monopoly}
         if frame == self.recollection_frame:
@@ -97,11 +126,79 @@ class App:
                       font=("Segoe UI", 10), width=10, height=1).pack(pady=5)
 
         message_text = tk.Text(info_frame, name="info_label", wrap=tk.WORD,
-                               font=("Segoe UI", 10), height=15, state=tk.DISABLED)
-        message_text.pack(side='left', fill='both', expand=True, padx=10, pady=10)
+                               font=("Segoe UI", 10), width=500, height=15, state=tk.DISABLED)
+        message_text.pack(side='left', fill='y', expand=True, padx=10, pady=10)
 
         message_scrollbar = tk.Scrollbar(info_frame, orient=tk.VERTICAL, command=message_text.yview)
         message_scrollbar.pack(side='right', fill='y')
+        if frame == self.monopoly_frame:
+            cfg_monopoly_type = cfg_monopoly.get("type")
+            cfg_monopoly_ticket = cfg_monopoly.get("ticket")
+            cfg_monopoly_lv = cfg_monopoly.get("lv")
+            cfg_monopoly_enemy_check = cfg_monopoly.get("enemy_check")
+            self.cmb_monopoly_type = ComboBoxComponent(
+                frame, "游戏盘:", {
+                    "80权利": "801",
+                    "80财富": "802",
+                    "80名声": "803",
+                }, lambda text: self.startup.set_monopoly_config(text, 'type'), default_value=cfg_monopoly_type)
+            self.cmb_monopoly_type.pack(padx=10, pady=5, anchor=tk.W)  # 组件左对齐
+
+            self.cmb_ticket_type = ComboBoxComponent(
+                frame, "票数:", {
+                    "0": "0",
+                    "1": "1",
+                    "2": "2",
+                    "3": "3",
+                    "4": "4",
+                    "5": "5",
+                    "6": "6",
+                    "7": "7",
+                    "8": "8",
+                }, lambda text: self.startup.set_monopoly_config(text, 'ticket'), default_value=cfg_monopoly_ticket)
+            self.cmb_ticket_type.pack(padx=10, pady=5, anchor=tk.W)  # 组件左对齐
+
+            self.cmb_ticket_type = ComboBoxComponent(
+                frame, "难度:", {
+                    "0": "0",
+                    "1": "1",
+                    "2": "2",
+                    "3": "3",
+                    "4": "4",
+                    "5": "5",
+                }, lambda text: self.startup.set_monopoly_config(text, 'lv'), default_value=cfg_monopoly_lv)
+            self.cmb_ticket_type.pack(padx=10, pady=5, anchor=tk.W)  # 组件左对齐
+
+            self.cmb_enemy_check = ComboBoxComponent(
+                frame, "检测敌人:", {
+                    "关闭": "0",
+                    "开启": "1"
+                }, lambda text: self.startup.set_monopoly_config(text, 'enemy_check'), default_value=cfg_monopoly_enemy_check)
+            self.cmb_enemy_check.pack(padx=10, pady=5, anchor=tk.W)  # 组件左对齐
+
+        if frame == self.map_frame:
+            run_enabled = cfg_stationary.get("run_enabled")
+            max_battle_count = cfg_stationary.get("max_battle_count")
+            max_run_count = cfg_stationary.get("max_run_count")
+            cmb_run_enabled_text = int(run_enabled)
+            self.cmb_run_enabled = ComboBoxComponent(
+                frame, "打N跑N:", {
+                    "关闭": False,
+                    "开启": True
+                }, lambda text: self.startup.set_stationary_config(text, 'run_enabled'), default_value=cmb_run_enabled_text)
+            self.cmb_run_enabled.pack(padx=10, pady=5, anchor=tk.W)  # 组件左对齐
+
+            self.input_max_battle_count = InputComponent(
+                frame, "战斗N次:", lambda text: self.startup.set_stationary_config(text, 'max_battle_count'), default_value=max_battle_count)
+            self.input_max_battle_count.pack(padx=10, pady=5, anchor=tk.W)  # 组件左对齐
+
+            self.input_max_run_count = InputComponent(
+                frame, "逃跑N次:", lambda text: self.startup.set_stationary_config(text, 'max_run_count'), default_value=max_run_count)
+            self.input_max_run_count.pack(padx=10, pady=5, anchor=tk.W)  # 组件
+
+    def on_option_selected(self, option, key):
+
+        print(f"选中的选项: {option}")
 
     def create_settings_frame(self, frame):
         label_port = tk.Label(frame, text="当前端口:")
@@ -149,3 +246,73 @@ class App:
 
     def run(self):
         self.app.mainloop()
+
+
+class ComboBoxComponent:
+    def __init__(self, master, label_text,  value_map, on_select, default_value=0, label_width=8):
+        self.frame = tk.Frame(master)
+
+        # 创建标签
+        self.label = tk.Label(self.frame, text=label_text, anchor=tk.W, width=label_width)
+        self.label.pack(side=tk.LEFT)
+
+        # 保存值映射字典
+        self.value_map = value_map
+        self.inverse_value_map = {v: k for k, v in value_map.items()}  # 反向映射用于设置选中的文本
+
+        # 创建下拉框并显示可读选项
+        self.combobox = ttk.Combobox(self.frame, values=list(self.value_map.keys()), width=8)
+        self.combobox.pack(side=tk.LEFT, fill=tk.X)
+
+        # 设置默认选项（根据映射值找到对应的key，然后获取其索引）
+        if default_value is not None and default_value in self.inverse_value_map:
+            default_key = self.inverse_value_map[default_value]  # 根据value找到key
+            default_index = list(self.value_map.keys()).index(default_key)  # 根据key找到对应的索引
+            self.combobox.current(default_index)  # 设
+
+        # 创建确定按钮，点击时传递映射后的值
+        self.button = tk.Button(self.frame, text="确定", command=self.select_value)
+        self.button.pack(side=tk.RIGHT, padx=10)
+
+        # 保存回调函数
+        self.on_select = on_select
+
+    def pack(self, **kwargs):
+        self.frame.pack(**kwargs)
+
+    def select_value(self):
+        selected_text = self.combobox.get()  # 获取用户可见的选项
+        mapped_value = self.value_map.get(selected_text)  # 将选项映射为实际值
+        if mapped_value is not None:
+            self.on_select(mapped_value)
+
+    def set_selected_value(self, value):
+        # 将内部值映射回可见的选项并更新 Combobox
+        if value in self.inverse_value_map:
+            selected_text = self.inverse_value_map[value]
+            self.combobox.set(selected_text)
+
+
+class InputComponent:
+    def __init__(self, master, label_text, on_submit, default_value=0, label_width=8):
+        self.frame = tk.Frame(master)
+
+        # 创建标签
+        self.label = tk.Label(self.frame, text=label_text, anchor=tk.W, width=label_width)
+        self.label.pack(side=tk.LEFT)
+
+        # 创建输入框
+        self.entry = tk.Entry(self.frame, width=10)
+        self.entry.pack(side=tk.LEFT, fill=tk.X)
+        self.entry.insert(0, str(default_value))  # 设置默认值
+        # 创建确定按钮
+        self.button = tk.Button(self.frame, text="确定", command=lambda: on_submit(self.entry.get()))
+        self.button.pack(side=tk.RIGHT, padx=10)  # 增加横向间距
+
+    def pack(self, **kwargs):
+        # 使用显式传递来避免重复传递参数问题
+        self.frame.pack(**kwargs)
+
+    def set_value(self, value):
+        self.entry.delete(0, tk.END)  # 清除输入框现有内容
+        self.entry.insert(0, str(value))  # 插入新的值

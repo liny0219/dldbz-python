@@ -1,7 +1,7 @@
 from tool_build_base import main
 
 
-version = '2.8.5'
+version = '2.8.7'
 
 if __name__ == '__main__':
     main(version)

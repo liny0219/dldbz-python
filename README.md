@@ -71,7 +71,7 @@
   "enemy_match_threshold": "0.5", // 敌人图片精度
   "enemy": {
     "802": { // 财富盘
-      "赫尔米尼亚": "./image/802/01.png" // boss图片,可自定义扩展,放在image/游戏盘编号/图片名称
+      "赫尔米尼亚": "./image/check_enmey/802/01.png" // boss图片,可自定义扩展,放在image/游戏盘编号/图片名称
     }
   },
   "action": { // 设置识别到敌人后的对应行动,以财富boss为例子,匹配到boss后,执行点击命令,优先攻击boss

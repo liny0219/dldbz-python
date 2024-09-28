@@ -11,7 +11,7 @@ def report_end(monopoly: Monopoly):
     if not monopoly.reported_finish:
         monopoly.finished_count += 1
         monopoly.reported_finish = True
-        app_data.update_ui(f"find-完成一局", 'debug')
+        app_data.update_ui(f"find-完成一局")
 
 
 def report_finish(monopoly: Monopoly):
@@ -41,7 +41,7 @@ def report_finish(monopoly: Monopoly):
         total_duration = (monopoly.total_finish_time + monopoly.total_failed_time)
 
         msg1 = f"成功{monopoly.finished_count}次, 翻车{failed_count}次, 重启{monopoly.restart}次"
-        msg2 = f"本轮{turn_duration:.1f}分钟,成功平均{avg_finish_duration:.1f}分钟,翻车平均{avg_failed_duration:.1f}分钟"
-        msg3 = f"扔骰子{monopoly.roll_time}次, 总耗时{total_duration:.1f}分钟"
-        app_data.update_ui(f"{msg1},{msg2},{msg3}", 'stats')
+        msg2 = f"成功平均{avg_finish_duration:.1f}分钟,翻车平均{avg_failed_duration:.1f}分钟 \n"
+        msg3 = f"本轮{turn_duration:.1f}分钟,扔骰子{monopoly.roll_time}次, 总耗时{total_duration:.1f}分钟"
+        app_data.update_ui(f"{msg1},{msg2}{msg3}", 'stats')
         monopoly.reported_end = True

@@ -52,10 +52,11 @@ def turn_auto_crossing(monopoly: Monopoly, crossing_index):
     if not config.cfg_crossing or not config.cfg_crossing[crossing_index]:
         return
     rule = config.cfg_crossing[crossing_index]
+    update_crossing_msg(monopoly, f"check-大富翁路口{crossing_index}")
     move_step = check_move_distance(monopoly)
     if not is_number(move_step):
         app_data.update_ui(f"未检测到移动步数,{move_step}")
-    update_crossing_msg(monopoly, f"find-大富翁路口{crossing_index}, 移动步数{move_step}")
+    update_crossing_msg(monopoly, f"find-大富翁路口{crossing_index}, 剩余步数{move_step}")
     default = rule["default"]
     if not is_number(move_step):
         if default:
