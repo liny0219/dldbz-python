@@ -28,6 +28,7 @@ def check_map_distance(monopoly: Monopoly):
             app_data.update_ui(f"check-检查距离失败启动备用图片识别")
             if len(cache_distance.keys()) == 0:
                 app_data.update_ui(f"check-没有备用图片")
+                app_data.update_ui(f"check-检查结束耗时:{time.time() - start_time}", 'debug')
                 return number
             start_time = time.time()
             currentshot = monopoly.shot()
