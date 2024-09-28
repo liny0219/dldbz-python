@@ -14,19 +14,9 @@ def ocr_number(screenshot, crop_type="left", type="ocr"):
     width = screenshot.shape[1]
     crop_img = None
     scale_src = None
-    retry_src = None
-    list_img = []
     result = process_image(screenshot)
 
     if not is_number(result):
-        retry_src = screenshot
-        write_ocr_log(result, screenshot, 'screenshot')
-        result = process_image(retry_src)
-
-    write_ocr_log(result, retry_src, f'{type}_retry_src')
-
-    if not is_number(result):
-        list_img.append(retry_src)
         crop_src = screenshot
         app_data.update_ui("未识别到距离，裁剪重试")
 
@@ -42,26 +32,18 @@ def ocr_number(screenshot, crop_type="left", type="ocr"):
         if is_number(result):
             app_data.update_ui("裁剪识别成功")
 
-    write_ocr_log(result, crop_img, f'{type}_crop_img')
-
     if not is_number(result):
-        list_img.append(crop_img)
         scale_src = screenshot
         app_data.update_ui("未识别到距离，缩小重试")
         offset = 10
         scale_image = cv2.copyMakeBorder(scale_src, offset, offset, offset, offset,
                                          cv2.BORDER_CONSTANT, value=[0, 0, 0])
-        write_ocr_log(result, scale_image, '')
         result = process_image(scale_image)
         if is_number(result):
             app_data.update_ui("缩小识别成功")
 
-    write_ocr_log(result, scale_src, f'{type}_scale_src')
-
     del crop_img
     del scale_src
-    del retry_src
-    del list_img
     return result
 
 
@@ -102,15 +84,15 @@ cache_move = {}
 
 def init_ocr_cache(type):
     image_dir_distance = os.path.join("image", "distance", type)
-    image_dir_step = os.path.join("image", "distance", type)
+    image_dir_move = os.path.join("image", "move", type)
     init_distance_cache(image_dir_distance)
-    init_distance_cache(image_dir_step)
+    init_move_cache(image_dir_move)
 
 
 def init_distance_cache(image_dir):
     if not check_directory_exists(image_dir):  # 确保目录存在
         return None
-
+    cache_distance.clear()
     files = sorted(
         [f for f in os.listdir(image_dir) if f.endswith(".png")],
         key=lambda x: int(x.replace(".png", "")),  # 提取文件名前的数字并转换为整数
@@ -135,6 +117,7 @@ def init_move_cache(image_dir):
         key=lambda x: int(x.replace(".png", "")),  # 提取文件名前的数字并转换为整数
         reverse=True  # 倒序排列
     )
+    cache_move.clear()
     for image_name in files:
         image_path = os.path.join(image_dir, image_name)
         # todo 后续改为存储二值化图片,减少每次比较的IO操作
@@ -151,7 +134,7 @@ def match_distance_template_in_directory(screenshot, threshold=0.7):
     for key in cache_distance.keys():
         path = cache_distance[key]
         if comparator.template_compare(path, screenshot=screenshot, match_threshold=threshold):
-            return key
+            return int(key)
     return None
 
 
@@ -161,7 +144,7 @@ def match_move_template_in_directory(screenshot, threshold=0.7):
     for key in cache_move.keys():
         path = cache_move[key]
         if comparator.template_compare(path, screenshot=screenshot, match_threshold=threshold):
-            return key
+            return int(key)
     return None
 
 
