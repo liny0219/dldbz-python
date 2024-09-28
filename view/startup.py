@@ -180,6 +180,7 @@ class App:
             run_enabled = cfg_stationary.get("run_enabled")
             max_battle_count = cfg_stationary.get("max_battle_count")
             max_run_count = cfg_stationary.get("max_run_count")
+            battle_wait_time = cfg_stationary.get("battle_wait_time")
             cmb_run_enabled_text = int(run_enabled)
             self.cmb_run_enabled = ComboBoxComponent(
                 frame, "打N跑N:", {
@@ -195,6 +196,10 @@ class App:
             self.input_max_run_count = InputComponent(
                 frame, "逃跑N次:", lambda text: self.startup.set_stationary_config(text, 'max_run_count'), default_value=max_run_count)
             self.input_max_run_count.pack(padx=10, pady=5, anchor=tk.W)  # 组件
+
+            self.input_battle_wait_time = InputComponent(
+                frame, "指令间隔:", lambda text: self.startup.set_stationary_config(text, 'battle_wait_time'), default_value=battle_wait_time)
+            self.input_battle_wait_time.pack(padx=10, pady=5, anchor=tk.W)  # 组件
 
     def on_option_selected(self, option, key):
 

@@ -52,8 +52,9 @@ class StartupLogic:
             engine.set(self.app_data)
             world.set(self.app_data)
             battle.set(self.app_data)
-            not engine.connect()
-
+            if not engine.connect():
+                self.update_ui("连接设备失败，请检查设备连接！")
+                return
             try:
                 comparator.init_ocr()
                 self.update_ui("初始化OCR成功", 0)

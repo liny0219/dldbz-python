@@ -112,12 +112,15 @@ class BattleVee:
 
     def is_cat(self, screenshot=None):
         if self.is_cat50(screenshot):
-            return True
+            self.update_ui("find-猫50界面中")
+            return 50
         if self.is_cat55(screenshot):
-            return True
+            self.update_ui("find-猫55界面中")
+            return 55
         if self.is_cat70(screenshot):
-            return True
-        return False
+            self.update_ui("find-猫70界面中")
+            return 70
+        return 0
 
     def is_cat55(self, screenshot=None):
         self.update_ui("check-猫55界面中", 'debug')
