@@ -34,9 +34,10 @@ class Engine:
         self.app_data = app_data
         try:
             if self.connect():
-                self.update_ui("连接设备成功", 0)
+                self.update_ui("连接设备成功")
             else:
-                self.update_ui("连接设备失败", 0)
+                self.update_ui("连接设备失败")
+                app_data.thread.stop()
         except Exception as e:
             self.update_ui(f"连接设备失败: {e}")
 

@@ -1,5 +1,6 @@
 {
-    "run_enabled": false,
-    "max_battle_count": "5",
-    "max_run_count": "2"
+    "run_enabled": true,
+    "max_battle_count": "100",
+    "max_run_count": "2",
+    "battle_wait_time": "0.2"
 }

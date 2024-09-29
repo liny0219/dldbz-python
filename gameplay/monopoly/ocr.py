@@ -133,7 +133,7 @@ def match_distance_template_in_directory(screenshot, threshold=0.7):
         return None
     for key in cache_distance.keys():
         path = cache_distance[key]
-        if comparator.template_compare(path, screenshot=screenshot, match_threshold=threshold):
+        if comparator.template_compare(path, screenshot=screenshot, match_threshold=threshold, pack=False):
             return int(key)
     return None
 
@@ -143,7 +143,7 @@ def match_move_template_in_directory(screenshot, threshold=0.7):
         return None
     for key in cache_move.keys():
         path = cache_move[key]
-        if comparator.template_compare(path, screenshot=screenshot, match_threshold=threshold):
+        if comparator.template_compare(path, screenshot=screenshot, match_threshold=threshold, pack=False):
             return int(key)
     return None
 

@@ -116,7 +116,6 @@ class Monopoly():
             while not app_data.thread_stoped():
                 try:
                     app_data.update_ui(f"全量检查", 'debug')
-                    time.sleep(config.cfg_check_interval)
 
                     turn_state = None
                     turn_check_state = None
@@ -217,7 +216,6 @@ class Monopoly():
                                 app_data.update_ui(f"更新状态{self.state}")
                                 self.wait_time = time.time()
                                 self.pre_state = round_state
-                            time.sleep(config.cfg_check_interval)
 
                         round_duration = time.time() - self.round_time_start
                         # 检查本轮等待超时
