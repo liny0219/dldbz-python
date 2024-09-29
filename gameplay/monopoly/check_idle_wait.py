@@ -1,7 +1,7 @@
 
 from __future__ import annotations
 import time
-from engine.engine import engine
+from engine.u2_device import u2_device
 from app_data import app_data
 from gameplay.monopoly.config import config
 from gameplay.monopoly.constants import State
@@ -16,7 +16,7 @@ def check_idle_wait(monopoly: Monopoly):
     if monopoly.wait_duration > config.cfg_wait_time:
         min = config.cfg_wait_time/60
         app_data.update_ui(f"{int(min)}分钟未匹配到任何执行函数，重启游戏")
-        engine.restart_game()
+        u2_device.restart_game()
         monopoly.restart += 1
         monopoly.state = State.Unknow
         monopoly.reset_round()

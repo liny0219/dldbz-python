@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 
-from engine.engine import engine
+from engine.u2_device import u2_device
 from engine.world import world
 from gameplay.monopoly.config import config
 from gameplay.monopoly.constants import State
@@ -25,8 +25,8 @@ def check_net_state(monopoly: Monopoly):
 
 
 def btn_back_menu():
-    engine.device.click(380, 309)
+    u2_device.device.click(380, 309)
 
 
 def btn_retry():
-    engine.device.click(576, 310)
+    u2_device.device.click(576, 310)

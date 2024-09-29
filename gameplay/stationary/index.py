@@ -3,7 +3,7 @@ import time
 from app_data import AppData
 from engine.world import world
 from engine.battle_pix import battle_pix
-from engine.engine import engine
+from engine.u2_device import u2_device
 from utils.config_loader import cfg_stationary
 from gameplay.stationary.constants import State
 
@@ -51,7 +51,7 @@ class Stationary:
 
                     is_match = State.Unknow
                     time.sleep(0.1)
-                    self.screenshot = engine.device.screenshot(format='opencv')
+                    self.screenshot = u2_device.device.screenshot(format='opencv')
                     is_in_app = True
                     in_battle = False
                     is_auto_battle_stay = False
@@ -65,11 +65,11 @@ class Stationary:
                         self.update_ui(f"find-猫{is_cat}")
                         pre_battle_total_count = battle_total_count
                     if not in_battle:
-                        is_in_app = engine.check_in_app()
+                        is_in_app = u2_device.check_in_app()
                     if not is_in_app:
                         is_match = State.NotApp
                         self.update_ui("未检查到游戏")
-                        engine.start_app()
+                        u2_device.start_app()
                         continue
 
                     is_game_title = False
@@ -116,7 +116,7 @@ class Stationary:
                             self.update_ui("世界地图循环超时，重新开始")
                             break
                         time.sleep(0.1)
-                        self.screenshot = engine.device.screenshot(format='opencv')
+                        self.screenshot = u2_device.device.screenshot(format='opencv')
                         in_battle = battle_pix.is_in_battle(self.screenshot)
                         is_auto_battle_stay = battle_pix.is_auto_battle_stay(self.screenshot)
                         is_round = battle_pix.is_in_round(self.screenshot)
@@ -143,7 +143,7 @@ class Stationary:
                             time.sleep(battle_wait_time)
                             continue
                         else:
-                            self.screenshot = engine.device.screenshot(format='opencv')
+                            self.screenshot = u2_device.device.screenshot(format='opencv')
                             is_round = battle_pix.is_in_round(self.screenshot)
                             if run_enabled and not is_round and not is_cat:
                                 battle_pix.btn_auto_battle_stop()
@@ -159,7 +159,7 @@ class Stationary:
                         self.update_ui("未检测到任何界面")
                         is_match = State.Unknow
                         self.update_ui(f"检查{retry_count}次{0.1}秒未匹配到任何执行函数，重启游戏")
-                        engine.restart_game()
+                        u2_device.restart_game()
                     continue
                 except Exception as e:
                     self.update_ui(f"发生错误: {e}")

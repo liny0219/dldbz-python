@@ -2,7 +2,7 @@ from __future__ import annotations
 from functools import partial
 from typing import TYPE_CHECKING
 from engine.battle_hook import BattleHook
-from engine.engine import engine
+from engine.u2_device import u2_device
 from engine.comparator import comparator
 from utils.singleton import singleton
 import time
@@ -82,13 +82,13 @@ class Battle:
         self._run_script()
 
     def btn_auto_battle(self):
-        engine.device.click(368, 482)
+        u2_device.device.click(368, 482)
         time.sleep(0.4)
-        engine.device.click(825, 482)
+        u2_device.device.click(825, 482)
         self.update_ui("自动战斗")
 
     def btn_quit_battle(self):
-        engine.device.click(440, 482)
+        u2_device.device.click(440, 482)
         self.update_ui("退出战斗")
 
     def btn_switch(self):
@@ -96,29 +96,29 @@ class Battle:
         all_switch_coord = comparator.template_in_picture(
             self.cfg_allswitch,  return_center_coord=True)
         if all_switch_coord:
-            engine.press(all_switch_coord, T=0.5)
+            u2_device.press(all_switch_coord, T=0.5)
         self.update_ui(f"前后排切换完成")
 
     def btn_all_switch(self):
-        engine.device.click(577, 482)
+        u2_device.device.click(577, 482)
         self.update_ui("全体切换")
 
     def btn_all_bp(self):
         all_boost_coord = comparator.template_in_picture(
             self.cfg_allboost,  return_center_coord=True)
         if all_boost_coord:
-            engine.press(all_boost_coord, T=0.5)
+            u2_device.press(all_boost_coord, T=0.5)
         self.update_ui(f"全能量提升完成")
 
     def btn_attack(self):
         attack_coord = comparator.template_in_picture(
             self.cfg_attack, return_center_coord=True)
         if attack_coord:
-            engine.press(attack_coord)
+            u2_device.press(attack_coord)
             self.update_ui("开始攻击")
 
     def cmd_click(self, x, y):
-        engine.press([int(x), int(y)])
+        u2_device.press([int(x), int(y)])
         self.update_ui(f"点击坐标{x}, {y}")
 
     def cmd_start_attack(self, cb=None):
@@ -133,7 +133,7 @@ class Battle:
             cb()
 
     def cmd_skip(self, duration=2):
-        engine.device.long_click(480, 254, duration)
+        u2_device.device.long_click(480, 254, duration)
         self.update_ui(f"跳过 {duration} 秒")
 
     def cmd_role(self, role, skill, boost=0, x=None, y=None):
@@ -147,7 +147,7 @@ class Battle:
         front_role_id = get_front_front_role_id(role)
         select_role_coord = [self.role_coord_x,
                              self.role_coords_y[front_role_id]]
-        engine.press(select_role_coord)
+        u2_device.press(select_role_coord)
         self._select_enemy(x, y)
         role_in_behind = (role in self.behind)
 
@@ -155,13 +155,13 @@ class Battle:
             switch_coord = comparator.template_in_picture(
                 self.cfg_switch, return_center_coord=True)
             if switch_coord:
-                engine.press(switch_coord)
+                u2_device.press(switch_coord)
                 self.front[front_role_id], self.behind[front_role_id] = self.behind[front_role_id],  self.front[front_role_id]
 
         skill_start = [self.skill_coord_x, self.skill_coords_y[skill]]
         skill_end = [self.boost_coords_x[boost], self.skill_coords_y[skill]]
-        wait_until(self._in_round, [partial(engine.light_swipe, skill_start, skill_end),
-                                    partial(engine.light_press, self.confirm_coord)], thread=self.app_data.thread)
+        wait_until(self._in_round, [partial(u2_device.light_swipe, skill_start, skill_end),
+                                    partial(u2_device.light_press, self.confirm_coord)], thread=self.app_data.thread)
 
     def cmd_sp(self, role):
         assert self.in_round_ctx == True  # 必须在Round中执行
@@ -173,7 +173,7 @@ class Battle:
         front_role_id = get_front_front_role_id(role)
         select_role_coord = [self.role_coord_x,
                              self.role_coords_y[front_role_id]]
-        engine.press(select_role_coord)
+        u2_device.press(select_role_coord)
         self.update_ui(f"进入选技能界面!")
         role_in_behind = (role in self.behind)
         if role_in_behind:
@@ -181,13 +181,13 @@ class Battle:
             switch_coord = comparator.template_in_picture(
                 self.cfg_switch, return_center_coord=True)
             if switch_coord:
-                engine.press(switch_coord)
+                u2_device.press(switch_coord)
                 self.front[front_role_id], self.behind[front_role_id] = self.behind[front_role_id],  self.front[front_role_id]
 
         self.update_ui(f"正在选中必杀!")
-        engine.press(self.sp_coords)
+        u2_device.press(self.sp_coords)
         time.sleep(0.4)
-        engine.press(self.sp_confirm_coords)
+        u2_device.press(self.sp_confirm_coords)
         self.update_ui(f"必杀技执行完毕，耗时：{time.time() - start_time:.1f} 秒")
 
     def cmd_wait(self, time_in_ms):
@@ -197,7 +197,7 @@ class Battle:
 
     def cmd_skip(self, time_in_ms):
         self.update_ui(f"跳过 {time_in_ms} 毫秒...")
-        engine.press(self.confirm_coord, int(time_in_ms))
+        u2_device.press(self.confirm_coord, int(time_in_ms))
 
     def hook_battle_end(self):
         self.update_ui(f"战斗结束...")
@@ -228,13 +228,13 @@ class Battle:
     def _select_enemy(self, x=None, y=None):
         if (not x or not y):
             return
-        engine.press([int(x), int(y)])
+        u2_device.press([int(x), int(y)])
         self.update_ui(f"选择敌人{x}, {y}")
         time.sleep(0.2)
 
     def _wait_round(self, resetRound=False, newRound=True):
         inRound = wait_until(self._in_round, [partial(
-            engine.press, self.confirm_coord, press_duration=10, operate_latency=10)], thread=self.app_data.thread)
+            u2_device.press, self.confirm_coord, press_duration=10, operate_latency=10)], thread=self.app_data.thread)
         if inRound and newRound:
             if resetRound == True:
                 self.round_number = 0

@@ -4,7 +4,7 @@ import os
 import traceback
 import cv2
 from app_data import app_data
-from engine.engine import engine
+from engine.u2_device import u2_device
 from engine.comparator import comparator
 
 
@@ -157,7 +157,7 @@ def write_ocr_log(result, current_image, type):
     debug_path = 'debug_images'
     file_name = f'current_image_{timestamp}_{type}.png'
     os.makedirs(debug_path, exist_ok=True)  # 确保目录存在
-    engine.cleanup_large_files(debug_path, 10)  # 清理大于 10 MB 的文件
+    u2_device.cleanup_large_files(debug_path, 10)  # 清理大于 10 MB 的文件
     cv2.imwrite(os.path.join(debug_path, file_name), current_image)
     return file_name
 
