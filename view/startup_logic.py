@@ -12,7 +12,7 @@ from gameplay.stationary.index import Stationary
 from tool_get_coord import GetCoord
 from app_data import AppData
 from utils.stoppable_thread import StoppableThread
-from engine.engine import engine
+from engine.u2_device import u2_device
 from engine.world import world
 from engine.comparator import comparator
 from utils.config_loader import cfg_startup, update_json_config
@@ -44,15 +44,15 @@ class StartupLogic:
         self.log_update_data_debug = []
 
     def init_engine_thread(self):
-        engine.set_config()
+        u2_device.set_config()
 
         if self.inited:
             return
         try:
-            engine.set(self.app_data)
+            u2_device.set(self.app_data)
             world.set(self.app_data)
             battle.set(self.app_data)
-            if not engine.connect():
+            if not u2_device.connect():
                 self.update_ui("连接设备失败，请检查设备连接！")
                 return
             try:
@@ -178,10 +178,10 @@ class StartupLogic:
         if not file_path:
             file_path = self.log_file
 
-        engine.ensure_directory_exists(self.log_path)
+        u2_device.ensure_directory_exists(self.log_path)
 
         for debug in self.log_update_data_debug:
-            engine.write_to_file(debug, file_path)
+            u2_device.write_to_file(debug, file_path)
             self.log_update_data_debug = []
 
     def _evt_run_stationary(self):
@@ -198,10 +198,10 @@ class StartupLogic:
         if not self.inited:
             self.update_ui("初始化引擎失败，请检查设备连接！")
             return
-        engine.check_and_delete(self.log_path, 1)
+        u2_device.check_and_delete(self.log_path, 1)
         current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         message = f"[{current_time}] 游戏盘开始\n"
-        engine.write_to_file(message, self.log_file)
+        u2_device.write_to_file(message, self.log_file)
 
         self.monopoly = Monopoly()
         self.monopoly.start()

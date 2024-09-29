@@ -1,5 +1,5 @@
 from app_data import app_data
-from engine.engine import engine
+from engine.u2_device import u2_device
 from gameplay.monopoly.config import config
 
 
@@ -21,16 +21,16 @@ def select_game_mode():
 
 
 def add_ticket():
-    engine.device.click(373, 220)
+    u2_device.device.click(373, 220)
 
 
 def reduce_ticket():
-    engine.device.click(243, 220)
+    u2_device.device.click(243, 220)
 
 
 def add_lv():
-    engine.device.click(715, 220)
+    u2_device.device.click(715, 220)
 
 
 def reduce_lv():
-    engine.device.click(588, 220)
+    u2_device.device.click(588, 220)

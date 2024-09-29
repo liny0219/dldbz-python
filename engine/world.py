@@ -1,6 +1,6 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
-from engine.engine import engine
+from engine.u2_device import u2_device
 from engine.comparator import comparator
 from utils.singleton import singleton
 
@@ -74,27 +74,27 @@ class World:
     def back_world(self):
         if (self.thread_stoped()):
             return
-        engine.device.click(55, 432)
+        u2_device.device.click(55, 432)
         self.update_ui("返回世界")
 
     def click_btn_close(self):
         if (self.thread_stoped()):
             return
-        engine.device.click(925, 16)
+        u2_device.device.click(925, 16)
         self.update_ui("点击关闭按钮", 'debug')
 
     def run_right(self):
         if (self.thread_stoped()):
             return
-        engine.device.swipe(500, 280, 600, 280, 0.05)
+        u2_device.device.swipe(500, 280, 600, 280, 0.05)
 
     def run_left(self):
         if (self.thread_stoped()):
             return
-        engine.device.swipe(500, 280, 400, 280, 0.05)
+        u2_device.device.swipe(500, 280, 400, 280, 0.05)
 
     def btn_trim_click(self):
-        engine.device.click(950, 530)
+        u2_device.device.click(950, 530)
 
 
 world = World()

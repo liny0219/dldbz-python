@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from app_data import app_data
-from engine.engine import engine
+from engine.u2_device import u2_device
 from engine.comparator import comparator
 
 if TYPE_CHECKING:
@@ -21,4 +21,4 @@ def check_accept_confirm(monopoly: Monopoly):
 
 
 def btn_accept_confirm():
-    engine.device.click(484, 470)
+    u2_device.device.click(484, 470)

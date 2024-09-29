@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from app_data import app_data
-from engine.engine import engine
+from engine.u2_device import u2_device
 from engine.comparator import comparator
 
 if TYPE_CHECKING:
@@ -17,6 +17,6 @@ def check_map_event(monopoly: Monopoly):
         app_data.update_ui("find-事件", 'debug')
         x, y = coord
         offfset = 120
-        engine.device.click(x + offfset, y)
+        u2_device.device.click(x + offfset, y)
         return True
     return False

@@ -1,7 +1,7 @@
 from __future__ import annotations
 import time
 from app_data import AppData
-from engine.engine import engine
+from engine.u2_device import u2_device
 from engine.battle import battle
 from utils.config_loader import cfg_recollection
 from engine.comparator import comparator
@@ -26,7 +26,7 @@ class Recollection:
         in_read = comparator.template_in_picture(
             ui_read, return_center_coord=True)
         if in_read:
-            engine.press(in_read)
+            u2_device.press(in_read)
             return True
 
     def on_confirm_read(self):
@@ -35,7 +35,7 @@ class Recollection:
         in_confirm_read = comparator.template_in_picture(
             ui_confirm_read, return_center_coord=True)
         if in_confirm_read:
-            engine.press(in_confirm_read)
+            u2_device.press(in_confirm_read)
             return True
 
     def on_confirm_award(self):
@@ -44,7 +44,7 @@ class Recollection:
         in_confirm_award = comparator.template_in_picture(
             ui_confirm_award, return_center_coord=True)
         if in_confirm_award:
-            engine.press(in_confirm_award)
+            u2_device.press(in_confirm_award)
             return True
         return False
 
@@ -54,7 +54,7 @@ class Recollection:
         in_status_close = comparator.template_in_picture(
             ui_status_close, return_center_coord=True)
         if in_status_close:
-            engine.press(in_status_close)
+            u2_device.press(in_status_close)
             return True
         return False
 
@@ -95,7 +95,7 @@ class Recollection:
                 self.update_ui("跳过开场动画")
                 btnSkipTimeout = cfg_recollection.get("common.btn_skip_timeout")
                 btnSkip = cfg_recollection.get("coord.btn_skip")
-                engine.press(btnSkip, btnSkipTimeout)
+                u2_device.press(btnSkip, btnSkipTimeout)
 
                 if not runState:
                     self.update_ui("跳过动画失败，中止")

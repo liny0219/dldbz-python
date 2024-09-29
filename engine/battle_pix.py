@@ -1,6 +1,6 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
-from engine.engine import engine
+from engine.u2_device import u2_device
 from engine.comparator import comparator
 from utils.singleton import singleton
 
@@ -27,28 +27,28 @@ class BattleVee:
         self.app_data and self.app_data.update_ui(msg, type)
 
     def btn_auto_battle(self):
-        engine.device.click(368, 482)
+        u2_device.device.click(368, 482)
 
     def btn_auto_battle_start(self):
-        engine.device.click(825, 482)
+        u2_device.device.click(825, 482)
 
     def btn_auto_battle_stop(self):
-        engine.device.click(480, 472)
+        u2_device.device.click(480, 472)
 
     def btn_quit_battle(self):
-        engine.device.click(440, 482)
+        u2_device.device.click(440, 482)
 
     def btn_attack(self):
-        engine.device.click(816, 487)
+        u2_device.device.click(816, 487)
 
     def btn_all_switch(self):
-        engine.device.click(577, 482)
+        u2_device.device.click(577, 482)
 
     def btn_all_bp(self):
-        engine.device.click(648, 482)
+        u2_device.device.click(648, 482)
 
     def cmd_skip(self, duration=2):
-        engine.device.long_click(480, 254, duration)
+        u2_device.device.long_click(480, 254, duration)
 
     def is_in_battle(self, screenshot=None):
         self.update_ui("check-战斗界面中", 'debug')

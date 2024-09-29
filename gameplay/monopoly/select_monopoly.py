@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from app_data import app_data
-from engine.engine import engine
+from engine.u2_device import u2_device
 from engine.comparator import comparator
 from gameplay.monopoly.check_in_select_monopoly import check_in_select_monopoly
 from gameplay.monopoly.config import config
@@ -23,7 +23,7 @@ def select_monopoly(monopoly: Monopoly):
         if select:
             x, y = select
             if check_in_select_monopoly(monopoly):
-                engine.device.click(x, y)
+                u2_device.device.click(x, y)
                 app_data.update_ui(f"选择大富翁模式:{config.cfg_type}")
             break
         if (app_data.thread_stoped()):
@@ -31,7 +31,7 @@ def select_monopoly(monopoly: Monopoly):
         if current_y >= end_y:
             break
         next_y = current_y + 25
-        engine.device.swipe(x, current_y, x, next_y, 0.1)
+        u2_device.device.swipe(x, current_y, x, next_y, 0.1)
         current_y = next_y
 
 

@@ -17,7 +17,7 @@ game_activity = "com.epicgames.ue4.GameActivity"
 
 
 @singleton
-class Engine:
+class U2Device:
     def __init__(self):
         self.device = None
         self.package_name = None
@@ -78,7 +78,7 @@ class Engine:
 
     def check_in_app(self):
         if not self.device:
-            engine.reconnect()
+            u2_device.reconnect()
         current_app = self.device.app_current()
         self.package_name = current_app['package']
         self.update_ui(f"当前应用包名: {self.package_name}", 'debug')
@@ -256,4 +256,4 @@ class Engine:
                 print(f'Failed to delete {file_path}. Reason: {e}')
 
 
-engine = Engine()
+u2_device = U2Device()
