@@ -76,6 +76,9 @@ def check_ads_finish(screenshot=None):
     if comparator.template_compare(f"assets/ads/finish.png", screenshot=screenshot):
         app_data.update_ui("find-广告结束", 'debug')
         return True
+    if comparator.template_compare(f"assets/ads/finish_vip.png", screenshot=screenshot):
+        app_data.update_ui("find-你是高贵的会员不需要看广告")
+        return True
     else:
         return False
 
