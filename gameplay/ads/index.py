@@ -48,6 +48,7 @@ class Ads():
                 break
             if state != State.Unknow and state is not None and state == pre_state:
                 statr_time = time.time()
+                app_data.update_ui(f"状态变化{state}")
                 pre_state = state
                 wait_time_count = 0
             else:
@@ -114,9 +115,7 @@ class Ads():
                     app_data.update_ui("所有广告已完成")
                     state = State.AdsFinish
                     break
-
-                app_data.update_ui(f"当前状态{state}")
-
+                app_data.update_ui(f"状态变化{state}", 'debug')
                 time.sleep(wait_time)
             except Exception as e:
                 app_data.update_ui(f"广告异常{e}")
