@@ -24,7 +24,7 @@ def check_move_distance(monopoly: Monopoly):
             app_data.update_ui(f"check-检查剩余步数失败启动备用图片识别")
             if len(cache_move.keys()) == 0:
                 app_data.update_ui(f"check-没有备用图片")
-                app_data.update_ui(f"check-检查结束耗时:{time.time() - start_time}", 'debug')
+                write_ocr_log(number, current_image, 'move_distance_faild')
                 return number
             start_time = time.time()
             currentshot = monopoly.shot()
