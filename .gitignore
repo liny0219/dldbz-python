@@ -4,6 +4,7 @@ cropped_image.png
 threshold_image.png
 tmp.spec
 debug_images/
+debug_images_ads/
 __MACOSX/
 publish/
 bin-debug/
