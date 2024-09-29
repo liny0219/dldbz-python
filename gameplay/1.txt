@@ -1,0 +1,128 @@
+//交流群群号213459239
+//模拟器1920x1080
+//游戏内 原画，60帧，1920x1080，视野标准，超分辨率算法开启
+
+看广告
+
+Function 看广告()
+
+rem start0
+	backWorld
+	click 190, 130
+	delay 1000
+	click 190, 585
+	delay 2000
+If not MatchPic(280, 93, 327, 271, "adv", 1) Then
+	goto start0
+End If
+
+rem start1
+		clickPic(280, 93, 327, 271, "adv", 1)
+		clickPic(90, 1080, 135, 1135, "playadv", 1)
+		clickPic 326, 915, 377, 1003, "confirmadv", 1
+		clickPic 391, 894, 467, 1015, "confirmadv2", 1
+		If not matchpic(971, 1697, 1022, 1783, "countdownadv", 1) Then
+			clickPic(960, 1754, 1036, 1920, "closeadv", 1)
+
+		End If
+
+		If image.OcrText(958, 1609, 1012, 1716, 0, 1) <> "发放" Then
+		 	clickPic(963, 1590, 1032, 1664, "closeadv2", 1)
+		End If
+
+		clickPic(307, 1045, 385, 1186, "取消", 1)
+		clickPic(938, 1760, 1008, 1830, "closeadv3", 1)
+		clickPic(403, 912, 453, 1004, "confirmadv", 1)
+		clickPic(430, 1037, 494, 1233, "continueadv", 1)
+If matchPointColor(270, 188, "00008B", 1) and matchPointColor(257, 147, "6F7070", 1) Then
+	traceprint "广告已看完！"
+	Exit Function
+Else
+	goto start1
+End If
+
+End Function
+
+
+/*------------------------------------------------------------------------------------------*/
+/*--------------------------------------基础操作--------------------------------------------*/
+/*------------------------------------------------------------------------------------------*/
+
+//点击操作
+Function click(x, y)
+    Touch x, y, 100
+    Delay 300
+End Function
+
+//搜索图片
+Function MatchPic(x1, y1, x2, y2, Pic, dirc)
+    Dim intX, intY
+    Dim picSize = Image.Size("Attachment:" & Pic & ".png")
+    FindPic x1, y1, x2, y2, "Attachment:" & Pic & ".png", "000000", dirc, 0.8, intX, intY
+    If intX > -1 Then
+
+        TracePrint "识别到图片" & Pic & "，位于：" & intX+picSize[1]/2 & "," & intY+picSize[2]/2
+        FW.SetTextView "即时信息", "识别到图片" & Pic & "，位于：" & intX+picSize[1]/2 & "," & intY+picSize[2]/2, 1400, 0, 520, 30
+        MatchPic = True
+    Else
+        MatchPic = False
+	End If
+End Function
+//点击图片
+Function clickPic(x1,y1,x2,y2,Pic,dirc)
+    Dim intX, intY
+    Dim picSize = Image.Size("Attachment:" & Pic & ".png")
+    FindPic x1,y1,x2,y2,"Attachment:" & Pic & ".png","000000",dirc,0.8,intX,intY
+    If intX > -1 Then 
+        TracePrint "点击图片" & Pic & "，坐标：" & intX+picSize[1]/2 & "," & intY+picSize[2]/2
+        FW.SetTextView "即时信息", "点击图片" & Pic & "，坐标：" & intX+picSize[1]/2 & "," & intY+picSize[2]/2, 1400, 0, 520, 30
+        click intX+picSize[1]/2,intY+picSize[2]/2
+    End If
+End Function
+
+
+//某点颜色识别。x,y为该点位置,color为匹配颜色,range为定位范围
+Function matchPointColor(x, y, color,range)
+    Dim intX, intY
+    FindColor x - range, y - range, x + range, y + range, color, 0, 0.97, intX, intY
+    //如果没有找到，intX和intY的值都会被置为-1
+    If intX > -1 Then 
+        matchPointColor = true
+    End If
+End Function
+
+
+
+//世界中，且人物停止移动(是的话函数返1)
+Function inWorld()
+    If matchPointColor(218,96,"F6F6F5",1) and matchPointColor(150,73,"0D0D0D",1) Then //判定左下角菜单
+            inWorld = true
+        TracePrint "检测到在世界中"
+        FW.SetTextView "即时信息", "检测到在世界中", 1400, 0, 520, 30
+    Else 
+    	inWorld = False 
+    End If
+End Function
+
+
+//回归世界
+Function backWorld()
+    //TracePrint "*********************************************尝试执行backWorld**********************************************"
+    While True
+        //TracePrint "********************判断当前页面************************"
+
+        If inWorld() Then
+            TracePrint "已回到世界中"
+            
+            Exit Function
+        Else 
+            TracePrint"未知界面"
+            click 260,800
+            Delay 1000
+            click 1057, 1884
+            //ShowMessage "未知界面，正在尝试关闭当前界面"
+            
+        End If
+        Delay 1000
+    Wend
+End Function

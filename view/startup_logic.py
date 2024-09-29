@@ -6,6 +6,7 @@ import sys
 import tkinter as tk
 import tkinter.messagebox
 from engine.battle import battle
+from gameplay.ads.index import Ads
 from gameplay.monopoly.index import Monopoly
 from gameplay.recollection import Recollection
 from gameplay.stationary.index import Stationary
@@ -17,7 +18,6 @@ from engine.world import world
 from engine.comparator import comparator
 from utils.config_loader import cfg_startup, update_json_config
 import tkinter as tk
-import json
 
 path_cfg_statrup = 'config/startup.json'
 path_cfg_stationary = 'config/stationary.json'
@@ -108,6 +108,13 @@ class StartupLogic:
             self.update_ui("已启动游戏盘，不要重复点击哦！")
             return
         self.app_data.thread = StoppableThread(target=self._evt_monopoly)
+        self.app_data.thread.start()
+
+    def on_ads(self):
+        if self.app_data.thread is not None and self.app_data.thread.is_alive():
+            self.update_ui("已启动广告，不要重复点击哦！")
+            return
+        self.app_data.thread = StoppableThread(target=self._evt_ads)
         self.app_data.thread.start()
 
     def on_recollection(self):
@@ -205,6 +212,14 @@ class StartupLogic:
 
         self.monopoly = Monopoly()
         self.monopoly.start()
+
+    def _evt_ads(self):
+        self.init_engine()
+        if not self.inited:
+            self.update_ui("初始化引擎失败，请检查设备连接！")
+            return
+        ads = Ads()
+        ads.start()
 
     def _evt_recollection(self):
         self.init_engine()
