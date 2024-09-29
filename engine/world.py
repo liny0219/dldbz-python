@@ -34,6 +34,28 @@ class World:
         else:
             return False
 
+    def check_in_achievement_menu(self, screenshot=None):
+        """检查成就菜单"""
+        if (self.thread_stoped()):
+            return False
+        self.update_ui("check-成就菜单", 'debug')
+        if comparator.template_compare(f"./assets/world/achievement.png", screenshot=screenshot):
+            self.update_ui("find-成就菜单", 'debug')
+            return True
+        else:
+            return False
+
+    def check_in_achievement_page(self, screenshot=None):
+        """检查成就页面"""
+        if (self.thread_stoped()):
+            return False
+        self.update_ui("check-成就页面", 'debug')
+        if comparator.template_compare(f"./assets/world/ads_tag.png", screenshot=screenshot):
+            self.update_ui("find-在成就页面", 'debug')
+            return True
+        else:
+            return False
+
     def check_game_title(self, screenshot=None):
         """检查游戏开始界面"""
         if (self.thread_stoped()):
@@ -95,6 +117,12 @@ class World:
 
     def btn_trim_click(self):
         u2_device.device.click(950, 530)
+
+    def btn_menu_click(self):
+        u2_device.device.click(69, 449)
+
+    def btn_menu_achievement_click(self):
+        u2_device.device.click(295, 444)
 
 
 world = World()

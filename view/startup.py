@@ -105,6 +105,13 @@ class App:
         info_frame.pack_propagate(0)
         info_frame.pack(side='left', fill='y', padx=10, pady=10)
 
+        buttons = [
+            {"text": "休息一下", "command": self.startup.on_stop},
+            {"text": "查看帮助", "command": self.startup.open_readme},
+            {"text": "战斗编辑", "command": self.startup.edit_battle_script},
+            {"text": "标记坐标", "command": self.startup.get_coord}
+        ]
+
         main_button = {"text": "大霸启动", "command": self.startup.on_monopoly}
         if frame == self.recollection_frame:
             main_button["text"] = "追忆启动"
@@ -112,14 +119,10 @@ class App:
         elif frame == self.map_frame:
             main_button["text"] = "刷野启动"
             main_button["command"] = self.startup.on_stationary
+            ads_button = {"text": "广告启动", "command": self.startup.on_ads}
+            buttons.insert(0, ads_button)
 
-        buttons = [
-            main_button,
-            {"text": "休息一下", "command": self.startup.on_stop},
-            {"text": "查看帮助", "command": self.startup.open_readme},
-            {"text": "战斗编辑", "command": self.startup.edit_battle_script},
-            {"text": "标记坐标", "command": self.startup.get_coord}
-        ]
+        buttons.insert(0, main_button)
 
         for button_config in buttons:
             tk.Button(button_frame, text=button_config["text"], command=button_config["command"],
