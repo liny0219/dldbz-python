@@ -8,11 +8,13 @@ import uiautomator2 as u2
 from utils.config_loader import cfg_startup, cfg_engine
 import time
 
+from utils.status import App_Client
+
 if TYPE_CHECKING:
     from app_data import AppData
 
-appName = "com.netease.ma167"
-appNameBilibili = "com.netease.ma167.bilibili"
+appName = App_Client.NTES.value
+appNameBilibili = App_Client.Bilibili.value
 game_activity = "com.epicgames.ue4.GameActivity"
 
 
@@ -82,10 +84,12 @@ class U2Device:
         current_app = self.device.app_current()
         self.package_name = current_app['package']
         self.update_ui(f"当前应用包名: {self.package_name}", 'debug')
+        self.update_ui(f"当前应用Activity: {current_app['activity']}", 'debug')
         return self.package_name == appName or self.package_name == appNameBilibili
 
     def start_app(self):
         # 启动应用程序，需要确保已安装并可通过此包名启动
+        self.update_ui(f"启动应用程序: {self.cfg_package_name}")
         self.device.app_start(self.cfg_package_name)
 
     def check_in_game(self):
@@ -98,6 +102,7 @@ class U2Device:
             return False
 
     def stop_app(self):
+        self.update_ui(f"停止应用程序: {self.cfg_package_name}")
         self.device.app_stop(self.cfg_package_name)
 
     def restart_game(self):
