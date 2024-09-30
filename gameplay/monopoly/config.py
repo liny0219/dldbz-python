@@ -10,7 +10,7 @@ class config:
     cfg_type = ""
     cfg_crossing = ""
     cfg_auto_battle = 0
-    cfg_isContinue = 0
+    cfg_continue = 0
     cfg_check_interval = 0
     cfg_check_roll_dice_interval = 0
     cfg_check_roll_dice_time = 0
@@ -38,7 +38,7 @@ def set_config():
         config.cfg_type = cfg_monopoly.get("type")
         config.cfg_crossing = cfg_monopoly.get(f"crossing.{config.cfg_type}")
         config.cfg_auto_battle = int(cfg_monopoly.get("auto_battle"))
-        config.cfg_isContinue = int(cfg_monopoly.get("isContinue"))
+        config.cfg_continue = int(cfg_monopoly.get("continue"))
         config.cfg_check_interval = float(cfg_monopoly.get("check_interval"))
         config.cfg_check_roll_dice_interval = float(cfg_monopoly.get("check_roll_dice_interval"))
         config.cfg_check_roll_dice_time = int(cfg_monopoly.get("check_roll_dice_time"))

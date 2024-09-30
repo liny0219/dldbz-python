@@ -19,7 +19,7 @@ def btn_continue():
 
 
 def on_continue():
-    if config.cfg_isContinue == 0:
+    if config.cfg_continue == 0:
         btn_not_continue()
         app_data.update_ui("点击-不继续游戏")
     else:

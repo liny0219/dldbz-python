@@ -136,9 +136,6 @@ class App:
         message_scrollbar.pack(side='right', fill='y')
         if frame == self.monopoly_frame:
             cfg_monopoly_type = cfg_monopoly.get("type")
-            cfg_monopoly_ticket = cfg_monopoly.get("ticket")
-            cfg_monopoly_lv = cfg_monopoly.get("lv")
-            cfg_monopoly_enemy_check = cfg_monopoly.get("enemy_check")
             self.cmb_monopoly_type = ComboBoxComponent(
                 frame, "游戏盘:", {
                     "80权利": "801",
@@ -147,6 +144,7 @@ class App:
                 }, lambda text: self.startup.set_monopoly_config(text, 'type'), default_value=cfg_monopoly_type)
             self.cmb_monopoly_type.pack(padx=10, pady=5, anchor=tk.W)  # 组件左对齐
 
+            cfg_monopoly_ticket = cfg_monopoly.get("ticket")
             self.cmb_ticket_type = ComboBoxComponent(
                 frame, "票数:", {
                     "0": "0",
@@ -161,6 +159,7 @@ class App:
                 }, lambda text: self.startup.set_monopoly_config(text, 'ticket'), default_value=cfg_monopoly_ticket)
             self.cmb_ticket_type.pack(padx=10, pady=5, anchor=tk.W)  # 组件左对齐
 
+            cfg_monopoly_lv = cfg_monopoly.get("lv")
             self.cmb_ticket_type = ComboBoxComponent(
                 frame, "难度:", {
                     "0": "0",
@@ -172,18 +171,33 @@ class App:
                 }, lambda text: self.startup.set_monopoly_config(text, 'lv'), default_value=cfg_monopoly_lv)
             self.cmb_ticket_type.pack(padx=10, pady=5, anchor=tk.W)  # 组件左对齐
 
+            cfg_monopoly_enemy_check = cfg_monopoly.get("enemy_check")
             self.cmb_enemy_check = ComboBoxComponent(
-                frame, "检测敌人:", {
+                frame, "识别目标:", {
                     "关闭": "0",
                     "开启": "1"
                 }, lambda text: self.startup.set_monopoly_config(text, 'enemy_check'), default_value=cfg_monopoly_enemy_check)
             self.cmb_enemy_check.pack(padx=10, pady=5, anchor=tk.W)  # 组件左对齐
 
+            cfg_monopoly_continue = cfg_monopoly.get("continue")
+            self.cmb_continue = ComboBoxComponent(
+                frame, "重启继续:", {
+                    "关闭": "0",
+                    "继续": "1"
+                }, lambda text: self.startup.set_monopoly_config(text, 'continue'), default_value=cfg_monopoly_continue)
+            self.cmb_continue.pack(padx=10, pady=5, anchor=tk.W)  # 组件左对齐
+
+            cfg_monopoly_bp_type = cfg_monopoly.get("bp_type")
+            self.cmb_continue = ComboBoxComponent(
+                frame, "BP匹配规则:", {
+                    "使用最大": "max",
+                    "完全匹配": "match"
+                }, lambda text: self.startup.set_monopoly_config(text, 'bp_type'), default_value=cfg_monopoly_bp_type)
+            self.cmb_continue.pack(padx=10, pady=5, anchor=tk.W)  # 组件左对齐
+
         if frame == self.map_frame:
+
             run_enabled = cfg_stationary.get("run_enabled")
-            max_battle_count = cfg_stationary.get("max_battle_count")
-            max_run_count = cfg_stationary.get("max_run_count")
-            battle_wait_time = cfg_stationary.get("battle_wait_time")
             cmb_run_enabled_text = int(run_enabled)
             self.cmb_run_enabled = ComboBoxComponent(
                 frame, "打N跑N:", {
@@ -192,14 +206,17 @@ class App:
                 }, lambda text: self.startup.set_stationary_config(text, 'run_enabled'), default_value=cmb_run_enabled_text)
             self.cmb_run_enabled.pack(padx=10, pady=5, anchor=tk.W)  # 组件左对齐
 
+            max_battle_count = cfg_stationary.get("max_battle_count")
             self.input_max_battle_count = InputComponent(
                 frame, "战斗N次:", lambda text: self.startup.set_stationary_config(text, 'max_battle_count'), default_value=max_battle_count)
             self.input_max_battle_count.pack(padx=10, pady=5, anchor=tk.W)  # 组件左对齐
 
+            max_run_count = cfg_stationary.get("max_run_count")
             self.input_max_run_count = InputComponent(
                 frame, "逃跑N次:", lambda text: self.startup.set_stationary_config(text, 'max_run_count'), default_value=max_run_count)
             self.input_max_run_count.pack(padx=10, pady=5, anchor=tk.W)  # 组件
 
+            battle_wait_time = cfg_stationary.get("battle_wait_time")
             self.input_battle_wait_time = InputComponent(
                 frame, "指令间隔:", lambda text: self.startup.set_stationary_config(text, 'battle_wait_time'), default_value=battle_wait_time)
             self.input_battle_wait_time.pack(padx=10, pady=5, anchor=tk.W)  # 组件
@@ -247,7 +264,7 @@ class App:
 
 
 class ComboBoxComponent:
-    def __init__(self, master, label_text,  value_map, on_select, default_value=0, label_width=8):
+    def __init__(self, master, label_text,  value_map, on_select, default_value=0, label_width=12):
         self.frame = tk.Frame(master)
 
         # 创建标签
@@ -292,7 +309,7 @@ class ComboBoxComponent:
 
 
 class InputComponent:
-    def __init__(self, master, label_text, on_submit, default_value=0, label_width=8, entry_width=10):
+    def __init__(self, master, label_text, on_submit, default_value=0, label_width=12, entry_width=10):
         self.frame = tk.Frame(master)
 
         # 创建标签
