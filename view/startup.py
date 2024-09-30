@@ -1,6 +1,7 @@
 import tkinter as tk
 import tkinter.ttk as ttk
 from tkinter import Label
+from utils.status import App_Client
 from view.startup_logic import StartupLogic
 from utils.config_loader import cfg_version, cfg_stationary, cfg_monopoly, cfg_startup
 from PIL import Image, ImageTk
@@ -229,7 +230,15 @@ class App:
         adb_port = cfg_startup.get("adb_port")
         self.input_port = InputComponent(
             frame, "当前端口:", lambda text: self.startup.set_startup_config(text, 'adb_port'), default_value=adb_port, entry_width=30)
-        self.input_port.grid(row=0, column=0, columnspan=3, pady=10)
+        self.input_port.grid(row=0, column=1, columnspan=2, pady=10)
+
+        adb_package = cfg_startup.get("package_name")
+        self.cmb_package = ComboBoxComponent(
+            frame, "客户端:", {
+                "国服官服": App_Client.NTES.value,
+                "国服B服": App_Client.Bilibili.value,
+            }, lambda text: self.startup.set_startup_config(text, 'package_name'), default_value=adb_package)
+        self.cmb_package.grid(row=0, column=0, columnspan=1, pady=10)
 
         tk.Button(frame, text="启动设置", command=self.startup.open_startup_config,
                   font=("Segoe UI", 10), width=30, height=1).grid(row=2, column=0, padx=10, pady=10)
@@ -294,6 +303,10 @@ class ComboBoxComponent:
 
     def pack(self, **kwargs):
         self.frame.pack(**kwargs)
+
+    def grid(self, **kwargs):
+        # 使用显式传递来避免重复传递参数问题
+        self.frame.grid(**kwargs)
 
     def select_value(self):
         selected_text = self.combobox.get()  # 获取用户可见的选项

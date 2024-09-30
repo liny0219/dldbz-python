@@ -27,12 +27,14 @@ class config:
     cfg_round_time = 0
     cfg_wait_time = 0
     cfg_exe_path = ""
+    cfg_package_name = ""
 
 
 def set_config():
     reload_config()
     battle_pix.set(app_data)
     try:
+        config.cfg_package_name = cfg_startup.get("package_name")
         config.cfg_ticket = int(cfg_monopoly.get("ticket"))
         config.cfg_lv = int(cfg_monopoly.get("lv"))
         config.cfg_type = cfg_monopoly.get("type")

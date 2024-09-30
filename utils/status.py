@@ -1,6 +1,11 @@
 from enum import Enum
 
 
+class App_Client(Enum):
+    NTES = 'com.netease.ma167'
+    Bilibili = 'com.netease.ma167.bilibili'
+
+
 class MATCH_CONFIDENCE(Enum):
     HIGH = 0,
     MID = 1,
