@@ -9,25 +9,31 @@ match_threshold = 0.85
 def check_in_ads_modal(screenshot=None):
     """检查广告弹窗"""
     if (app_data.thread_stoped()):
-        return False
+        return None
     app_data.update_ui("check-广告弹窗", 'debug')
-    if comparator.template_compare(f"assets/ads/ads_btn_watch_tag.png", screenshot=screenshot, match_threshold=match_threshold):
+    crood = comparator.template_compare(f"assets/ads/ads_btn_watch_tag.png",
+                                        return_center_coord=True,
+                                        screenshot=screenshot, match_threshold=match_threshold)
+    if crood is not None and len(crood) > 0:
         app_data.update_ui("find-在广告弹窗", 'debug')
-        return True
+        return crood
     else:
-        return
+        return None
 
 
 def check_in_ads_watch(screenshot=None):
     """检查广告观看界面"""
     if (app_data.thread_stoped()):
-        return False
+        return None
     app_data.update_ui("check-广告观看界面", 'debug')
-    if comparator.template_compare(f"assets/ads/close_0.png", screenshot=screenshot, match_threshold=match_threshold):
+    crood = comparator.template_compare(f"assets/ads/close_0.png",
+                                        return_center_coord=True,
+                                        screenshot=screenshot, match_threshold=match_threshold)
+    if crood is not None and len(crood) > 0:
         app_data.update_ui("find-在广告观看界面", 'debug')
-        return True
+        return crood
     else:
-        return False
+        return None
 
 
 def check_in_ads_playing(screenshot=None):
@@ -83,19 +89,3 @@ def check_ads_finish(screenshot=None):
         return True
     else:
         return False
-
-
-def btn_menu_ads_tag():
-    u2_device.device.click(94, 395)
-
-
-def btn_menu_ads_watch():
-    u2_device.device.click(603, 481)
-
-
-def btn_menu_ads_watch_cancel():
-    u2_device.device.click(918, 42)
-
-
-def btn_ads_award_confirm():
-    u2_device.device.click(482, 325)
