@@ -48,13 +48,15 @@ class World:
     def check_in_achievement_page(self, screenshot=None):
         """检查成就页面"""
         if (self.thread_stoped()):
-            return False
+            return None
         self.update_ui("check-成就页面", 'debug')
-        if comparator.template_compare(f"./assets/world/ads_tag.png", screenshot=screenshot):
+        crood = comparator.template_compare(f"./assets/world/ads_tag.png",
+                                            return_center_coord=True, screenshot=screenshot)
+        if crood is not None and len(crood) > 0:
             self.update_ui("find-在成就页面", 'debug')
-            return True
+            return crood
         else:
-            return False
+            return None
 
     def check_game_title(self, screenshot=None):
         """检查游戏开始界面"""
