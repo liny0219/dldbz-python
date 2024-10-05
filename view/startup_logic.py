@@ -20,6 +20,8 @@ from utils.config_loader import cfg_startup, update_json_config
 import tkinter as tk
 
 path_cfg_statrup = 'config/startup.txt'
+path_cfg_engine = 'config/engine.txt'
+path_cfg_recollection = 'config/recollection.txt'
 path_cfg_stationary = 'config/stationary.txt'
 path_cfg_monopoly = 'config/monopoly.txt'
 
@@ -299,6 +301,12 @@ class StartupLogic:
                                                   "请注意，修改配置后需要重启程序才能生效。是否继续打开配置文件？")
         if response:
             update_json_config(path_cfg_statrup, key, text)
+
+    def set_engine_config(self, text, key):
+        update_json_config(path_cfg_engine, key, text)
+
+    def set_recollection_config(self, text, key):
+        update_json_config(path_cfg_recollection, key, text)
 
     def set_stationary_config(self, text, key):
         update_json_config(path_cfg_stationary, key, text)

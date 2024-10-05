@@ -19,12 +19,7 @@ class U2Device:
         self.device = None
         self.package_name = None
         self.debug = False
-
-        self.cfg_rand_press_px = 5
-        self.cfg_press_duration = 300
-        self.cfg_swipe_duration = 50
-        self.cfg_operate_latency = 500
-        self.cfg_default_sleep_ms = 10
+        self.cfg_swipe_duration = 0.2
 
     def set(self):
         try:
@@ -37,10 +32,8 @@ class U2Device:
             app_data.update_ui(f"连接设备失败: {e}")
 
     def set_config(self):
-        self.cfg_press_duration = cfg_engine.get('common.press_duration')
-        self.cfg_default_sleep_ms = cfg_engine.get('common.default_sleep_ms')
-        self.cfg_operate_latency = cfg_engine.get('common.operate_latency')
-        self.cfg_rand_press_px = cfg_engine.get('common.rand_press_px')
+        cfg_engine.reload()
+        cfg_startup.reload()
         self.cfg_swipe_duration = cfg_engine.get('common.swipe_duration')
         self.cfg_package_name = cfg_startup.get('package_name')
 
@@ -121,7 +114,7 @@ class U2Device:
             # 使用 'a' 模式打开文件，追加内容
             with open(file_path, 'a', encoding='utf-8') as file:
                 file.write(str)
-            print(f"成功追加内容到文件：{file_path}, 内容: {str}")
+            # print(f"成功追加内容到文件：{file_path}, 内容: {str}")
         except Exception as e:
             print(f"追加内容时出错: {e}")
 
@@ -204,33 +197,6 @@ class U2Device:
             self.delete_files_in_directory(directory)
         else:
             print("目录大小未超过限制，不执行删除操作。")
-
-    def press(self, coordinate, T=None, operate_latency=500):
-        if not T:
-            T = self.cfg_press_duration
-        if self.device:
-            x = coordinate[0]
-            y = coordinate[1]
-            self.device.long_click(x, y, duration=T / 1000.)
-            self.sleep_ms(operate_latency)
-
-    def light_swipe(self, start_coordinate, end_coordinate, T=None):
-        if not T:
-            T = self.cfg_swipe_duration
-        if self.device:
-            x_start, y_start = start_coordinate
-            x_end, y_end = end_coordinate
-            self.device.swipe(x_start, y_start, x_end, y_end, duration=T / 1000.)
-            self.sleep_ms(100)
-
-    def light_press(self, coordinate, T=None):
-        self.press(coordinate, T=T, operate_latency=100)
-
-    def sleep_ms(self, T=None):
-        if not T:
-            T = self.cfg_default_sleep_ms
-        sleep_time_s = T / 1000.
-        time.sleep(sleep_time_s)
 
     def cleanup_large_files(self, directory, size_limit_mb=10):  # size_limit_mb默认为10MB
         """ 清理指定目录中所有超过给定大小（MB）的文件。 """

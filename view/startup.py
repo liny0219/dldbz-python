@@ -3,7 +3,7 @@ import tkinter.ttk as ttk
 from tkinter import Label
 from utils.status import App_Client
 from view.startup_logic import StartupLogic
-from utils.config_loader import cfg_version, cfg_stationary, cfg_monopoly, cfg_startup
+from utils.config_loader import cfg_version, cfg_stationary, cfg_monopoly, cfg_startup, cfg_engine, cfg_recollection
 from PIL import Image, ImageTk
 
 
@@ -135,6 +135,16 @@ class App:
 
         message_scrollbar = tk.Scrollbar(info_frame, orient=tk.VERTICAL, command=message_text.yview)
         message_scrollbar.pack(side='right', fill='y')
+        if frame == self.recollection_frame:
+            recollection_loop = cfg_recollection.get("common.loop")
+            self.input_recollection_loop = InputComponent(
+                frame, "循环次数:", lambda text: self.startup.set_recollection_config(text, 'common.loop'), default_value=recollection_loop)
+            self.input_recollection_loop.pack(padx=10, pady=5, anchor=tk.W)  # 组件
+
+            swipe_duration = cfg_engine.get("common.swipe_duration")
+            self.input_swipe_duration = InputComponent(
+                frame, "BP拖动间隔:", lambda text: self.startup.set_engine_config(text, 'common.swipe_duration'), default_value=swipe_duration)
+            self.input_swipe_duration.pack(padx=10, pady=5, anchor=tk.W)  # 组件
         if frame == self.monopoly_frame:
             cfg_monopoly_type = cfg_monopoly.get("type")
             self.cmb_monopoly_type = ComboBoxComponent(
