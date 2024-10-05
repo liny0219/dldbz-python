@@ -1,5 +1,5 @@
 from app_data import app_data
-from engine.battle_pix import battle_pix
+from engine.battle_pix import battle
 from utils.config_loader import reload_config, cfg_monopoly, cfg_startup
 
 
@@ -32,7 +32,6 @@ class config:
 
 def set_config():
     reload_config()
-    battle_pix.set(app_data)
     try:
         config.cfg_package_name = cfg_startup.get("package_name")
         config.cfg_ticket = int(cfg_monopoly.get("ticket"))

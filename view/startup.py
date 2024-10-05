@@ -14,7 +14,7 @@ class App:
         width = 900
         height = 600
         self.app.geometry(f"{width}x{height}")  # 增加窗口宽度
-        icon_path = 'image/icon_title.ico'
+        icon_path = 'image/icon.ico'
         self.app.iconbitmap(icon_path)
         self.startup = StartupLogic(self.app)
 
@@ -23,11 +23,11 @@ class App:
         self.bold_font = ("Segoe UI", 18, 'bold')
         self.configure_styles()
 
-        left_label, left_image = self.load_and_display_image('image/2b.png')
+        left_label, left_image = self.load_and_display_image('image/left.png')
         left_label.place(x=width-110, y=10)
         self.left_image = left_image
 
-        right_label, right_image = self.load_and_display_image('image/2a.png')
+        right_label, right_image = self.load_and_display_image('image/right.png')
         right_label.place(x=10, y=10)
         self.right_image = right_image
 
@@ -87,7 +87,7 @@ class App:
         Label(about_frame, text="©2024", font=self.default_font).pack(pady=10)
 
         notebook.add(self.monopoly_frame, text='游戏盘')
-        notebook.add(self.recollection_frame, text='追忆之书(未完善)')
+        notebook.add(self.recollection_frame, text='追忆之书')
         notebook.add(self.map_frame, text='大地图')
         notebook.add(self.settings_frame, text='设置')  # 添加到这里
         notebook.add(about_frame, text='关于')
@@ -109,7 +109,6 @@ class App:
         buttons = [
             {"text": "休息一下", "command": self.startup.on_stop},
             {"text": "查看帮助", "command": self.startup.open_readme},
-            {"text": "战斗编辑", "command": self.startup.edit_battle_script},
             {"text": "标记坐标", "command": self.startup.get_coord}
         ]
 
@@ -117,6 +116,7 @@ class App:
         if frame == self.recollection_frame:
             main_button["text"] = "追忆启动"
             main_button["command"] = self.startup.on_recollection
+            buttons.append({"text": "战斗编辑", "command": self.startup.edit_battle_script})
         elif frame == self.map_frame:
             main_button["text"] = "刷野启动"
             main_button["command"] = self.startup.on_stationary

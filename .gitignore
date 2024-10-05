@@ -3,8 +3,8 @@ log
 cropped_image.png
 threshold_image.png
 tmp.spec
-debug_images/
-debug_images_ads/
+image_ads_debug/
+image_ads_award/
 __MACOSX/
 publish/
 bin-debug/

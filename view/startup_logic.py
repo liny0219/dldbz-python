@@ -8,7 +8,7 @@ import tkinter.messagebox
 from engine.battle import battle
 from gameplay.ads.index import Ads
 from gameplay.monopoly.index import Monopoly
-from gameplay.recollection import Recollection
+from gameplay.recollection.index import Recollection
 from gameplay.stationary.index import Stationary
 from tool_get_coord import GetCoord
 from app_data import AppData
@@ -19,9 +19,9 @@ from engine.comparator import comparator
 from utils.config_loader import cfg_startup, update_json_config
 import tkinter as tk
 
-path_cfg_statrup = 'config/startup.json'
-path_cfg_stationary = 'config/stationary.json'
-path_cfg_monopoly = 'config/monopoly.json'
+path_cfg_statrup = 'config/startup.txt'
+path_cfg_stationary = 'config/stationary.txt'
+path_cfg_monopoly = 'config/monopoly.txt'
 
 
 class StartupLogic:
@@ -49,9 +49,8 @@ class StartupLogic:
         if self.inited:
             return
         try:
-            u2_device.set(self.app_data)
-            world.set(self.app_data)
-            battle.set(self.app_data)
+            u2_device.set()
+            battle.set()
             if not u2_device.connect():
                 self.update_ui("连接设备失败，请检查设备连接！")
                 return
@@ -130,6 +129,9 @@ class StartupLogic:
             self.app_data.thread.stop()
         if self.app_data.monopoly_deamon_thread is not None:
             self.app_data.monopoly_deamon_thread.stop()
+        if self.app_data.recollection_deamon_thread is not None:
+            self.app_data.recollection_deamon_thread.stop()
+        u2_device.adb_disconnect(cfg_startup.get('adb_port'))
         self.write_to_file(self.log_file)
 
     def update_ui(self, msg, type='info'):
@@ -226,7 +228,7 @@ class StartupLogic:
         if not self.inited:
             self.update_ui("初始化引擎失败，请检查设备连接！")
             return
-        recollection = Recollection(self.app_data)
+        recollection = Recollection()
         recollection.start()
 
     def open_monopoly_log(self):
@@ -258,11 +260,11 @@ class StartupLogic:
         coordinate_getter.show_coordinates_window()
 
     def open_monopoly_config(self):
-        file_path = os.path.join('config', 'monopoly.json')
+        file_path = os.path.join('config', 'monopoly.txt')
         if os.path.exists(file_path):
             os.startfile(file_path)
         else:
-            self.update_ui("配置文件(monopoly.json)不存在，请检查！")
+            self.update_ui("配置文件(monopoly.txt)不存在，请检查！")
 
     def open_log(self):
         if os.path.exists(self.log_path):
@@ -275,11 +277,11 @@ class StartupLogic:
         response = tkinter.messagebox.askokcancel("配置修改警告",
                                                   "请注意，修改配置后需要重启程序才能生效。是否继续打开配置文件？")
         if response:
-            file_path = os.path.join('config', 'startup.json')
+            file_path = os.path.join('config', 'startup.txt')
             if os.path.exists(file_path):
                 os.startfile(file_path)
             else:
-                self.update_ui("配置文件(startup.json)不存在，请检查！")
+                self.update_ui("配置文件(startup.txt)不存在，请检查！")
 
     def update_message_label(self, text):
         current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")

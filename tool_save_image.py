@@ -4,4 +4,4 @@ from engine.comparator import comparator
 u2_device.connect()
 comparator.set_device(u2_device.device)
 
-comparator._cropped_screenshot([555, 455], [603, 476], save_path="./assets/bili/protocol_accept_2.png")
+comparator._cropped_screenshot([771, 457], [803, 473], save_path="./assets/battle/select_switch.png")

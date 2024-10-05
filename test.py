@@ -2,7 +2,7 @@ from utils.config_loader import cfg_monopoly
 from engine.comparator import comparator
 from engine.world import world
 from engine.u2_device import u2_device
-from engine.battle_pix import battle_pix
+from engine.battle_pix import battle
 from gameplay.monopoly.index import Monopoly
 import os
 u2_device.connect()
