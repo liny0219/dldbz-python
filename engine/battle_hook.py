@@ -52,8 +52,8 @@ class BattleHook:
     def default_role_hook(self, role_id, skill_id, energy_level, x=None, y=None):
         self.update_ui(f"Default Role Hook: Role {role_id}, Skill {skill_id}, Energy {energy_level}, 敌人坐标: {x},{y}")
 
-    def default_xrole_hook(self, role_id, skill_id, energy_level):
-        self.update_ui(f"Default XRole Hook: Role {role_id}, Skill {skill_id}, Energy {energy_level}")
+    def default_xrole_hook(self, role_id, skill_id, energy_level, x=None, y=None):
+        self.update_ui(f"Default XRole Hook: Role {role_id}, Skill {skill_id}, Energy {energy_level}, 敌人坐标: {x},{y}")
 
     def default_boost_hook(self):
         self.update_ui("Default Boost Hook: Set Boost to Full.")
@@ -64,11 +64,11 @@ class BattleHook:
     def default_switch_all_hook(self):
         self.update_ui("Default SwitchAll Hook: Switched all roles between front and back rows.")
 
-    def default_sp_hook(self, role_id):
-        self.update_ui(f"Default SP Hook: Role {role_id} used special skill.")
+    def default_sp_hook(self, role_id, x=None, y=None):
+        self.update_ui(f"Default SP Hook: Role {role_id} 敌人坐标: {x},{y} used special skill.")
 
-    def default_xsp_hook(self, role_id):
-        self.update_ui(f"Default XSP Hook: Role {role_id} used special skill.")
+    def default_xsp_hook(self, role_id, x=None, y=None):
+        self.update_ui(f"Default XSP Hook: Role {role_id} 敌人坐标: {x},{y} used special skill.")
 
     def default_reset_hook(self):
         self.update_ui("Default Reset Hook: All characters' skills and energy have been reset to 0.")

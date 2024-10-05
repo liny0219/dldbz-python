@@ -15,17 +15,28 @@ class Recollection:
         self.Timestartup = time.time()  # 程序启动时间
         self.TimeroundStart = time.time()  # 每轮开始时间
         self.screenshot = None
+        self.end = False
 
     def thread_stoped(self) -> bool:
         return app_data and app_data.thread_stoped()
 
-    def on_read(self):
+    def can_read(self, screenshot=None):
         try:
-            if self.screenshot is None or len(self.screenshot) == 0:
-                return False
+            screenshot = self.shot()
             coord = comparator.template_compare(
-                "./assets/recollection/read_ui.png", return_center_coord=True, screenshot=self.screenshot)
-            if coord is not None:
+                "./assets/recollection/read_ui.png", return_center_coord=True, screenshot=screenshot)
+            return coord
+        except Exception as e:
+            app_data.update_ui(f"can_read异常{e}")
+            return None
+        finally:
+            del screenshot
+            gc.collect()
+
+    def on_read(self, screenshot=None):
+        try:
+            coord = self.can_read(screenshot)
+            if coord is not None and len(coord) > 0:
                 x, y = coord
                 u2_device.device.click(x, y)
                 return True
@@ -33,13 +44,16 @@ class Recollection:
         except Exception as e:
             app_data.update_ui(f"on_read异常{e}")
             return False
+        finally:
+            del screenshot
+            gc.collect()
 
-    def on_confirm_read(self):
+    def on_confirm_read(self, screenshot=None):
         try:
-            if self.screenshot is None or len(self.screenshot) == 0:
-                return False
+            if screenshot is None or len(screenshot) == 0:
+                screenshot = self.shot()
             coord = comparator.template_compare(
-                "./assets/recollection/confirm_read_ui.png", return_center_coord=True, screenshot=self.screenshot)
+                "./assets/recollection/confirm_read_ui.png", return_center_coord=True, screenshot=screenshot)
             if coord is not None:
                 x, y = coord
                 u2_device.device.click(x, y)
@@ -48,13 +62,16 @@ class Recollection:
         except Exception as e:
             app_data.update_ui(f"on_confirm_read异常{e}")
             return False
+        finally:
+            del screenshot
+            gc.collect()
 
-    def on_confirm_award(self):
+    def on_confirm_award(self, screenshot=None):
         try:
-            if self.screenshot is None or len(self.screenshot) == 0:
-                return False
+            if screenshot is None or len(screenshot) == 0:
+                screenshot = self.shot()
             coord = comparator.template_compare(
-                "./assets/recollection/confirm_award_ui.png", return_center_coord=True, screenshot=self.screenshot)
+                "./assets/recollection/confirm_award_ui.png", return_center_coord=True, screenshot=screenshot)
             if coord is not None:
                 x, y = coord
                 u2_device.device.click(x, y)
@@ -63,13 +80,16 @@ class Recollection:
         except Exception as e:
             app_data.update_ui(f"on_confirm_award异常{e}")
             return False
+        finally:
+            del screenshot
+            gc.collect()
 
-    def on_status_close(self):
+    def on_status_close(self, screenshot=None):
         try:
-            if self.screenshot is None or len(self.screenshot) == 0:
-                return False
+            if screenshot is None or len(screenshot) == 0:
+                screenshot = self.shot()
             coord = comparator.template_compare(
-                "./assets/recollection/status_close_ui.png", return_center_coord=True, screenshot=self.screenshot)
+                "./assets/recollection/status_close_ui.png", return_center_coord=True, screenshot=screenshot)
             if coord is not None:
                 x, y = coord
                 u2_device.device.click(x, y)
@@ -77,6 +97,9 @@ class Recollection:
             return False
         except Exception as e:
             app_data.update_ui(f"on_status_close异常{e}")
+        finally:
+            del screenshot
+            gc.collect()
 
     def on_skip(self):
         try:
@@ -100,9 +123,14 @@ class Recollection:
             app_data.update_ui(f"截图异常{e}")
             return None
 
+    def reset(self):
+        cfg_recollection.reload()
+        self.loop = int(cfg_recollection.get("common.loop"))
+
     def start(self):
         app_data.update_ui("追忆之书,启动", 'stats')
-        self.loop = int(cfg_recollection.get("common.loop"))
+        self.reset()
+        battle.reset()
         self.finish_count = 0
         self.fail_count = 0
         self.flag_in_battle = False
@@ -110,50 +138,58 @@ class Recollection:
         app_data.recollection_deamon_thread = StoppableThread(target=lambda: self.daemon())
         app_data.recollection_deamon_thread.start()
         app_data.update_ui(f"守护线程启动", 'debug')
-        battle.reset()
-        battle.check_finish()
+
         self.run()
 
     def daemon(self):
         try:
-            max_duration = 180
-            dt_start = time.time()
-            while not app_data.thread_recollection_deamon_stoped():
+            while not app_data.thread_recollection_deamon_stoped() and not self.end:
                 try:
                     if not self.flag_in_battle:
-                        duration = time.time() - dt_start
-                        if duration > max_duration:
-                            battle.check_finish()
-                            dt_start = time.time()
                         app_data.update_ui('守护线程检查', 'debug')
-                        self.shot()
-                        self.on_read()
-                        if self.on_confirm_read():
-                            battle.cmd_skip(8000)
+                        screenshot = self.shot()
+                        battle.check_finish(screenshot)
+                        battle.check_confirm_quit_battle(screenshot)
+                        coord = self.can_read(screenshot)
+                        if coord is not None and len(coord) > 0:
+                            if self.flag_finish:
+                                self.end = True
+                                app_data.update_ui("追忆之书已达到设定次数")
+                                break
+                            else:
+                                u2_device.device.click(coord[0], coord[1])
+                        if self.on_confirm_read(screenshot):
+                            for i in range(2):
+                                if app_data.thread_stoped():
+                                    break
+                                battle.cmd_skip(3000)
                             self.flag_in_battle = True
-                        self.on_confirm_award()
-                        self.on_status_close()
+                        self.on_confirm_award(screenshot)
+                        self.on_status_close(screenshot)
+                        time.sleep(0.2)
                     else:
-                        dt_start = time.time()
+                        time.sleep(1)
                 except Exception as e:
                     app_data.update_ui(f"守护线程循环异常{e}")
-                time.sleep(0.5)
         except Exception as e:
             app_data.update_ui(f"守护线程异常停止{e}")
 
     def run(self):
         try:
-            while app_data.thread and not app_data.thread_stoped():
+            while app_data.thread and not app_data.thread_stoped() and not self.end:
                 if self.flag_in_battle:
                     app_data.update_ui("开始战斗")
-                    battle.run('./battle_script/recollection.txt')
-                    is_finish = battle.check_finish()
-                    self.turn_end(is_finish)
-                    if not is_finish:
-                        self.flag_finish = False
+                    run_result = battle.run('./battle_script/recollection.txt')
+                    if run_result != 1:
+                        self.turn_end(False)
                     else:
-                        battle.cmd_skip(8000)
-                        self.flag_finish = True
+                        is_finish = battle.check_finish()
+                        self.flag_finish = self.turn_end(is_finish)
+                        if is_finish:
+                            for i in range(2):
+                                if app_data.thread_stoped():
+                                    break
+                                battle.cmd_skip(3000)
                     self.flag_in_battle = False
                 else:
                     time.sleep(0.2)
@@ -182,3 +218,5 @@ class Recollection:
             app_data.update_ui(
                 f"追忆之书已达到设定次数: {self.loop}\n"
                 f"总运行时间: {total_time/60:.1f} 分钟")
+            return True
+        return False

@@ -26,7 +26,8 @@ def wait_until(condition_func, operate_funcs=None, timeout=10, check_interval=0.
                     operate_func()
             except Exception as e:
                 print(f"operate_funcs error: {e}")
-        time.sleep(check_interval)
+        if check_interval != 0:
+            time.sleep(check_interval)
         time_elapsed = time.time() - start_time
         if time_elapsed >= timeout:
             if time_out_operate_funcs and type(time_out_operate_funcs) == list:
@@ -98,7 +99,8 @@ def wait_either(condition_func1, condition_func2,
                     operate_func()
             except:
                 pass
-        time.sleep(check_interval)
+        if check_interval != 0:
+            time.sleep(check_interval)
 
 
 def wait_until_not(condition_func, operate_funcs=None, timeout=10, check_interval=0.1, thread=None):

@@ -61,22 +61,6 @@ class BattleVee:
             app_data.update_ui("find-确认退出战斗", 'debug')
         return result
 
-    def is_dead(self):
-        screenshot = self.shot()
-        try:
-            app_data.update_ui("check-是否有人阵亡", 'debug')
-            result = comparator.template_compare('./assets/battle/dead_tag.png', [(
-                759, 5), (951, 440)], screenshot=screenshot, gray=False)
-            if result:
-                app_data.update_ui("find-有人阵亡", 'debug')
-            return result
-        except Exception as e:
-            app_data.update_ui(f"检查是否有人阵亡异常{e}")
-            return False
-        finally:
-            del screenshot
-            gc.collect()
-
     def is_in_battle(self, screenshot=None):
         app_data.update_ui("check-战斗界面中", 'debug')
         isR1 = [(788, 71, [145, 144, 142]), (791, 49, [243, 240, 233]), (784, 58, [0, 1, 0])]
@@ -179,32 +163,6 @@ class BattleVee:
     def run(self, path):
         self._load_instructions(path)
         self._run_script()
-
-    def check_finish(self):
-        try:
-            world.btn_trim_click()
-            screenshot = self.shot()
-            if self.is_in_battle(screenshot=screenshot):
-                croods = self.check_quit_battle(screenshot=screenshot)
-                if croods:
-                    u2_device.device.click(croods[0], croods[1])
-                    app_data.update_ui("点击退出战斗", 'debug')
-                    time.sleep(1)
-                    screenshot = self.shot()
-                    croods = self.check_confirm_quit_battle(screenshot=screenshot)
-                    if croods:
-                        u2_device.device.click(croods[0], croods[1])
-                        app_data.update_ui("点击确认退出战斗", 'debug')
-                else:
-                    app_data.update_ui("未找到退出战斗按钮", 'debug')
-                return False
-            return True
-        except Exception as e:
-            app_data.update_ui(f"检查战斗结束异常{e}")
-            return False
-        finally:
-            del screenshot
-            gc.collect()
 
     def _load_instructions(self, filename):
         """ 从文件中预读取指令并存储 """
