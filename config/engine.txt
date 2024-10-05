@@ -4,6 +4,8 @@
     "press_duration": 300,
     "swipe_duration": 100,
     "operate_latency": 500,
-    "default_sleep_ms": 10
+    "default_sleep_ms": 10,
+    "cmd_interval": 0.2,
+    "wait_interval": 0.8
   }
 }

@@ -57,15 +57,18 @@ def process_image(current_image, threshold=100):
         # 分离图像的 BGR 通道
         if resized_image is None or len(resized_image) == 0:
             return None
-        if len(resized_image.shape) == 3:
-            b_channel, g_channel, r_channel = cv2.split(resized_image)
-            # 对每个通道应用阈值操作
-            _, b_thresh = cv2.threshold(b_channel, threshold, 255, cv2.THRESH_BINARY)
-            _, g_thresh = cv2.threshold(g_channel, threshold, 255, cv2.THRESH_BINARY)
-            _, r_thresh = cv2.threshold(r_channel, threshold, 255, cv2.THRESH_BINARY)
-            # 将阈值处理后的通道合并回彩色图像
-            threshold_image = cv2.merge([b_thresh, g_thresh, r_thresh])
-            image = threshold_image
+
+        split_data = cv2.split(resized_image)
+        b_channel = split_data[0]
+        g_channel = split_data[1]
+        r_channel = split_data[2]
+        # 对每个通道应用阈值操作
+        _, b_thresh = cv2.threshold(b_channel, threshold, 255, cv2.THRESH_BINARY)
+        _, g_thresh = cv2.threshold(g_channel, threshold, 255, cv2.THRESH_BINARY)
+        _, r_thresh = cv2.threshold(r_channel, threshold, 255, cv2.THRESH_BINARY)
+        # 将阈值处理后的通道合并回彩色图像
+        threshold_image = cv2.merge([b_thresh, g_thresh, r_thresh])
+        image = threshold_image
         if image is None or len(image) == 0:
             return None
         result = comparator.get_num_in_image(image)

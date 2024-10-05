@@ -1,0 +1,6 @@
+{
+  "common": {
+    "loop": 0,
+    "btn_skip_timeout": 8
+  }
+}

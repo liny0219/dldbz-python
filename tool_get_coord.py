@@ -33,7 +33,7 @@ class GetCoord:
         self.isClosed = False
         wnd = "ClickWnd"
         if self.device is None:
-            u2_device.set(self.app_data)
+            u2_device.set()
             u2_device.connect()
             self.device = u2_device.device
         self.img = self.capture_screen()

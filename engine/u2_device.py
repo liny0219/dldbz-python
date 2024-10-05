@@ -1,17 +1,12 @@
-
-from __future__ import annotations
 import os
-from typing import TYPE_CHECKING
 from engine.comparator import comparator
 from utils.singleton import singleton
 import uiautomator2 as u2
 from utils.config_loader import cfg_startup, cfg_engine
 import time
-
 from utils.status import App_Client
-
-if TYPE_CHECKING:
-    from app_data import AppData
+from app_data import app_data
+import subprocess
 
 appName = App_Client.NTES.value
 appNameBilibili = App_Client.Bilibili.value
@@ -23,7 +18,6 @@ class U2Device:
     def __init__(self):
         self.device = None
         self.package_name = None
-        self.app_data = None
         self.debug = False
 
         self.cfg_rand_press_px = 5
@@ -32,16 +26,15 @@ class U2Device:
         self.cfg_operate_latency = 500
         self.cfg_default_sleep_ms = 10
 
-    def set(self, app_data: AppData):
-        self.app_data = app_data
+    def set(self):
         try:
             if self.connect():
-                self.update_ui("连接设备成功")
+                app_data.update_ui("连接设备成功")
             else:
-                self.update_ui("连接设备失败")
+                app_data.update_ui("连接设备失败")
                 app_data.thread.stop()
         except Exception as e:
-            self.update_ui(f"连接设备失败: {e}")
+            app_data.update_ui(f"连接设备失败: {e}")
 
     def set_config(self):
         self.cfg_press_duration = cfg_engine.get('common.press_duration')
@@ -50,12 +43,6 @@ class U2Device:
         self.cfg_rand_press_px = cfg_engine.get('common.rand_press_px')
         self.cfg_swipe_duration = cfg_engine.get('common.swipe_duration')
         self.cfg_package_name = cfg_startup.get('package_name')
-
-    def thread_stoped(self) -> bool:
-        return self.app_data and self.app_data.thread_stoped()
-
-    def update_ui(self, msg: str, type='info'):
-        self.app_data and self.app_data.update_ui(msg, type)
 
     def connect(self):
         try:
@@ -66,7 +53,7 @@ class U2Device:
             comparator.set_device(self.device)
             return True
         except Exception as e:
-            self.update_ui(f"连接设备失败: {e}")
+            app_data.update_ui(f"连接设备失败: {e}")
             return False
 
     def reconnect(self):
@@ -83,13 +70,13 @@ class U2Device:
             u2_device.reconnect()
         current_app = self.device.app_current()
         self.package_name = current_app['package']
-        self.update_ui(f"当前应用包名: {self.package_name}", 'debug')
-        self.update_ui(f"当前应用Activity: {current_app['activity']}", 'debug')
+        app_data.update_ui(f"当前应用包名: {self.package_name}", 'debug')
+        app_data.update_ui(f"当前应用Activity: {current_app['activity']}", 'debug')
         return self.package_name == appName or self.package_name == appNameBilibili
 
     def start_app(self):
         # 启动应用程序，需要确保已安装并可通过此包名启动
-        self.update_ui(f"启动应用程序: {self.cfg_package_name}")
+        app_data.update_ui(f"启动应用程序: {self.cfg_package_name}")
         self.device.app_start(self.cfg_package_name)
 
     def check_in_game(self):
@@ -102,15 +89,15 @@ class U2Device:
             return False
 
     def stop_app(self):
-        self.update_ui(f"停止应用程序: {self.cfg_package_name}")
+        app_data.update_ui(f"停止应用程序: {self.cfg_package_name}")
         self.device.app_stop(self.cfg_package_name)
 
     def restart_game(self):
-        self.update_ui("重启游戏")
+        app_data.update_ui("重启游戏")
         self.stop_app()
         time.sleep(1)
         self.start_app()
-        self.update_ui(f"重启成功")
+        app_data.update_ui(f"重启成功")
 
     def long_press_and_drag(self, start, end, duration=0.3):
         start_x, start_y = start
@@ -259,6 +246,24 @@ class U2Device:
                     self.cleanup_large_files(file_path, size_limit_mb)  # 递归检查子目录
             except Exception as e:
                 print(f'Failed to delete {file_path}. Reason: {e}')
+
+    def adb_disconnect(self, ip_port="127.0.0.1:5555"):
+        """
+        断开与指定设备的ADB连接
+        :param ip_port: 设备的IP和端口（默认为127.0.0.1:5555）
+        """
+        try:
+            # 执行 adb disconnect 命令
+            result = subprocess.run(["adb", "disconnect", ip_port], capture_output=True, text=True)
+
+            # 检查返回结果
+            if result.returncode == 0:
+                print(f"成功断开 {ip_port} 的 ADB 连接")
+            else:
+                print(f"断开 {ip_port} ADB 连接失败: {result.stderr}")
+
+        except Exception as e:
+            print(f"断开ADB连接时发生错误: {e}")
 
 
 u2_device = U2Device()

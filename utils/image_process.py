@@ -3,11 +3,13 @@ import numpy as np
 from skimage.metrics import structural_similarity as ssim
 from skimage.feature import match_template
 
+
 def crop_image(image, coord1, coord2):
     x1, y1 = coord1
     x2, y2 = coord2
     cropped_image = image[y1:y2, x1:x2]
     return cropped_image
+
 
 def crop_save_img(coord1, coord2, path, device):
     img = device.screenshot(format='opencv')
@@ -119,7 +121,8 @@ def resize_image_if_needed(image, min_size=7):
     '''
     如果图像的最小边小于指定尺寸，则调整图像大小。
     '''
-    h, w = image.shape
+    h = image.shape[0]
+    w = image.shape[1]
     if min(h, w) < min_size:
         scale = min_size / min(h, w)
         new_size = (int(w * scale), int(h * scale))
@@ -127,7 +130,7 @@ def resize_image_if_needed(image, min_size=7):
     return image
 
 
-def check_image_similarity(gray_image1, gray_image2, threshold):
+def check_image_similarity(gray_image1, gray_image2, threshold, gray=True):
     '''
     检查两个图像是否匹配。
 
@@ -140,7 +143,11 @@ def check_image_similarity(gray_image1, gray_image2, threshold):
     '''
     gray_image1 = resize_image_if_needed(gray_image1)
     gray_image2 = resize_image_if_needed(gray_image2)
-    similarity_index = ssim(gray_image1, gray_image2)
+    similarity_index = None
+    if gray:
+        similarity_index = ssim(gray_image1, gray_image2)
+    else:
+        similarity_index = ssim(gray_image1, gray_image2, multichannel=True, channel_axis=2)
     # loger.log_info(f'相似度:{similarity_index},阈值：{threshold}')
     if similarity_index >= threshold:
         return True
@@ -159,8 +166,11 @@ def find_target_in_image(gray_target_image, gray_whole_image):
     - 返回gray_whole_image中最匹配gray_target_image图像的坐标(左上角坐标,右下角坐标)=>((x1, y1), (x2, y2))
     '''
     match_result = match_template(gray_whole_image, gray_target_image)
-    y, x = np.unravel_index(np.argmax(match_result), match_result.shape)
-    length_y, length_x = gray_target_image.shape
+    result = np.unravel_index(np.argmax(match_result), match_result.shape)
+    y = result[0]
+    x = result[1]
+    length_y = gray_target_image.shape[0]
+    length_x = gray_target_image.shape[1]
 
     return ((x, y), (x + length_x, y + length_y))
 
@@ -180,7 +190,8 @@ def find_target_in_image_k(gray_target_image, gray_whole_image, k=1):
     match_result = match_template(gray_whole_image, gray_target_image)
     top_k_indices = np.argpartition(match_result.flatten(), -k)[-k:]
     top_k_coords = [np.unravel_index(idx, match_result.shape) for idx in top_k_indices]
-    length_y, length_x = gray_target_image.shape
+    length_y = gray_target_image.shape[0]
+    length_x = gray_target_image.shape[1]
     top_k_coords = [((x, y), (x + length_x, y + length_y)) for y, x in top_k_coords]
     return top_k_coords
 

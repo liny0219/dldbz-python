@@ -38,11 +38,9 @@ class Ads():
         wait_time = 0.2
         wait_time_count = 0
         while not app_data.thread_stoped():
-            if wait_time_count > 5:
-                write_log(self.screenshot, 'ads')
-                wait_time_count = 0
             if time.time() - statr_time > 180:
                 app_data.update_ui("出现异常超时停止看广告")
+                write_log(self.screenshot, 'image_ads_debug')
                 pre_state = State.Unknow
                 wait_time_count = 0
                 break
@@ -104,6 +102,7 @@ class Ads():
                 if btn_award_crood is not None:
                     app_data.update_ui("广告奖励确认", 'debug')
                     state = State.AdsAwardConfirm
+                    write_log(self.screenshot, 'image_ads_award')
                     u2_device.device.click(btn_award_crood[0], btn_award_crood[1])
                     time.sleep(wait_time)
                 btn_type_1_crood = check_in_ads_type_1(self.screenshot)
@@ -122,11 +121,10 @@ class Ads():
                 app_data.update_ui(f"广告异常{e}")
 
 
-def write_log(current_image, type):
+def write_log(current_image, debug_path='images_ads', type='ads'):
     if current_image is None or len(current_image) == 0:
         return
     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    debug_path = 'debug_images_ads'
     file_name = f'current_image_{timestamp}_{type}.png'
     os.makedirs(debug_path, exist_ok=True)  # 确保目录存在
     u2_device.cleanup_large_files(debug_path, 10)  # 清理大于 10 MB 的文件

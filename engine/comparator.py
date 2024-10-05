@@ -221,15 +221,18 @@ class Comparator:
         # image_gray中最符合模板template_gray的区域的左上角, 右下角坐标. 且该区域与模板shape一致.
         target_leftup, target_rightdown = find_target_in_image(template_gray, cropped_screenshot_gray)
         # 第二次裁剪, 为了匹配模板template_gray的shape, 此时twice_cropped_screenshot_gray与template_gray有相同shape, 这之后才可调用比较相似度的函数
-        twice_cropped_screenshot_gray = cropped_screenshot_gray[target_leftup[1]: target_rightdown[1], target_leftup[0]: target_rightdown[0]]
+        twice_cropped_screenshot_gray = cropped_screenshot_gray[target_leftup[1]                                                                : target_rightdown[1], target_leftup[0]: target_rightdown[0]]
 
         # 检查是否匹配
         is_match = check_image_similarity(twice_cropped_screenshot_gray, template_gray, match_threshold)
 
         if not return_center_coord:  # 如果不需要返回目标中心坐标
+            # if not is_match:
+            #     cv2.imwrite("error.png", cropped_screenshot_gray)
             return is_match
         else:  # 如果需要返回目标中心坐标
             if not is_match:  # 如果不匹配, 说明没找到图像
+                # cv2.imwrite("error.png", cropped_screenshot_gray)
                 return None
             else:  # 如果匹配
                 if coordinate:  # 如果指定了背景图片, 返回全屏的绝对坐标
@@ -295,11 +298,11 @@ class Comparator:
         if pack:
             asset_path = self.resource_path(template_path)
 
-        template_gray = self._template_image(asset_path)
+        template_gray = self._template_image(asset_path, convert_gray=gray)
         # 若未指定coordinate, leftup_coordinate与rightdown_coordinate都是None,
         # 此时_cropped_image对应参数接受None, 则默认截取全屏
         cropped_screenshot_gray = self._cropped_image(
-            leftup_coordinate, rightdown_coordinate, save_path=save_path, screenshot=screenshot)
+            leftup_coordinate, rightdown_coordinate, convert_gray=gray, save_path=save_path, screenshot=screenshot)
 
         # image_gray中最符合模板template_gray的区域的左上角, 右下角坐标. 且该区域与模板shape一致.
         target_leftup, target_rightdown = find_target_in_image(template_gray, cropped_screenshot_gray)
@@ -307,11 +310,11 @@ class Comparator:
         # print(f"template_path:{template_path} target_leftup: {target_leftup}, target_rightdown: {target_rightdown}")
 
         # 第二次裁剪, 为了匹配模板template_gray的shape, 此时twice_cropped_screenshot_gray与template_gray有相同shape, 这之后才可调用比较相似度的函数
-        twice_cropped_screenshot_gray = cropped_screenshot_gray[target_leftup[1]
-            : target_rightdown[1], target_leftup[0]: target_rightdown[0]]
+        twice_cropped_screenshot_gray = cropped_screenshot_gray[target_leftup[1]: target_rightdown[1], target_leftup[0]: target_rightdown[0]]
 
         # 检查是否匹配
-        is_match = check_image_similarity(twice_cropped_screenshot_gray, template_gray, match_threshold)
+        is_match = check_image_similarity(twice_cropped_screenshot_gray, template_gray,
+                                          match_threshold, gray=gray)
 
         if not return_center_coord:  # 如果不需要返回目标中心坐标
             return is_match
@@ -378,10 +381,9 @@ class Comparator:
         :param threshold_value: 阈值，默认值为 100
         :return: 处理后的图像
         """
-        # 获取图像的高度和宽度
-        if len(input_image.shape) != 3:
-            return
-        height, width, _ = input_image.shape
+
+        height = input_image.shape[0]
+        width = input_image.shape[1]
 
         # 遍历每个像素
         for i in range(height):

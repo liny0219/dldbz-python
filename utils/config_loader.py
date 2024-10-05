@@ -70,9 +70,9 @@ def update_json_config(file_path, key, value):
         print(f"发生错误: {e}")
 
 
-cfg_version = ConfigLoader('./config/version.json')
-cfg_engine = ConfigLoader('./config/engine.json')
-cfg_startup = ConfigLoader('./config/startup.json')
-cfg_monopoly = ConfigLoader('./config/monopoly.json')
-cfg_recollection = ConfigLoader('./config/recollection.json')
-cfg_stationary = ConfigLoader('./config/stationary.json')
+cfg_version = ConfigLoader('./config/version.txt')
+cfg_engine = ConfigLoader('./config/engine.txt')
+cfg_startup = ConfigLoader('./config/startup.txt')
+cfg_monopoly = ConfigLoader('./config/monopoly.txt')
+cfg_recollection = ConfigLoader('./config/recollection.txt')
+cfg_stationary = ConfigLoader('./config/stationary.txt')
