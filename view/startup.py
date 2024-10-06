@@ -190,13 +190,13 @@ class App:
                 }, lambda text: self.startup.set_monopoly_config(text, 'enemy_check'), default_value=cfg_monopoly_enemy_check)
             self.cmb_enemy_check.pack(padx=10, pady=5, anchor=tk.W)  # 组件左对齐
 
-            cfg_monopoly_continue = cfg_monopoly.get("continue")
-            self.cmb_continue = ComboBoxComponent(
-                frame, "重启继续:", {
-                    "关闭": "0",
-                    "继续": "1"
-                }, lambda text: self.startup.set_monopoly_config(text, 'continue'), default_value=cfg_monopoly_continue)
-            self.cmb_continue.pack(padx=10, pady=5, anchor=tk.W)  # 组件左对齐
+            # cfg_monopoly_continue = cfg_monopoly.get("continue")
+            # self.cmb_continue = ComboBoxComponent(
+            #     frame, "重启继续:", {
+            #         "关闭": "0",
+            #         "继续": "1"
+            #     }, lambda text: self.startup.set_monopoly_config(text, 'continue'), default_value=cfg_monopoly_continue)
+            # self.cmb_continue.pack(padx=10, pady=5, anchor=tk.W)  # 组件左对齐
 
             cfg_monopoly_bp_type = cfg_monopoly.get("bp_type")
             self.cmb_continue = ComboBoxComponent(

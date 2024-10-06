@@ -156,6 +156,7 @@ class Stationary:
                         world.btn_trim_click()
 
                     if retry_count > 300:
+                        retry_count = 0
                         self.update_ui("未检测到任何界面")
                         is_match = State.Unknow
                         self.update_ui(f"检查{retry_count}次{0.1}秒未匹配到任何执行函数，重启游戏")

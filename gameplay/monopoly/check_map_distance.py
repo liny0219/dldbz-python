@@ -5,7 +5,7 @@ import time
 from typing import TYPE_CHECKING
 
 from app_data import app_data
-from gameplay.monopoly.ocr import cache_distance, is_number, match_distance_template_in_directory, ocr_number, write_ocr_log
+from gameplay.monopoly.ocr import cache_map, is_number, match_map_template_in_directory, ocr_number, write_ocr_log
 
 if TYPE_CHECKING:
     from gameplay.monopoly.index import Monopoly
@@ -26,14 +26,14 @@ def check_map_distance(monopoly: Monopoly):
         number = ocr_number(current_image, type="map_distance")
         if not is_number(number):
             app_data.update_ui(f"check-检查距离失败启动备用图片识别")
-            if len(cache_distance.keys()) == 0:
+            if len(cache_map.keys()) == 0:
                 app_data.update_ui(f"check-没有备用图片")
                 write_ocr_log(number, current_image, 'map_distance_faild')
                 return number
             start_time = time.time()
             currentshot = monopoly.shot()
             current_image = currentshot[y:y+height, x:x+width]
-            number = match_distance_template_in_directory(currentshot)
+            number = match_map_template_in_directory(currentshot)
             write_ocr_log(number, current_image, 'map_distance_faild')
             app_data.update_ui(f"check-检查结束耗时:{time.time() - start_time}", 'debug')
             if is_number(number):

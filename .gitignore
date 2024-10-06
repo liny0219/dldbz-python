@@ -3,6 +3,7 @@ log
 cropped_image.png
 threshold_image.png
 tmp.spec
+debug_images/
 image_ads_debug/
 image_ads_award/
 __MACOSX/

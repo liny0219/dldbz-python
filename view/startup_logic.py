@@ -182,7 +182,7 @@ class StartupLogic:
             self.log_file = self._generate_log_filename(self.log_basename)
             self.last_update_time = datetime.now()
 
-        if datetime.now() - self.last_update_time >= timedelta(minutes=5):
+        if datetime.now() - self.last_update_time >= timedelta(minutes=10):
             self.log_file = self._generate_log_filename(self.log_basename)
             self.last_update_time = datetime.now()
 

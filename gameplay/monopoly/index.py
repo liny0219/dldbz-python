@@ -206,8 +206,10 @@ class Monopoly():
                                 in_map = False
                                 break
                             else:
-                                btn_center_confirm()
-                                if not in_map:
+                                if in_map:
+                                    btn_center_confirm()
+                                else:
+                                    world.btn_trim_click()
                                     break
                         else:
                             in_map = True
