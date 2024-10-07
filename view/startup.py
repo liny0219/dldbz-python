@@ -1,8 +1,9 @@
 import tkinter as tk
 import tkinter.ttk as ttk
 from tkinter import Label
+from utils.status import App_Client
 from view.startup_logic import StartupLogic
-from utils.config_loader import cfg_version, cfg_stationary, cfg_monopoly, cfg_startup
+from utils.config_loader import cfg_version, cfg_stationary, cfg_monopoly, cfg_startup, cfg_engine, cfg_recollection
 from PIL import Image, ImageTk
 
 
@@ -13,7 +14,7 @@ class App:
         width = 900
         height = 600
         self.app.geometry(f"{width}x{height}")  # 增加窗口宽度
-        icon_path = 'image/icon_title.ico'
+        icon_path = 'image/icon.ico'
         self.app.iconbitmap(icon_path)
         self.startup = StartupLogic(self.app)
 
@@ -22,11 +23,11 @@ class App:
         self.bold_font = ("Segoe UI", 18, 'bold')
         self.configure_styles()
 
-        left_label, left_image = self.load_and_display_image('image/2b.png')
+        left_label, left_image = self.load_and_display_image('image/left.png')
         left_label.place(x=width-110, y=10)
         self.left_image = left_image
 
-        right_label, right_image = self.load_and_display_image('image/2a.png')
+        right_label, right_image = self.load_and_display_image('image/right.png')
         right_label.place(x=10, y=10)
         self.right_image = right_image
 
@@ -86,7 +87,7 @@ class App:
         Label(about_frame, text="©2024", font=self.default_font).pack(pady=10)
 
         notebook.add(self.monopoly_frame, text='游戏盘')
-        notebook.add(self.recollection_frame, text='追忆之书(未完善)')
+        notebook.add(self.recollection_frame, text='追忆之书')
         notebook.add(self.map_frame, text='大地图')
         notebook.add(self.settings_frame, text='设置')  # 添加到这里
         notebook.add(about_frame, text='关于')
@@ -105,21 +106,24 @@ class App:
         info_frame.pack_propagate(0)
         info_frame.pack(side='left', fill='y', padx=10, pady=10)
 
+        buttons = [
+            {"text": "休息一下", "command": self.startup.on_stop},
+            {"text": "查看帮助", "command": self.startup.open_readme},
+            {"text": "标记坐标", "command": self.startup.get_coord}
+        ]
+
         main_button = {"text": "大霸启动", "command": self.startup.on_monopoly}
         if frame == self.recollection_frame:
             main_button["text"] = "追忆启动"
             main_button["command"] = self.startup.on_recollection
+            buttons.append({"text": "战斗编辑", "command": self.startup.edit_battle_script})
         elif frame == self.map_frame:
             main_button["text"] = "刷野启动"
             main_button["command"] = self.startup.on_stationary
+            ads_button = {"text": "广告启动", "command": self.startup.on_ads}
+            buttons.insert(0, ads_button)
 
-        buttons = [
-            main_button,
-            {"text": "休息一下", "command": self.startup.on_stop},
-            {"text": "查看帮助", "command": self.startup.open_readme},
-            {"text": "战斗编辑", "command": self.startup.edit_battle_script},
-            {"text": "标记坐标", "command": self.startup.get_coord}
-        ]
+        buttons.insert(0, main_button)
 
         for button_config in buttons:
             tk.Button(button_frame, text=button_config["text"], command=button_config["command"],
@@ -131,11 +135,18 @@ class App:
 
         message_scrollbar = tk.Scrollbar(info_frame, orient=tk.VERTICAL, command=message_text.yview)
         message_scrollbar.pack(side='right', fill='y')
+        if frame == self.recollection_frame:
+            recollection_loop = cfg_recollection.get("common.loop")
+            self.input_recollection_loop = InputComponent(
+                frame, "循环次数:", lambda text: self.startup.set_recollection_config(text, 'common.loop'), default_value=recollection_loop)
+            self.input_recollection_loop.pack(padx=10, pady=5, anchor=tk.W)  # 组件
+
+            swipe_duration = cfg_engine.get("common.swipe_duration")
+            self.input_swipe_duration = InputComponent(
+                frame, "BP拖动间隔:", lambda text: self.startup.set_engine_config(text, 'common.swipe_duration'), default_value=swipe_duration)
+            self.input_swipe_duration.pack(padx=10, pady=5, anchor=tk.W)  # 组件
         if frame == self.monopoly_frame:
             cfg_monopoly_type = cfg_monopoly.get("type")
-            cfg_monopoly_ticket = cfg_monopoly.get("ticket")
-            cfg_monopoly_lv = cfg_monopoly.get("lv")
-            cfg_monopoly_enemy_check = cfg_monopoly.get("enemy_check")
             self.cmb_monopoly_type = ComboBoxComponent(
                 frame, "游戏盘:", {
                     "80权利": "801",
@@ -144,6 +155,7 @@ class App:
                 }, lambda text: self.startup.set_monopoly_config(text, 'type'), default_value=cfg_monopoly_type)
             self.cmb_monopoly_type.pack(padx=10, pady=5, anchor=tk.W)  # 组件左对齐
 
+            cfg_monopoly_ticket = cfg_monopoly.get("ticket")
             self.cmb_ticket_type = ComboBoxComponent(
                 frame, "票数:", {
                     "0": "0",
@@ -158,6 +170,7 @@ class App:
                 }, lambda text: self.startup.set_monopoly_config(text, 'ticket'), default_value=cfg_monopoly_ticket)
             self.cmb_ticket_type.pack(padx=10, pady=5, anchor=tk.W)  # 组件左对齐
 
+            cfg_monopoly_lv = cfg_monopoly.get("lv")
             self.cmb_ticket_type = ComboBoxComponent(
                 frame, "难度:", {
                     "0": "0",
@@ -169,18 +182,33 @@ class App:
                 }, lambda text: self.startup.set_monopoly_config(text, 'lv'), default_value=cfg_monopoly_lv)
             self.cmb_ticket_type.pack(padx=10, pady=5, anchor=tk.W)  # 组件左对齐
 
+            cfg_monopoly_enemy_check = cfg_monopoly.get("enemy_check")
             self.cmb_enemy_check = ComboBoxComponent(
-                frame, "检测敌人:", {
+                frame, "识别目标:", {
                     "关闭": "0",
                     "开启": "1"
                 }, lambda text: self.startup.set_monopoly_config(text, 'enemy_check'), default_value=cfg_monopoly_enemy_check)
             self.cmb_enemy_check.pack(padx=10, pady=5, anchor=tk.W)  # 组件左对齐
 
+            # cfg_monopoly_continue = cfg_monopoly.get("continue")
+            # self.cmb_continue = ComboBoxComponent(
+            #     frame, "重启继续:", {
+            #         "关闭": "0",
+            #         "继续": "1"
+            #     }, lambda text: self.startup.set_monopoly_config(text, 'continue'), default_value=cfg_monopoly_continue)
+            # self.cmb_continue.pack(padx=10, pady=5, anchor=tk.W)  # 组件左对齐
+
+            cfg_monopoly_bp_type = cfg_monopoly.get("bp_type")
+            self.cmb_continue = ComboBoxComponent(
+                frame, "BP匹配规则:", {
+                    "使用最大": "max",
+                    "完全匹配": "match"
+                }, lambda text: self.startup.set_monopoly_config(text, 'bp_type'), default_value=cfg_monopoly_bp_type)
+            self.cmb_continue.pack(padx=10, pady=5, anchor=tk.W)  # 组件左对齐
+
         if frame == self.map_frame:
+
             run_enabled = cfg_stationary.get("run_enabled")
-            max_battle_count = cfg_stationary.get("max_battle_count")
-            max_run_count = cfg_stationary.get("max_run_count")
-            battle_wait_time = cfg_stationary.get("battle_wait_time")
             cmb_run_enabled_text = int(run_enabled)
             self.cmb_run_enabled = ComboBoxComponent(
                 frame, "打N跑N:", {
@@ -189,14 +217,17 @@ class App:
                 }, lambda text: self.startup.set_stationary_config(text, 'run_enabled'), default_value=cmb_run_enabled_text)
             self.cmb_run_enabled.pack(padx=10, pady=5, anchor=tk.W)  # 组件左对齐
 
+            max_battle_count = cfg_stationary.get("max_battle_count")
             self.input_max_battle_count = InputComponent(
                 frame, "战斗N次:", lambda text: self.startup.set_stationary_config(text, 'max_battle_count'), default_value=max_battle_count)
             self.input_max_battle_count.pack(padx=10, pady=5, anchor=tk.W)  # 组件左对齐
 
+            max_run_count = cfg_stationary.get("max_run_count")
             self.input_max_run_count = InputComponent(
                 frame, "逃跑N次:", lambda text: self.startup.set_stationary_config(text, 'max_run_count'), default_value=max_run_count)
             self.input_max_run_count.pack(padx=10, pady=5, anchor=tk.W)  # 组件
 
+            battle_wait_time = cfg_stationary.get("battle_wait_time")
             self.input_battle_wait_time = InputComponent(
                 frame, "指令间隔:", lambda text: self.startup.set_stationary_config(text, 'battle_wait_time'), default_value=battle_wait_time)
             self.input_battle_wait_time.pack(padx=10, pady=5, anchor=tk.W)  # 组件
@@ -209,7 +240,15 @@ class App:
         adb_port = cfg_startup.get("adb_port")
         self.input_port = InputComponent(
             frame, "当前端口:", lambda text: self.startup.set_startup_config(text, 'adb_port'), default_value=adb_port, entry_width=30)
-        self.input_port.grid(row=0, column=0, columnspan=3, pady=10)
+        self.input_port.grid(row=0, column=1, columnspan=2, pady=10)
+
+        adb_package = cfg_startup.get("package_name")
+        self.cmb_package = ComboBoxComponent(
+            frame, "客户端:", {
+                "国服官服": App_Client.NTES.value,
+                "国服B服": App_Client.Bilibili.value,
+            }, lambda text: self.startup.set_startup_config(text, 'package_name'), default_value=adb_package)
+        self.cmb_package.grid(row=0, column=0, columnspan=1, pady=10)
 
         tk.Button(frame, text="启动设置", command=self.startup.open_startup_config,
                   font=("Segoe UI", 10), width=30, height=1).grid(row=2, column=0, padx=10, pady=10)
@@ -244,7 +283,7 @@ class App:
 
 
 class ComboBoxComponent:
-    def __init__(self, master, label_text,  value_map, on_select, default_value=0, label_width=8):
+    def __init__(self, master, label_text,  value_map, on_select, default_value=0, label_width=12):
         self.frame = tk.Frame(master)
 
         # 创建标签
@@ -275,6 +314,10 @@ class ComboBoxComponent:
     def pack(self, **kwargs):
         self.frame.pack(**kwargs)
 
+    def grid(self, **kwargs):
+        # 使用显式传递来避免重复传递参数问题
+        self.frame.grid(**kwargs)
+
     def select_value(self):
         selected_text = self.combobox.get()  # 获取用户可见的选项
         mapped_value = self.value_map.get(selected_text)  # 将选项映射为实际值
@@ -289,7 +332,7 @@ class ComboBoxComponent:
 
 
 class InputComponent:
-    def __init__(self, master, label_text, on_submit, default_value=0, label_width=8, entry_width=10):
+    def __init__(self, master, label_text, on_submit, default_value=0, label_width=12, entry_width=10):
         self.frame = tk.Frame(master)
 
         # 创建标签

@@ -6,22 +6,24 @@ import sys
 import tkinter as tk
 import tkinter.messagebox
 from engine.battle import battle
+from gameplay.ads.index import Ads
 from gameplay.monopoly.index import Monopoly
-from gameplay.recollection import Recollection
+from gameplay.recollection.index import Recollection
 from gameplay.stationary.index import Stationary
 from tool_get_coord import GetCoord
 from app_data import AppData
 from utils.stoppable_thread import StoppableThread
-from engine.engine import engine
+from engine.u2_device import u2_device
 from engine.world import world
 from engine.comparator import comparator
 from utils.config_loader import cfg_startup, update_json_config
 import tkinter as tk
-import json
 
-path_cfg_statrup = 'config/startup.json'
-path_cfg_stationary = 'config/stationary.json'
-path_cfg_monopoly = 'config/monopoly.json'
+path_cfg_statrup = 'config/startup.txt'
+path_cfg_engine = 'config/engine.txt'
+path_cfg_recollection = 'config/recollection.txt'
+path_cfg_stationary = 'config/stationary.txt'
+path_cfg_monopoly = 'config/monopoly.txt'
 
 
 class StartupLogic:
@@ -44,15 +46,14 @@ class StartupLogic:
         self.log_update_data_debug = []
 
     def init_engine_thread(self):
-        engine.set_config()
+        u2_device.set_config()
 
         if self.inited:
             return
         try:
-            engine.set(self.app_data)
-            world.set(self.app_data)
-            battle.set(self.app_data)
-            if not engine.connect():
+            u2_device.set()
+            battle.set()
+            if not u2_device.connect():
                 self.update_ui("连接设备失败，请检查设备连接！")
                 return
             try:
@@ -110,6 +111,13 @@ class StartupLogic:
         self.app_data.thread = StoppableThread(target=self._evt_monopoly)
         self.app_data.thread.start()
 
+    def on_ads(self):
+        if self.app_data.thread is not None and self.app_data.thread.is_alive():
+            self.update_ui("已启动广告，不要重复点击哦！")
+            return
+        self.app_data.thread = StoppableThread(target=self._evt_ads)
+        self.app_data.thread.start()
+
     def on_recollection(self):
         if self.app_data.thread is not None and self.app_data.thread.is_alive():
             self.update_ui("已启动追忆之书，不要重复点击哦！")
@@ -123,6 +131,9 @@ class StartupLogic:
             self.app_data.thread.stop()
         if self.app_data.monopoly_deamon_thread is not None:
             self.app_data.monopoly_deamon_thread.stop()
+        if self.app_data.recollection_deamon_thread is not None:
+            self.app_data.recollection_deamon_thread.stop()
+        u2_device.adb_disconnect(cfg_startup.get('adb_port'))
         self.write_to_file(self.log_file)
 
     def update_ui(self, msg, type='info'):
@@ -171,17 +182,17 @@ class StartupLogic:
             self.log_file = self._generate_log_filename(self.log_basename)
             self.last_update_time = datetime.now()
 
-        if datetime.now() - self.last_update_time >= timedelta(minutes=5):
+        if datetime.now() - self.last_update_time >= timedelta(minutes=10):
             self.log_file = self._generate_log_filename(self.log_basename)
             self.last_update_time = datetime.now()
 
         if not file_path:
             file_path = self.log_file
 
-        engine.ensure_directory_exists(self.log_path)
+        u2_device.ensure_directory_exists(self.log_path)
 
         for debug in self.log_update_data_debug:
-            engine.write_to_file(debug, file_path)
+            u2_device.write_to_file(debug, file_path)
             self.log_update_data_debug = []
 
     def _evt_run_stationary(self):
@@ -198,20 +209,28 @@ class StartupLogic:
         if not self.inited:
             self.update_ui("初始化引擎失败，请检查设备连接！")
             return
-        engine.check_and_delete(self.log_path, 1)
+        u2_device.check_and_delete(self.log_path, 1)
         current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         message = f"[{current_time}] 游戏盘开始\n"
-        engine.write_to_file(message, self.log_file)
+        u2_device.write_to_file(message, self.log_file)
 
         self.monopoly = Monopoly()
         self.monopoly.start()
+
+    def _evt_ads(self):
+        self.init_engine()
+        if not self.inited:
+            self.update_ui("初始化引擎失败，请检查设备连接！")
+            return
+        ads = Ads()
+        ads.start()
 
     def _evt_recollection(self):
         self.init_engine()
         if not self.inited:
             self.update_ui("初始化引擎失败，请检查设备连接！")
             return
-        recollection = Recollection(self.app_data)
+        recollection = Recollection()
         recollection.start()
 
     def open_monopoly_log(self):
@@ -243,11 +262,11 @@ class StartupLogic:
         coordinate_getter.show_coordinates_window()
 
     def open_monopoly_config(self):
-        file_path = os.path.join('config', 'monopoly.json')
+        file_path = os.path.join('config', 'monopoly.txt')
         if os.path.exists(file_path):
             os.startfile(file_path)
         else:
-            self.update_ui("配置文件(monopoly.json)不存在，请检查！")
+            self.update_ui("配置文件(monopoly.txt)不存在，请检查！")
 
     def open_log(self):
         if os.path.exists(self.log_path):
@@ -260,11 +279,11 @@ class StartupLogic:
         response = tkinter.messagebox.askokcancel("配置修改警告",
                                                   "请注意，修改配置后需要重启程序才能生效。是否继续打开配置文件？")
         if response:
-            file_path = os.path.join('config', 'startup.json')
+            file_path = os.path.join('config', 'startup.txt')
             if os.path.exists(file_path):
                 os.startfile(file_path)
             else:
-                self.update_ui("配置文件(startup.json)不存在，请检查！")
+                self.update_ui("配置文件(startup.txt)不存在，请检查！")
 
     def update_message_label(self, text):
         current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -282,6 +301,12 @@ class StartupLogic:
                                                   "请注意，修改配置后需要重启程序才能生效。是否继续打开配置文件？")
         if response:
             update_json_config(path_cfg_statrup, key, text)
+
+    def set_engine_config(self, text, key):
+        update_json_config(path_cfg_engine, key, text)
+
+    def set_recollection_config(self, text, key):
+        update_json_config(path_cfg_recollection, key, text)
 
     def set_stationary_config(self, text, key):
         update_json_config(path_cfg_stationary, key, text)

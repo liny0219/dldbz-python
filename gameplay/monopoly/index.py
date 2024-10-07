@@ -3,7 +3,7 @@ import gc
 import time
 from app_data import app_data
 from engine.world import world
-from engine.engine import engine
+from engine.u2_device import u2_device
 
 from gameplay.monopoly.action import btn_center_confirm
 from gameplay.monopoly.check_battle import check_in_battle, check_in_battle_auto_stay, check_in_battle_in_round
@@ -81,7 +81,7 @@ class Monopoly():
                 del self.screenshot
                 self.screenshot = None
                 gc.collect()
-            self.screenshot = engine.device.screenshot(format='opencv')
+            self.screenshot = u2_device.device.screenshot(format='opencv')
             app_data.update_ui("-----------截图完成", 'debug')
             return self.screenshot
         except Exception as e:
@@ -92,7 +92,7 @@ class Monopoly():
         time.sleep(3)
         if "device offline" in str(e) or ("device" in str(e) and "not found" in str(e)):
             app_data.update_ui(f"连接断开")
-            engine.reconnect()
+            u2_device.reconnect()
         else:
             app_data.update_ui(f"发生错误{e}")
 
@@ -206,8 +206,10 @@ class Monopoly():
                                 in_map = False
                                 break
                             else:
-                                btn_center_confirm()
-                                if not in_map:
+                                if in_map:
+                                    btn_center_confirm()
+                                else:
+                                    world.btn_trim_click()
                                     break
                         else:
                             in_map = True

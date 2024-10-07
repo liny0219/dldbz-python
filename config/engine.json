@@ -1,9 +1,0 @@
-{
-  "common": {
-    "rand_press_px": 5,
-    "press_duration": 300,
-    "swipe_duration": 100,
-    "operate_latency": 500,
-    "default_sleep_ms": 10
-  }
-}

@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 from app_data import app_data
-from engine.battle_pix import battle_pix
+from engine.battle_pix import battle
 from engine.world import world
 from gameplay.monopoly.check_bp_number import check_bp_number
 from gameplay.monopoly.check_crossing import check_crossing, turn_auto_crossing
@@ -52,7 +52,7 @@ def check_in_monopoly_map(monopoly: Monopoly):
 
     if not new_state and world.check_stage(monopoly.screenshot):
         new_state = State.MonopolyMap
-        battle_pix.cmd_skip()
+        battle.cmd_skip()
 
     if not new_state and check_map_event(monopoly):
         new_state = State.MonopolyMap

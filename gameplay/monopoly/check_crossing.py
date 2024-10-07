@@ -2,7 +2,7 @@ from __future__ import annotations
 import json
 from app_data import app_data
 from engine.comparator import comparator
-from engine.engine import engine
+from engine.u2_device import u2_device
 from typing import TYPE_CHECKING
 from gameplay.monopoly.check_move_distance import check_move_distance
 from gameplay.monopoly.config import config
@@ -97,16 +97,16 @@ def turn_auto_crossing(monopoly: Monopoly, crossing_index):
 
 def turn_direction(monopoly: Monopoly, direction):
     if direction == "left":
-        engine.device.click(402, 243)
+        u2_device.device.click(402, 243)
         update_crossing_msg(monopoly, "选择左转")
     if direction == "right":
-        engine.device.click(558, 243)
+        u2_device.device.click(558, 243)
         update_crossing_msg(monopoly, "选择右转")
     if direction == "up":
-        engine.device.click(480, 150)
+        u2_device.device.click(480, 150)
         update_crossing_msg(monopoly, "选择上转")
     if direction == "down":
-        engine.device.click(480, 330)
+        u2_device.device.click(480, 330)
         update_crossing_msg(monopoly, "选择下转")
 
 

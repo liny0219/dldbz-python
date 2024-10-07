@@ -1,7 +1,7 @@
-from engine.engine import engine
+from engine.u2_device import u2_device
 from engine.comparator import comparator
 
-engine.connect()
-comparator.set_device(engine.device)
+u2_device.connect()
+comparator.set_device(u2_device.device)
 
-comparator._cropped_screenshot([156, 167], [171, 180], save_path="./assets/monopoly/finish.png")
+comparator._cropped_screenshot([875, 51], [936, 66], save_path="./assets/battle/dead_tag.png")

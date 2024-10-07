@@ -108,7 +108,7 @@ def replace_version_in_spec(spec_file, new_version, output_file):
 def main(version='1.0.0'):
     spec_file = 'main.spec'
     dist_dir = 'dist'
-    json_file = 'config/version.json'
+    json_file = 'config/version.txt'
     publish_dir = 'publish'
     package_dir = publish_dir + '/package'
     tmp_spec_file = 'tmp.spec'

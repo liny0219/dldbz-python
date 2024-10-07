@@ -1,5 +1,5 @@
 from app_data import app_data
-from engine.battle_pix import battle_pix
+from engine.battle_pix import battle
 from utils.config_loader import reload_config, cfg_monopoly, cfg_startup
 
 
@@ -10,7 +10,7 @@ class config:
     cfg_type = ""
     cfg_crossing = ""
     cfg_auto_battle = 0
-    cfg_isContinue = 0
+    cfg_continue = 0
     cfg_check_interval = 0
     cfg_check_roll_dice_interval = 0
     cfg_check_roll_dice_time = 0
@@ -27,18 +27,19 @@ class config:
     cfg_round_time = 0
     cfg_wait_time = 0
     cfg_exe_path = ""
+    cfg_package_name = ""
 
 
 def set_config():
     reload_config()
-    battle_pix.set(app_data)
     try:
+        config.cfg_package_name = cfg_startup.get("package_name")
         config.cfg_ticket = int(cfg_monopoly.get("ticket"))
         config.cfg_lv = int(cfg_monopoly.get("lv"))
         config.cfg_type = cfg_monopoly.get("type")
         config.cfg_crossing = cfg_monopoly.get(f"crossing.{config.cfg_type}")
         config.cfg_auto_battle = int(cfg_monopoly.get("auto_battle"))
-        config.cfg_isContinue = int(cfg_monopoly.get("isContinue"))
+        config.cfg_continue = int(cfg_monopoly.get("continue"))
         config.cfg_check_interval = float(cfg_monopoly.get("check_interval"))
         config.cfg_check_roll_dice_interval = float(cfg_monopoly.get("check_roll_dice_interval"))
         config.cfg_check_roll_dice_time = int(cfg_monopoly.get("check_roll_dice_time"))

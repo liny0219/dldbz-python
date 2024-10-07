@@ -1,7 +1,7 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING
 from utils.singleton import singleton
-from engine.engine import engine
+from engine.u2_device import u2_device
 from utils.stoppable_thread import StoppableThread
 from utils.config_loader import cfg_startup
 import cv2
@@ -12,7 +12,7 @@ if TYPE_CHECKING:
 @singleton
 class GetCoord:
     def __init__(self, app_data: AppData):
-        self.device = engine.device  # 确保这里正确获取设备实例
+        self.device = u2_device.device  # 确保这里正确获取设备实例
         self.img = None
         self.app_data = app_data
         self.update_ui = app_data.update_ui
@@ -33,9 +33,9 @@ class GetCoord:
         self.isClosed = False
         wnd = "ClickWnd"
         if self.device is None:
-            engine.set(self.app_data)
-            engine.connect()
-            self.device = engine.device
+            u2_device.set()
+            u2_device.connect()
+            self.device = u2_device.device
         self.img = self.capture_screen()
 
         def on_EVENT_LBUTTONDOWN(event, x, y, flags, param):

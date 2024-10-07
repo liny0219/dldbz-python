@@ -2,7 +2,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 import os
 from app_data import app_data
-from engine.engine import engine
+from engine.u2_device import u2_device
 from engine.comparator import comparator
 from gameplay.monopoly.config import config
 
@@ -56,7 +56,7 @@ def enmey_action(monopoly: Monopoly):
             if command == "Click":
                 x = int(parts[1])
                 y = int(parts[2])
-                engine.device.click(x, y)
+                u2_device.device.click(x, y)
 
     except Exception as e:
         app_data.update_ui(f"处理敌人行动出现异常{e}")

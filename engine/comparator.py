@@ -187,85 +187,6 @@ class Comparator:
 
         return os.path.join(base_path, relative_path)
 
-    def template_in_picture(self, template_path, coordinate=None,
-                            return_center_coord=False, save_path='', match_threshold=0.9):
-        '''
-        检查指定区域的图像是否存在指定图像模板。
-        如果有返回目标坐标
-
-        参数:
-        - leftup_coordinate    = (x1, y1): 区域的左上角坐标。默认全屏
-        - rightdown_coordinate = (x2, y2): 区域的右下角坐标。默认全屏
-        - template_path: 预期匹配的图像路径。
-
-        返回：
-        - 如果存在指定图像模板，则返回图像模板在指定区域中心点的坐标, 否则返回 None
-        '''
-        leftup_coordinate = None,
-        rightdown_coordinate = None
-        if coordinate:
-            leftup_coordinate = coordinate[0]
-            rightdown_coordinate = coordinate[1]
-        # else不用赋值, 解释见调用_screenshot_cropped_image
-        # else:
-        #     leftup_coordinate = (0, 0)
-        #     rightdown_coordinate = (self.device.info['displayWidth'], self.device.info['displayHeight'])
-        asset_path = self.resource_path(template_path)
-        template_gray = self._template_image(asset_path)
-
-        # 若未指定coordinate, leftup_coordinate与rightdown_coordinate都是None,
-        # 此时_cropped_image对应参数接受None, 则默认截取全屏
-        cropped_screenshot_gray = self._screenshot_cropped_image(
-            leftup_coordinate, rightdown_coordinate, save_path=save_path)
-
-        # image_gray中最符合模板template_gray的区域的左上角, 右下角坐标. 且该区域与模板shape一致.
-        target_leftup, target_rightdown = find_target_in_image(template_gray, cropped_screenshot_gray)
-        # 第二次裁剪, 为了匹配模板template_gray的shape, 此时twice_cropped_screenshot_gray与template_gray有相同shape, 这之后才可调用比较相似度的函数
-        twice_cropped_screenshot_gray = cropped_screenshot_gray[target_leftup[1]: target_rightdown[1], target_leftup[0]: target_rightdown[0]]
-
-        # 检查是否匹配
-        is_match = check_image_similarity(twice_cropped_screenshot_gray, template_gray, match_threshold)
-
-        if not return_center_coord:  # 如果不需要返回目标中心坐标
-            return is_match
-        else:  # 如果需要返回目标中心坐标
-            if not is_match:  # 如果不匹配, 说明没找到图像
-                return None
-            else:  # 如果匹配
-                if coordinate:  # 如果指定了背景图片, 返回全屏的绝对坐标
-                    return get_abs_center_coord(leftup_coordinate, target_leftup, target_rightdown)
-                else:  # 如果未指定背景图片, 默认背景图片就是全图, 返回全屏的绝对坐标
-                    return get_abs_center_coord((0, 0), target_leftup, target_rightdown)
-
-    def template_in_image(self,
-                          gray_image,
-                          template_path,
-                          leftup_coordinate=None,
-                          rightdown_coordinate=None,
-                          return_center_coord=False,
-                          match_threshold=0.95):
-
-        if (leftup_coordinate and rightdown_coordinate):
-            gray_image = crop_image(gray_image, leftup_coordinate, rightdown_coordinate)
-
-        template_image = self._template_image(template_path)
-
-        target_leftup, target_rightdown = find_target_in_image(template_image, gray_image)
-
-        gray_image = gray_image[target_leftup[1]: target_rightdown[1], target_leftup[0]: target_rightdown[0]]
-
-        is_match = check_image_similarity(gray_image, template_image, match_threshold)
-        if not return_center_coord:  # 如果不需要返回目标中心坐标
-            return is_match
-        else:  # 如果需要返回目标中心坐标
-            if not is_match:  # 如果不匹配, 说明没找到图像
-                return None
-            else:  # 如果匹配
-                if leftup_coordinate:  # 如果指定了背景图片, 返回全屏的绝对坐标
-                    return get_abs_center_coord(leftup_coordinate, target_leftup, target_rightdown)
-                else:  # 如果未指定背景图片, 默认背景图片就是全图, 返回全屏的绝对坐标
-                    return get_abs_center_coord((0, 0), target_leftup, target_rightdown)
-
     def template_compare(self, template_path, coordinate=None,
                          return_center_coord=False, save_path='',
                          match_threshold=0.9, screenshot=None,
@@ -295,11 +216,11 @@ class Comparator:
         if pack:
             asset_path = self.resource_path(template_path)
 
-        template_gray = self._template_image(asset_path)
+        template_gray = self._template_image(asset_path, convert_gray=gray)
         # 若未指定coordinate, leftup_coordinate与rightdown_coordinate都是None,
         # 此时_cropped_image对应参数接受None, 则默认截取全屏
         cropped_screenshot_gray = self._cropped_image(
-            leftup_coordinate, rightdown_coordinate, save_path=save_path, screenshot=screenshot)
+            leftup_coordinate, rightdown_coordinate, convert_gray=gray, save_path=save_path, screenshot=screenshot)
 
         # image_gray中最符合模板template_gray的区域的左上角, 右下角坐标. 且该区域与模板shape一致.
         target_leftup, target_rightdown = find_target_in_image(template_gray, cropped_screenshot_gray)
@@ -311,7 +232,8 @@ class Comparator:
             : target_rightdown[1], target_leftup[0]: target_rightdown[0]]
 
         # 检查是否匹配
-        is_match = check_image_similarity(twice_cropped_screenshot_gray, template_gray, match_threshold)
+        is_match = check_image_similarity(twice_cropped_screenshot_gray, template_gray,
+                                          match_threshold, gray=gray)
 
         if not return_center_coord:  # 如果不需要返回目标中心坐标
             return is_match
@@ -378,10 +300,9 @@ class Comparator:
         :param threshold_value: 阈值，默认值为 100
         :return: 处理后的图像
         """
-        # 获取图像的高度和宽度
-        if len(input_image.shape) != 3:
-            return
-        height, width, _ = input_image.shape
+
+        height = input_image.shape[0]
+        width = input_image.shape[1]
 
         # 遍历每个像素
         for i in range(height):

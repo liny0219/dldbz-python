@@ -55,4 +55,5 @@ exe = EXE(pyz,
           strip=False,
           upx=True,
           icon='assets/icon_exe.ico',
-          console=False)
+          console=False,
+          runtime_tmpdir=None)

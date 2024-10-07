@@ -1,6 +1,6 @@
 import easyocr
 import cv2
-from engine.engine import engine
+from engine.u2_device import u2_device
 from engine.comparator import comparator
 from gameplay.monopoly.index import Monopoly
 from app_data import app_data
@@ -8,11 +8,11 @@ from gameplay.monopoly.ocr import ocr_number
 
 
 def shot():
-    engine.connect()
-    screenshot = engine.device.screenshot(format='opencv')
-    engine.connect()
+    u2_device.connect()
+    screenshot = u2_device.device.screenshot(format='opencv')
+    u2_device.connect()
     # 获取截图 (假设 self.screenshot 是 OpenCV 格式)
-    screenshot = engine.device.screenshot(format='opencv')
+    screenshot = u2_device.device.screenshot(format='opencv')
 
     # 定义要提取的区域 (x, y, width, height)
     x, y, width, height = 720, 480, 10, 20

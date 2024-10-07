@@ -1,7 +1,7 @@
 
 from __future__ import annotations
 from engine.comparator import comparator
-from engine.engine import engine
+from engine.u2_device import u2_device
 from app_data import app_data
 from gameplay.monopoly.config import config
 from gameplay.monopoly.constants import State
@@ -11,15 +11,15 @@ if TYPE_CHECKING:
 
 
 def btn_not_continue():
-    engine.device.click(362, 362)
+    u2_device.device.click(362, 362)
 
 
 def btn_continue():
-    engine.device.click(536, 362)
+    u2_device.device.click(536, 362)
 
 
 def on_continue():
-    if config.cfg_isContinue == 0:
+    if config.cfg_continue == 0:
         btn_not_continue()
         app_data.update_ui("点击-不继续游戏")
     else:

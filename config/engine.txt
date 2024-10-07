@@ -1,0 +1,6 @@
+{
+    "common": {
+        "swipe_duration": "0.1",
+        "wait_interval": 0.8
+    }
+}

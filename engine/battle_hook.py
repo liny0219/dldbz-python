@@ -15,11 +15,13 @@ class BattleHook:
             "Attack": self.default_attack_hook,     # 执行攻击
             "SwitchAll": self.default_switch_all_hook,  # 切换前后排
             "SP": self.default_sp_hook,             # 特殊技能 (Skill_SP 更正为 SP)
+            "XSP": self.default_sp_hook,             # 特殊技能 (Skill_SP 更正为 SP)
             "Reset": self.default_reset_hook,       # 重置技能和能量
             "Switch": self.default_switch_hook,     # 切换特定角色位置
             "Wait": self.default_wait_hook,         # 等待指定时间
             "Skip": self.default_skip_hook,         # 跳过指定时间
             "Click": self.default_clk_hook,           # 点击指定坐标
+            "Auto": self.default_auto_hook,  # 脚本结束后的钩子
             "BattleStart": self.default_battle_start_hook,  # 战斗开始
             "BattleEnd": self.default_battle_end_hook,  # 战斗结束
             "CmdStart": self.default_cmd_start_hook,  # 指令开始
@@ -50,8 +52,8 @@ class BattleHook:
     def default_role_hook(self, role_id, skill_id, energy_level, x=None, y=None):
         self.update_ui(f"Default Role Hook: Role {role_id}, Skill {skill_id}, Energy {energy_level}, 敌人坐标: {x},{y}")
 
-    def default_xrole_hook(self, role_id, skill_id, energy_level):
-        self.update_ui(f"Default XRole Hook: Role {role_id}, Skill {skill_id}, Energy {energy_level}")
+    def default_xrole_hook(self, role_id, skill_id, energy_level, x=None, y=None):
+        self.update_ui(f"Default XRole Hook: Role {role_id}, Skill {skill_id}, Energy {energy_level}, 敌人坐标: {x},{y}")
 
     def default_boost_hook(self):
         self.update_ui("Default Boost Hook: Set Boost to Full.")
@@ -62,8 +64,11 @@ class BattleHook:
     def default_switch_all_hook(self):
         self.update_ui("Default SwitchAll Hook: Switched all roles between front and back rows.")
 
-    def default_sp_hook(self, role_id):
-        self.update_ui(f"Default SP Hook: Role {role_id} used special skill.")
+    def default_sp_hook(self, role_id, x=None, y=None):
+        self.update_ui(f"Default SP Hook: Role {role_id} 敌人坐标: {x},{y} used special skill.")
+
+    def default_xsp_hook(self, role_id, x=None, y=None):
+        self.update_ui(f"Default XSP Hook: Role {role_id} 敌人坐标: {x},{y} used special skill.")
 
     def default_reset_hook(self):
         self.update_ui("Default Reset Hook: All characters' skills and energy have been reset to 0.")
@@ -79,6 +84,9 @@ class BattleHook:
 
     def default_clk_hook(self, x, y):
         self.update_ui(f"Default Click Hook: Clicking at ({x}, {y}).")
+
+    def default_auto_hook(self):
+        self.update_ui("Default Auto Hook: Script execution has auto.")
 
     def default_battle_start_hook(self):
         self.update_ui("Default BattleStart Hook: Battle has started.")
