@@ -145,6 +145,15 @@ class App:
             self.input_swipe_duration = InputComponent(
                 frame, "BP拖动间隔:", lambda text: self.startup.set_engine_config(text, 'common.swipe_duration'), default_value=swipe_duration)
             self.input_swipe_duration.pack(padx=10, pady=5, anchor=tk.W)  # 组件
+
+            auto_check_dead = cfg_engine.get("common.auto_check_dead")
+            self.cmb_auto_check_dead = ComboBoxComponent(
+                frame, "自动检查死亡:", {
+                    "开启": True,
+                    "关闭": False,
+                }, lambda text: self.startup.set_engine_config(text, "common.auto_check_dead"), default_value=auto_check_dead)
+            self.cmb_auto_check_dead.pack(padx=10, pady=5, anchor=tk.W)  # 组件左对齐
+
         if frame == self.monopoly_frame:
             cfg_monopoly_type = cfg_monopoly.get("type")
             self.cmb_monopoly_type = ComboBoxComponent(

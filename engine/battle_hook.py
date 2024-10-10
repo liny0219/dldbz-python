@@ -27,6 +27,7 @@ class BattleHook:
             "CmdStart": self.default_cmd_start_hook,  # 指令开始
             "CmdEnd": self.default_cmd_end_hook,      # 指令结束
             "Finish": self.default_finish_hook,  # 脚本结束后的钩子
+            "CheckDead": self.default_check_dead_hook,  # 检查是否有角色死亡
         }
         # 保留默认行为，用于在自定义 hook 时也执行默认行为
         self.default_hooks = self.hooks.copy()
@@ -102,3 +103,6 @@ class BattleHook:
 
     def default_finish_hook(self):
         self.update_ui("Default Finish Hook: Script execution has finished.")
+
+    def default_check_dead_hook(self):
+        self.update_ui("Default CheckDead Hook: Script check has deaded.")

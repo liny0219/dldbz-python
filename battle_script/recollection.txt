@@ -1,6 +1,8 @@
 #炎龙轴 第1场战斗 
 BattleStart
 #第1回合
+
+CheckDead
 XRole,1,1,3
 XRole,2,1,2
 Role,3,1,2
@@ -8,6 +10,8 @@ Role,4,1,0
 Attack
 
 #第2回合
+
+CheckDead
 XRole,1,1,3
 XRole,2,1,3
 XRole,3,1,3
@@ -15,6 +19,7 @@ XRole,4,1,3
 Attack
 
 #第3回合
+CheckDead
 Role,1,1,3
 Role,2,1,3
 Role,3,1,3
@@ -22,6 +27,7 @@ XRole,4,1,3
 Attack
 
 #第4回合
+CheckDead
 Role,1,1,3
 Role,2,1,0
 Role,3,1,0
@@ -29,6 +35,7 @@ Role,4,1,0
 Attack
 
 #第5回合
+CheckDead
 SP,1
 SP,2
 XRole,3,1,3
@@ -36,6 +43,7 @@ Role,4,1,3
 Attack
 
 #第6回合
+CheckDead
 XSP,1
 Role,2,1,3
 SP,3

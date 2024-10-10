@@ -32,6 +32,7 @@ class Battle:
         self.screenshot = None
         self.round_number = 0
         self.check_dead = False
+        self.auto_check_dead = True
         self.cfg_attack = './assets/battle/attack.png'
         self.cfg_switch = './assets/battle/switch.png'
         self.cfg_round_ui = './assets/battle/round_ui.png'
@@ -49,12 +50,14 @@ class Battle:
         cfg_engine.reload()
         u2_device.set_config()
         self.wait_interval = float(cfg_engine.get('common.wait_interval'))
+        self.auto_check_dead = cfg_engine.get('common.auto_check_dead') == 'True'
 
     def set_hook(self):
         # 设置 Hook 函数，返回值为 bool 类型，表示是否继续执行
         battle_hook = self.hook_manager
         battle_hook.set(
             'Finish', lambda: self.finish_hook and self.finish_hook())
+        battle_hook.set('CheckDead', lambda: self.cmd_check_dead())
         battle_hook.set('CmdStart', lambda: not app_data.thread_stoped())
         battle_hook.set('BattleStart', lambda: (self._wait_round(resetRound=True, return_end=False)))
         battle_hook.set('BattleEnd', lambda: self.hook_battle_end())
@@ -123,6 +126,18 @@ class Battle:
     def cmd_click(self, x, y):
         u2_device.device.click(int(x), int(y))
         app_data.update_ui(f"点击坐标{x}, {y}")
+
+    def cmd_check_dead(self):
+        try:
+            wait_until(self._in_round, thread=app_data.thread, check_interval=0,
+                       time_out_operate_funcs=lambda: app_data.update_ui(f"CheckDead指令等待回合超时"))
+            if self.is_dead():
+                self.btn_quit_battle()
+                time.sleep(1)
+                self.check_confirm_quit_battle()
+                return True
+        except Exception as e:
+            app_data.update_ui(f"cmd_check_dead检查死亡异常{e}")
 
     def cmd_start_attack(self):
         try:
@@ -415,7 +430,9 @@ class Battle:
 
         if hook_func is not None:
             # 执行对应的 hook 函数，并传递参数
-            hook_func(*parts[1:])
+            is_break = hook_func(*parts[1:])
+            if is_break == True:
+                return False
         else:
             # 更新 UI
             if app_data.update_ui:
@@ -428,7 +445,7 @@ class Battle:
         for instruction in self.instructions:
             if self.check_dead:
                 self.check_dead = False
-                if self.is_dead():
+                if self.auto_check_dead and self.is_dead():
                     self.btn_quit_battle()
                     time.sleep(1)
                     self.check_confirm_quit_battle()
