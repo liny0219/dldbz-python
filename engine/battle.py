@@ -33,6 +33,7 @@ class Battle:
         self.round_number = 0
         self.check_dead = False
         self.auto_check_dead = True
+        self.swipe_duration = 0.5
         self.cfg_attack = './assets/battle/attack.png'
         self.cfg_switch = './assets/battle/switch.png'
         self.cfg_round_ui = './assets/battle/round_ui.png'
@@ -50,6 +51,7 @@ class Battle:
         cfg_engine.reload()
         u2_device.set_config()
         self.wait_interval = float(cfg_engine.get('common.wait_interval'))
+        self.swipe_duration = float(cfg_engine.get('common.swipe_duration'))
         self.auto_check_dead = cfg_engine.get('common.auto_check_dead') == 'True'
 
     def set_hook(self):
@@ -81,7 +83,7 @@ class Battle:
 
     def btn_auto_battle(self):
         wait_until(self._in_round, thread=app_data.thread, check_interval=0,
-                   time_out_operate_funcs=lambda: app_data.update_ui(f"Auto指令等待回合超时"))
+                   time_out_operate_func=lambda: app_data.update_ui(f"Auto指令等待回合超时"))
         u2_device.device.click(368, 482)
         time.sleep(self.wait_interval)
         u2_device.device.click(825, 482)
@@ -89,19 +91,21 @@ class Battle:
 
     def btn_quit_battle(self):
         wait_until(self._in_round, thread=app_data.thread, check_interval=0,
-                   time_out_operate_funcs=lambda: app_data.update_ui(f"退出指令等待回合超时"))
+                   time_out_operate_func=lambda: app_data.update_ui(f"退出指令等待回合超时"))
         u2_device.device.click(440, 482)
         app_data.update_ui("退出战斗")
 
     def btn_all_switch(self):
+        world.btn_trim_click()
         wait_until(self._in_round, thread=app_data.thread, check_interval=0,
-                   time_out_operate_funcs=lambda: app_data.update_ui(f"Switch指令等待回合超时"))
+                   time_out_operate_func=lambda: app_data.update_ui(f"Switch指令等待回合超时"))
         u2_device.device.click(577, 482)
         app_data.update_ui("全体切换")
 
     def btn_all_bp(self):
+        world.btn_trim_click()
         wait_until(self._in_round, thread=app_data.thread, check_interval=0,
-                   time_out_operate_funcs=lambda: app_data.update_ui(f"Boost指令等待回合超时"))
+                   time_out_operate_func=lambda: app_data.update_ui(f"Boost指令等待回合超时"))
         all_boost_coord = comparator.template_compare(
             self.cfg_allboost,  return_center_coord=True, screenshot=self.shot())
         if all_boost_coord:
@@ -130,7 +134,7 @@ class Battle:
     def cmd_check_dead(self):
         try:
             wait_until(self._in_round, thread=app_data.thread, check_interval=0,
-                       time_out_operate_funcs=lambda: app_data.update_ui(f"CheckDead指令等待回合超时"))
+                       time_out_operate_func=lambda: app_data.update_ui(f"CheckDead指令等待回合超时"))
             if self.is_dead():
                 self.btn_quit_battle()
                 time.sleep(1)
@@ -141,10 +145,13 @@ class Battle:
 
     def cmd_start_attack(self):
         try:
+            world.btn_trim_click()
             wait_until(self._in_round, thread=app_data.thread, check_interval=0,
-                       time_out_operate_funcs=lambda: app_data.update_ui(f"Attack指令等待回合超时"))
+                       time_out_operate_func=lambda: app_data.update_ui(f"Attack指令等待回合超时"))
+            world.btn_trim_click()
             self.btn_attack()
             time.sleep(self.wait_interval)
+            world.btn_trim_click()
             self._wait_round()
         except Exception as e:
             app_data.update_ui(f"cmd_start_attack攻击异常{e}")
@@ -207,8 +214,9 @@ class Battle:
 
     def cmd_role(self, role, skill, boost=0, x=None, y=None):
         try:
+            world.btn_trim_click()
             wait_until(self._in_round, thread=app_data.thread, check_interval=0,
-                       time_out_operate_funcs=lambda: app_data.update_ui(f"Role指令等待回合超时"))
+                       time_out_operate_func=lambda: app_data.update_ui(f"Role指令等待回合超时"))
             if self.in_round_ctx != True:
                 raise Exception(f"执行Role指令{role},{skill},{boost}不在回合中")
             if role < 1 or role > 8:
@@ -224,30 +232,29 @@ class Battle:
                 behide = '后排'
                 role_number = role - 4
             app_data.update_ui(f"执行{behide}{role_number}号位的{skill}技能, 加成{boost} ")
-
             front_role_id = get_front_front_role_id(role)
             u2_device.device.click(self.role_coord_x, self.role_coords_y[front_role_id])
             wait_until(self._in_select_skill, thread=app_data.thread, check_interval=0,
-                       time_out_operate_funcs=lambda: app_data.update_ui(f"Role指令等待选技能超时"))
+                       time_out_operate_func=lambda: app_data.update_ui(f"Role指令等待选技能超时"))
             app_data.update_ui(f"进入选技能界面!")
             self._select_enemy(x, y)
             if role_in_behind:
                 app_data.update_ui(f"开始切换人物!")
                 wait_until(self._in_select_switch, thread=app_data.thread, check_interval=0,
-                           time_out_operate_funcs=lambda: app_data.update_ui(f"Role指令等待切换后排超时"))
+                           time_out_operate_func=lambda: app_data.update_ui(f"Role指令等待切换后排超时"))
                 switch_coord = comparator.template_compare(
                     self.cfg_switch, return_center_coord=True, screenshot=self.screenshot)
                 if switch_coord:
                     u2_device.device.click(switch_coord[0], switch_coord[1])
                     wait_until(self._in_select_skill, thread=app_data.thread, check_interval=0,
-                               time_out_operate_funcs=lambda: app_data.update_ui(f"Role指令等待切换后排选中技能超时"))
+                               time_out_operate_func=lambda: app_data.update_ui(f"Role指令等待切换后排选中技能超时"))
                 else:
                     app_data.update_ui(f"未找到切换按钮")
             if boost > 0:
                 skill_start = [self.skill_coord_x, self.skill_coords_y[skill]]
                 skill_end = [self.boost_coords_x[boost], self.skill_coords_y[skill]]
                 app_data.update_ui(f"开始选中技能{skill}并加成{boost}")
-                u2_device.long_press_and_drag(skill_start, skill_end, 0.1)
+                u2_device.long_press_and_drag(skill_start, skill_end, self.swipe_duration)
             else:
                 app_data.update_ui(f"开始选中技能{skill}")
                 u2_device.device.click(self.skill_coord_x, self.skill_coords_y[skill])
@@ -257,8 +264,9 @@ class Battle:
 
     def cmd_sp(self, role, x, y):
         try:
+            world.btn_trim_click()
             wait_until(self._in_round, thread=app_data.thread, check_interval=0,
-                       time_out_operate_funcs=lambda: app_data.update_ui(f"SP指令等待回合超时"))
+                       time_out_operate_func=lambda: app_data.update_ui(f"SP指令等待回合超时"))
             if self.in_round_ctx != True:
                 raise Exception(f"执行SP指令{role},不在回合中")
             if role < 1 or role > 8:
@@ -275,20 +283,20 @@ class Battle:
             front_role_id = get_front_front_role_id(role)
             u2_device.device.click(self.role_coord_x, self.role_coords_y[front_role_id])
             wait_until(self._in_select_skill, thread=app_data.thread, check_interval=0,
-                       time_out_operate_funcs=lambda: app_data.update_ui(f"SP指令等待选技能超时"))
+                       time_out_operate_func=lambda: app_data.update_ui(f"SP指令等待选技能超时"))
             app_data.update_ui(f"进入选技能界面!")
             self._select_enemy(x, y)
             role_in_behind = role > 4
             if role_in_behind:
                 app_data.update_ui(f"切换人物!")
                 wait_until(self._in_select_switch, thread=app_data.thread, check_interval=0,
-                           time_out_operate_funcs=lambda: app_data.update_ui(f"SP指令等待切换后排超时"))
+                           time_out_operate_func=lambda: app_data.update_ui(f"SP指令等待切换后排超时"))
                 switch_coord = comparator.template_compare(
                     self.cfg_switch, return_center_coord=True, screenshot=self.screenshot)
                 if switch_coord:
                     u2_device.device.click(switch_coord[0], switch_coord[1])
                     wait_until(self._in_select_skill, thread=app_data.thread, check_interval=0,
-                               time_out_operate_funcs=lambda: app_data.update_ui(f"SP指令等待切换后排选中技能超时"))
+                               time_out_operate_func=lambda: app_data.update_ui(f"SP指令等待切换后排选中技能超时"))
                 else:
                     app_data.update_ui(f"未找到切换按钮")
             app_data.update_ui(f"正在选中必杀!")
@@ -310,7 +318,7 @@ class Battle:
         u2_device.device.long_click(self.confirm_coord[0], self.confirm_coord[1], int(time_in_ms)/1000)
 
     def hook_battle_end(self):
-        app_data.update_ui(f"战斗结束...")
+        app_data.update_ui(f"check-战斗结束...")
         if self._not_in_battle():
             self.cmd_skip(3000)
 
@@ -330,7 +338,7 @@ class Battle:
             del screenshot
             gc.collect()
 
-    def _in_battle(self, screenshot=None):
+    def _in_battle_icon(self, screenshot=None):
         app_data.update_ui("check-是否在战斗界面", 'debug')
         try:
             if screenshot is None or len(screenshot) == 0:
@@ -348,7 +356,7 @@ class Battle:
         try:
             if screenshot is None or len(screenshot) == 0:
                 screenshot = self.shot()
-            return not self._in_battle(screenshot) and not self._in_round(screenshot)
+            return not self.is_in_battle(screenshot) and not self._in_round(screenshot)
         except Exception as e:
             app_data.update_ui(f"检查是否不在战斗界面异常{e}")
             return False
@@ -360,7 +368,7 @@ class Battle:
         if screenshot is None or len(screenshot) == 0:
             screenshot = self.shot()
         try:
-            attack_end = self._in_round(screenshot) or (not self._in_battle(screenshot))
+            attack_end = self._in_round(screenshot) or (not self.is_in_battle(screenshot))
             return attack_end
         except Exception as e:
             app_data.update_ui(f"检查是否攻击结束异常{e}")
@@ -373,7 +381,7 @@ class Battle:
         try:
             if screenshot is None or len(screenshot) == 0:
                 screenshot = self.shot()
-            in_select_skill = self._in_battle(screenshot) and comparator.template_compare(
+            in_select_skill = self.is_in_battle(screenshot) and comparator.template_compare(
                 self.cfg_skill_ui, screenshot=screenshot)
             return in_select_skill
         except Exception as e:
@@ -387,7 +395,7 @@ class Battle:
         try:
             if screenshot is None or len(screenshot) == 0:
                 screenshot = self.shot()
-            in_select_switch = self._in_battle(screenshot) and comparator.template_compare(
+            in_select_switch = self.is_in_battle(screenshot) and comparator.template_compare(
                 self.cfg_switch, screenshot=screenshot)
             return in_select_switch
         except Exception as e:
@@ -497,7 +505,7 @@ class Battle:
             world.btn_trim_click()
             time.sleep(0.2)
             screenshot = self.shot()
-            if self._in_battle(screenshot):
+            if self.is_in_battle(screenshot):
                 croods = self.check_quit_battle(screenshot=screenshot)
                 if croods:
                     u2_device.device.click(croods[0], croods[1])
@@ -582,7 +590,7 @@ class Battle:
                 return False
             if comparator.match_point_color(i, screenshot=screenshot):
                 result = True
-        if not result and self._in_battle(screenshot):
+        if not result and self._in_battle_icon(screenshot):
             result = True
         if not result and self.is_sp_skill(screenshot):
             result = True

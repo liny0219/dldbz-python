@@ -93,6 +93,7 @@ class U2Device:
         app_data.update_ui(f"重启成功")
 
     def long_press_and_drag(self, start, end, duration=0.3):
+        app_data.update_ui(f"长按并拖动: {start} -> {end}, 持续时间: {duration} 秒")
         start_x, start_y = start
         end_x, end_y = end
         self.device.swipe(start_x, start_y, end_x, end_y, duration=duration)  # 滑动操作持续0.5秒

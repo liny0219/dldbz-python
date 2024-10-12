@@ -1,7 +1,7 @@
 import time
 
 
-def wait_until(condition_func, operate_funcs=None, timeout=10, check_interval=0.1, time_out_operate_funcs=None, thread=None):
+def wait_until(condition_func, operate_funcs=None, timeout=10, check_interval=0.1, time_out_operate_func=None, thread=None):
     """
     等待直到条件函数返回 True 或超时。
 
@@ -30,10 +30,9 @@ def wait_until(condition_func, operate_funcs=None, timeout=10, check_interval=0.
             time.sleep(check_interval)
         time_elapsed = time.time() - start_time
         if time_elapsed >= timeout:
-            if time_out_operate_funcs and type(time_out_operate_funcs) == list:
+            if time_out_operate_func:
                 try:
-                    for time_out_operate_func in time_out_operate_funcs:
-                        time_out_operate_func()
+                    time_out_operate_func()
                 except Exception as e:
                     print(f"time_out_operate_func error: {e}")
             break

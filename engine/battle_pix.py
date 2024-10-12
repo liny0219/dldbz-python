@@ -25,7 +25,7 @@ class BattleVee:
         u2_device.device.click(825, 482)
 
     def btn_auto_battle_stop(self):
-        u2_device.device.click(480, 472)
+        u2_device.device.click(602, 450)
 
     def btn_quit_battle(self):
         u2_device.device.click(440, 482)
@@ -123,13 +123,13 @@ class BattleVee:
 
     def is_cat(self, screenshot=None):
         if self.is_cat50(screenshot):
-            app_data.update_ui("find-猫50界面中")
+            app_data.update_ui("find-猫50界面中", 'debug')
             return 50
         if self.is_cat55(screenshot):
-            app_data.update_ui("find-猫55界面中")
+            app_data.update_ui("find-猫55界面中", 'debug')
             return 55
         if self.is_cat70(screenshot):
-            app_data.update_ui("find-猫70界面中")
+            app_data.update_ui("find-猫70界面中", 'debug')
             return 70
         return 0
 
@@ -154,7 +154,7 @@ class BattleVee:
     def is_cat70(self, screenshot=None):
         app_data.update_ui("check-猫70界面中", 'debug')
         result = comparator.template_compare(
-            './assets/cat/70.png',  screenshot=screenshot)
+            './assets/cat/70.png',  screenshot=screenshot, gray=False)
         if result:
             app_data.update_ui("find-猫70界面中", 'debug')
             return True
