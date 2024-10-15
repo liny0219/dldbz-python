@@ -237,6 +237,7 @@ class Battle:
             wait_until(self._in_select_skill, thread=app_data.thread, check_interval=0,
                        time_out_operate_func=lambda: app_data.update_ui(f"Role指令等待选技能超时"))
             app_data.update_ui(f"进入选技能界面!")
+            time.sleep(self.wait_interval)
             self._select_enemy(x, y)
             if role_in_behind:
                 app_data.update_ui(f"开始切换人物!")
@@ -254,11 +255,12 @@ class Battle:
                 skill_start = [self.skill_coord_x, self.skill_coords_y[skill]]
                 skill_end = [self.boost_coords_x[boost], self.skill_coords_y[skill]]
                 app_data.update_ui(f"开始选中技能{skill}并加成{boost}")
-                u2_device.long_press_and_drag(skill_start, skill_end, self.swipe_duration)
+                u2_device.long_press_and_drag_step(skill_start, skill_end, self.swipe_duration)
             else:
                 app_data.update_ui(f"开始选中技能{skill}")
                 u2_device.device.click(self.skill_coord_x, self.skill_coords_y[skill])
             app_data.update_ui(f"选中技能{skill}")
+            time.sleep(self.wait_interval)
         except Exception as e:
             app_data.update_ui(f"执行技能异常{e}")
 
@@ -285,6 +287,7 @@ class Battle:
             wait_until(self._in_select_skill, thread=app_data.thread, check_interval=0,
                        time_out_operate_func=lambda: app_data.update_ui(f"SP指令等待选技能超时"))
             app_data.update_ui(f"进入选技能界面!")
+            time.sleep(self.wait_interval)
             self._select_enemy(x, y)
             role_in_behind = role > 4
             if role_in_behind:
@@ -500,10 +503,6 @@ class Battle:
 
     def check_finish(self, screenshot=None):
         try:
-            if screenshot is None or len(screenshot) == 0:
-                screenshot = self.shot()
-            world.btn_trim_click()
-            time.sleep(0.2)
             screenshot = self.shot()
             if self.is_in_battle(screenshot):
                 croods = self.check_quit_battle(screenshot=screenshot)
@@ -512,6 +511,8 @@ class Battle:
                     app_data.update_ui("点击退出战斗")
                 else:
                     app_data.update_ui("未找到退出战斗按钮")
+                    world.btn_trim_click()
+                    app_data.update_ui("点击空白处")
                 return False
             return True
         except Exception as e:

@@ -96,7 +96,18 @@ class U2Device:
         app_data.update_ui(f"长按并拖动: {start} -> {end}, 持续时间: {duration} 秒")
         start_x, start_y = start
         end_x, end_y = end
-        self.device.swipe(start_x, start_y, end_x, end_y, duration=duration)  # 滑动操作持续0.5秒
+        self.device.swipe(start_x, start_y, end_x, end_y, duration=duration)
+
+    def long_press_and_drag_step(self, start, end, duration):
+        start_x, start_y = start
+        end_x, end_y = end
+        app_data.update_ui(f"长按: {duration} 秒")
+        self.device.touch.down(start_x, start_y)
+        time.sleep(duration)
+        app_data.update_ui(f"拖动: {start} -> {end} {duration} 秒")
+        self.device.touch.move(end_x, end_y)
+        time.sleep(duration)
+        self.device.touch.up(end_x, end_y)
 
     def ensure_directory_exists(self, directory):
         # 检查目录是否存在

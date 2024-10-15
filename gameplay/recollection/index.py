@@ -24,7 +24,7 @@ class Recollection:
         try:
             screenshot = self.shot()
             coord = comparator.template_compare(
-                "./assets/recollection/read_ui.png", return_center_coord=True, screenshot=screenshot)
+                "./assets/recollection/read_ui.png",  screenshot=screenshot, gray=False)
             return coord
         except Exception as e:
             app_data.update_ui(f"can_read异常{e}")
@@ -33,34 +33,19 @@ class Recollection:
             del screenshot
             gc.collect()
 
-    def on_read(self, screenshot=None):
-        try:
-            coord = self.can_read(screenshot)
-            if coord is not None and len(coord) > 0:
-                x, y = coord
-                u2_device.device.click(x, y)
-                return True
-            return False
-        except Exception as e:
-            app_data.update_ui(f"on_read异常{e}")
-            return False
-        finally:
-            del screenshot
-            gc.collect()
-
-    def on_confirm_read(self, screenshot=None):
+    def check_battle_fail(self, screenshot=None):
         try:
             if screenshot is None or len(screenshot) == 0:
                 screenshot = self.shot()
             coord = comparator.template_compare(
-                "./assets/recollection/confirm_read_ui.png", return_center_coord=True, screenshot=screenshot)
+                "./assets/battle/battle_fail.png", return_center_coord=True, screenshot=screenshot)
             if coord is not None:
                 x, y = coord
                 u2_device.device.click(x, y)
                 return True
             return False
         except Exception as e:
-            app_data.update_ui(f"on_confirm_read异常{e}")
+            app_data.update_ui(f"check_battle_fail异常{e}")
             return False
         finally:
             del screenshot
@@ -155,29 +140,34 @@ class Recollection:
                         screenshot = self.shot()
                         battle.check_finish(screenshot)
                         battle.check_confirm_quit_battle(screenshot)
-                        coord = self.can_read(screenshot)
-                        if coord is not None and len(coord) > 0:
-
+                        can_reaq = self.can_read(screenshot)
+                        if can_reaq:
                             if self.flag_finish:
                                 self.end = True
                                 app_data.update_ui("追忆之书已达到设定次数")
                                 break
                             else:
-                                u2_device.device.click(coord[0], coord[1])
-                        if self.on_confirm_read(screenshot):
-                            for i in range(2):
-                                if app_data.thread_stoped():
-                                    break
-                                battle.cmd_skip(3000)
-                            self.flag_in_battle = True
-                            self.start_count += 1
-                            self.TimeroundStart = time.time()
+                                time.sleep(1)
+                                u2_device.device.click(821, 140)
+                                time.sleep(1)
+                                u2_device.device.click(596, 460)
+                                for i in range(2):
+                                    if app_data.thread_stoped():
+                                        break
+                                    battle.cmd_skip(3000)
+                                self.flag_in_battle = True
+                                self.start_count += 1
+                                app_data.update_ui(f"总战斗次数+1,共{self.start_count}次")
+                                self.TimeroundStart = time.time()
+
+                        self.check_battle_fail(screenshot)
                         if self.on_confirm_award(screenshot):
                             self.finish_count += 1
+                            app_data.update_ui(f"完成次数次数+1,共{self.finish_count}次")
                             self.turn_end()
                         if self.on_status_close(screenshot):
                             self.turn_end()
-                        time.sleep(0.2)
+                        time.sleep(0.1)
                     else:
                         time.sleep(1)
                 except Exception as e:
@@ -208,8 +198,10 @@ class Recollection:
     def turn_end(self):
         if self.report_count == self.start_count:
             return
-        self.report_count = self.start_count
         fail_count = self.start_count - self.finish_count
+        if self.report_count == -1:
+            fail_count = 0
+        self.report_count = self.start_count
         # 计算每轮时间
         current_time = time.time()
         round_time = current_time - self.TimeroundStart

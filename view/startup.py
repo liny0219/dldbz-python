@@ -146,6 +146,11 @@ class App:
                 frame, "BP拖动间隔:", lambda text: self.startup.set_engine_config(text, 'common.swipe_duration'), default_value=swipe_duration)
             self.input_swipe_duration.pack(padx=10, pady=5, anchor=tk.W)  # 组件
 
+            cmd_wait_duration = cfg_engine.get("common.wait_interval")
+            self.input_cmd_wait_duration = InputComponent(
+                frame, "指令等待时间:", lambda text: self.startup.set_engine_config(text, 'common.wait_interval'), default_value=cmd_wait_duration)
+            self.input_cmd_wait_duration.pack(padx=10, pady=5, anchor=tk.W)  # 组件
+
             auto_check_dead = cfg_engine.get("common.auto_check_dead")
             self.cmb_auto_check_dead = ComboBoxComponent(
                 frame, "自动检查死亡:", {

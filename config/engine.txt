@@ -1,7 +1,7 @@
 {
     "common": {
-        "swipe_duration": "0.3",
-        "wait_interval": 0.8,
-        "auto_check_dead": false
+        "swipe_duration": "0.4",
+        "wait_interval": "0.1",
+        "auto_check_dead": true
     }
 }
