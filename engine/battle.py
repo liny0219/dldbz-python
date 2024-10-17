@@ -52,7 +52,7 @@ class Battle:
         u2_device.set_config()
         self.wait_interval = float(cfg_engine.get('common.wait_interval'))
         self.swipe_duration = float(cfg_engine.get('common.swipe_duration'))
-        self.auto_check_dead = cfg_engine.get('common.auto_check_dead') == 'True'
+        self.auto_check_dead = cfg_engine.get('common.auto_check_dead')
 
     def set_hook(self):
         # 设置 Hook 函数，返回值为 bool 类型，表示是否继续执行

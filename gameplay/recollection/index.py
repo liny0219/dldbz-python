@@ -209,15 +209,14 @@ class Recollection:
             while app_data.thread and not app_data.thread_stoped() and not self.end:
                 if self.flag_in_battle:
                     app_data.update_ui("开始战斗")
-                    run_result = battle.run('./battle_script/recollection.txt')
-                    if run_result == 1:
-                        is_finish = battle.check_finish()
-                        if is_finish:
-                            for i in range(2):
-                                if app_data.thread_stoped():
-                                    break
-                                battle.cmd_skip(3000)
-                        self.flag_in_battle = False
+                    battle.run('./battle_script/recollection.txt')
+                    is_finish = battle.check_finish()
+                    if is_finish:
+                        for i in range(2):
+                            if app_data.thread_stoped():
+                                break
+                            battle.cmd_skip(3000)
+                    self.flag_in_battle = False
                 else:
                     time.sleep(0.2)
 
