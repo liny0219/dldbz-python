@@ -70,6 +70,8 @@ class StartupLogic:
             self.is_busy = False  # 重置忙碌状态
 
     def init_engine(self):
+        cfg_startup.reload()
+        self.debug = cfg_startup.get('debug')
         if self.inited:
             return
         if self.is_busy:
@@ -139,16 +141,17 @@ class StartupLogic:
     def update_ui(self, msg, type='info'):
         if not self.message_text:
             return
-        if self.debug == 1:
+        if self.debug:
             print(msg)
         # 展示时间到毫秒
         current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S %f")[:-3]
         message = f"[{current_time}] {msg}\n"
         print(message)
-        self.log_update_data_debug.append(message)
+        if (type == 'debug' and self.debug) or type != 'debug':
+            self.log_update_data_debug.append(message)
         if len(self.log_update_data_debug) >= self.log_update_count_max*10:
             self.write_to_file(self.log_file)
-        if type == 'debug' and self.debug == 0:
+        if type == 'debug' and not self.debug:
             return
         self.log_update_data.append(message)
         # 如果是type=1，更新统计信息

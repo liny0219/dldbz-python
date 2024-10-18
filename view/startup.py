@@ -231,6 +231,14 @@ class App:
                 }, lambda text: self.startup.set_stationary_config(text, 'run_enabled'), default_value=cmb_run_enabled_text)
             self.cmb_run_enabled.pack(padx=10, pady=5, anchor=tk.W)  # 组件左对齐
 
+            cmb_cat_run = cfg_stationary.get("cat_run")
+            self.cmb_cat_enabled = ComboBoxComponent(
+                frame, "遇猫逃跑:", {
+                    "关闭": False,
+                    "开启": True
+                }, lambda text: self.startup.set_stationary_config(text, 'cat_run'), default_value=cmb_cat_run)
+            self.cmb_cat_enabled.pack(padx=10, pady=5, anchor=tk.W)  # 组件左对齐
+
             max_battle_count = cfg_stationary.get("max_battle_count")
             self.input_max_battle_count = InputComponent(
                 frame, "战斗N次:", lambda text: self.startup.set_stationary_config(text, 'max_battle_count'), default_value=max_battle_count)

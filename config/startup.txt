@@ -1,5 +1,5 @@
 {
-    "debug": 0,
+    "debug": false,
     "adb_port": "127.0.0.1:5555",
     "exe_path": "",
     "package_name": "com.netease.ma167",
