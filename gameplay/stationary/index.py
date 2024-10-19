@@ -44,6 +44,7 @@ class Stationary:
             run_count = max_battle_count
             is_cat_lv = 0
             turn_direction = 1
+            is_auto_battle = False
             while not self.thread_stoped():
                 try:
                     pre_match = is_match
@@ -143,16 +144,21 @@ class Stationary:
                             time.sleep(battle_wait_time)
                             continue
                         if not is_auto_battle_stay and is_round:
+                            if not run_enabled and is_auto_battle:
+                                continue
                             is_match = State.BattleAutoStay
                             battle.btn_auto_battle()
                             self.update_ui("点击自动战斗")
                             time.sleep(battle_wait_time)
                             continue
                         if is_auto_battle_stay:
+                            if not run_enabled and is_auto_battle:
+                                continue
                             is_match = State.BattleInRound
                             battle.btn_auto_battle_start()
                             self.update_ui("点击自动战斗开始")
                             time.sleep(battle_wait_time)
+                            is_auto_battle = True
                             continue
                         else:
                             self.screenshot = u2_device.device.screenshot(format='opencv')
