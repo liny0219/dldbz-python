@@ -171,7 +171,9 @@ class Recollection:
                             if self.flag_finish:
                                 self.end = True
                                 app_data.update_ui("追忆之书已达到设定次数")
-                                break
+                                app_data.recollection_deamon_thread.stop()
+                                app_data.thread.stop()
+                                return
                             else:
                                 time.sleep(1)
                                 screenshot = self.shot()
