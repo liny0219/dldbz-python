@@ -1,5 +1,5 @@
 from tool_build_base import main
-version = '3.0.10'
+version = '3.0.11'
 
 if __name__ == '__main__':
     main(version)

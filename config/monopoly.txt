@@ -1,5 +1,5 @@
 {
-    "type": "802",
+    "type": "801",
     "ticket": "0",
     "lv": "5",
     "auto_battle": "1",

@@ -38,7 +38,7 @@ class World:
             return None
         app_data.update_ui("check-成就页面", 'debug')
         crood = comparator.template_compare(f"./assets/world/ads_tag.png",
-                                            return_center_coord=True, screenshot=screenshot)
+                                            return_center_coord=True, screenshot=screenshot, gray=False)
         if crood is not None and len(crood) > 0:
             app_data.update_ui("find-在成就页面", 'debug')
             return crood

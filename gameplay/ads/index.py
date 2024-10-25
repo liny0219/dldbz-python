@@ -37,6 +37,7 @@ class Ads():
         statr_time = time.time()
         wait_time = 0.2
         wait_time_count = 0
+        world.btn_trim_click()
         while not app_data.thread_stoped():
             if time.time() - statr_time > 180:
                 app_data.update_ui("出现异常超时停止看广告")
@@ -62,29 +63,28 @@ class Ads():
                 in_world = world.check_in_world(self.screenshot)
                 if in_world:
                     app_data.update_ui("当前在世界地图")
+                    app_data.update_ui("点击菜单")
                     world.btn_menu_click()
                     state = State.World
-                    time.sleep(wait_time)
-
-                in_achievement_menu = world.check_in_achievement_menu(self.screenshot)
-                if in_achievement_menu:
-                    app_data.update_ui("当前在成就界面")
+                    time.sleep(2)
+                    app_data.update_ui("点击成就按钮")
                     world.btn_menu_achievement_click()
                     state = State.AchievementMenu
-                    time.sleep(wait_time)
 
                 in_achievement_page = world.check_in_achievement_page(self.screenshot)
                 if in_achievement_page:
                     app_data.update_ui("当前在广告界面")
                     state = State.AchievementPage
+                    app_data.update_ui("点击增长见闻按钮")
                     u2_device.device.click(in_achievement_page[0], in_achievement_page[1])
                     time.sleep(wait_time)
                 in_ads_modal = check_in_ads_modal(self.screenshot)
                 if in_ads_modal is not None:
                     app_data.update_ui("当前在广告弹窗")
                     state = State.AdsModal
+                    app_data.update_ui("点击观看开宝箱")
                     u2_device.device.click(in_ads_modal[0], in_ads_modal[1])
-                    time.sleep(wait_time)
+                    time.sleep(3)
                 in_ads_watch = check_in_ads_watch(self.screenshot)
                 if in_ads_watch is not None:
                     app_data.update_ui("当前在广告播放页面")
@@ -95,20 +95,30 @@ class Ads():
                         time.sleep(wait_time)
                     app_data.update_ui("广告播放结束")
                     in_ads_watch = check_in_ads_watch(self.screenshot)
-                    u2_device.device.click(in_ads_watch[0], in_ads_watch[1])
+                    if in_ads_watch is not None:
+                        app_data.update_ui(f"点击关闭广告0坐标{in_ads_watch}")
+                        u2_device.device.click(in_ads_watch[0], in_ads_watch[1])
+                    else:
+                        app_data.update_ui("未找到关闭广告按钮")
+                        default_crood = (918, 41)
+                        app_data.update_ui("点击屏幕")
+                        u2_device.device.click(default_crood[0], default_crood[1])
                     state = State.AdsWatchEnd
                     time.sleep(wait_time)
                 btn_award_crood = check_in_ads_award_confirm(self.screenshot)
                 if btn_award_crood is not None:
                     app_data.update_ui("广告奖励确认")
                     state = State.AdsAwardConfirm
+                    app_data.update_ui("奖励截图")
                     write_log(self.screenshot, 'image_ads_award')
+                    app_data.update_ui("点击领取奖励")
                     u2_device.device.click(btn_award_crood[0], btn_award_crood[1])
                     time.sleep(wait_time)
                 btn_type_1_crood = check_in_ads_type_1(self.screenshot)
                 if btn_type_1_crood is not None:
                     app_data.update_ui("广告类型1")
                     state = State.AdsType1
+                    app_data.update_ui(f"点击关闭广告类型1{btn_type_1_crood}")
                     u2_device.device.click(btn_type_1_crood[0], btn_type_1_crood[1])
                     time.sleep(wait_time)
                 if check_ads_finish(self.screenshot):
