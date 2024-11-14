@@ -106,19 +106,49 @@ class BattleVee:
 
     def is_in_round(self, screenshot=None):
         app_data.update_ui("check-战斗准备界面中", 'debug')
-        result = comparator.template_compare(
-            './assets/battle/attack.png', [(702, 448), (944, 516)],  screenshot=screenshot)
-        if result:
-            app_data.update_ui("find-在战斗准备界面中", 'debug')
-        return result
+        ck1 = [(844, 476, [228, 255, 255]),
+               (836, 474, [237, 255, 255]),
+               (829, 476, [240, 255, 255]),
+               (836, 484, [255, 255, 241]),
+               (846, 497, [255, 253, 255]),
+               (836, 498, [234, 255, 255]),
+               (826, 496, [243, 255, 255]),
+               (813, 478, [249, 255, 255]),
+               (803, 480, [232, 255, 255]),
+               (807, 491, [255, 248, 255]),
+               (793, 476, [255, 249, 255]),
+               (794, 491, [255, 253, 255]),]
+        cks = [ck1]
+        for i in cks:
+            if app_data.thread_stoped():
+                return False
+            if comparator.match_point_color(i, screenshot=screenshot):
+                app_data.update_ui("find-在战斗准备界面中", 'debug')
+                return True
+        return False
 
     def is_auto_battle_stay(self, screenshot=None):
         app_data.update_ui("check-自动战斗停留界面中", 'debug')
-        result = comparator.template_compare(
-            './assets/battle/auto_battle_stay.png', [(705, 450), (946, 520)],  screenshot=screenshot)
-        if result:
-            app_data.update_ui("find-在自动战斗停留界面中", 'debug')
-            return True
+        ck1 = [(876, 476, [247, 255, 243]),
+               (877, 482, [154, 209, 178]),
+               (880, 490, [182, 233, 200]),
+               (867, 479, [223, 255, 234]),
+               (856, 483, [241, 255, 248]),
+               (850, 485, [237, 255, 250]),
+               (837, 483, [245, 255, 239]),
+               (817, 483, [243, 255, 246]),
+               (810, 482, [247, 255, 243]),
+               (798, 482, [157, 193, 157]),
+               (790, 483, [226, 248, 225]),
+               (775, 481, [248, 255, 245]),
+               (828, 507, [211, 244, 249])]
+        cks = [ck1]
+        for i in cks:
+            if app_data.thread_stoped():
+                return False
+            if comparator.match_point_color(i, screenshot=screenshot):
+                app_data.update_ui("find-在自动战斗停留界面中", 'debug')
+                return True
         return False
 
     def is_cat(self, screenshot=None):
