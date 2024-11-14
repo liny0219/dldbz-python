@@ -16,5 +16,6 @@ class State(Enum):
     AdsAwardConfirm = 10,
     AdsFinish = 11,
     AdsType1 = 12,
+    CatchAwards = 13,
     NetError = 99,
     NotApp = 100,

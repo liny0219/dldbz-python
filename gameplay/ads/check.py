@@ -29,8 +29,44 @@ def check_in_ads_watch(screenshot=None):
     crood = comparator.template_compare(f"assets/ads/close_0.png",
                                         return_center_coord=True,
                                         screenshot=screenshot, match_threshold=match_threshold)
+    if crood is None or len(crood) == 0:
+        crood = comparator.template_compare(f"assets/ads/close_1.png",
+                                            return_center_coord=True,
+                                            screenshot=screenshot, match_threshold=match_threshold)
+    if crood is None or len(crood) == 0:
+        crood = comparator.template_compare(f"assets/ads/close_2.png",
+                                            return_center_coord=True,
+                                            screenshot=screenshot, match_threshold=match_threshold)
     if crood is not None and len(crood) > 0:
         app_data.update_ui("find-在广告观看界面", 'debug')
+        return crood
+    else:
+        return None
+
+
+def check_catch_awards(screenshot=None):
+    if (app_data.thread_stoped()):
+        return None
+    app_data.update_ui("check-抓住奖励机会", 'debug')
+    crood = comparator.template_compare(f"assets/ads/catch_awards.png",
+                                        return_center_coord=True,
+                                        screenshot=screenshot, match_threshold=match_threshold)
+    if crood is not None and len(crood) > 0:
+        app_data.update_ui("find-抓住奖励机会", 'debug')
+        return crood
+    else:
+        return None
+
+
+def check_finish_ads(screenshot=None):
+    if (app_data.thread_stoped()):
+        return None
+    app_data.update_ui("check-广告完成", 'debug')
+    crood = comparator.template_compare(f"assets/ads/finish_ads.png",
+                                        return_center_coord=True,
+                                        screenshot=screenshot, match_threshold=match_threshold)
+    if crood is not None and len(crood) > 0:
+        app_data.update_ui("find-广告完成", 'debug')
         return crood
     else:
         return None

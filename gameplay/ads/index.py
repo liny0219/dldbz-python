@@ -8,7 +8,7 @@ import cv2
 from app_data import app_data
 from engine.world import world
 from engine.u2_device import u2_device
-from gameplay.ads.check import check_ads_finish, check_in_ads_award_confirm, check_in_ads_modal, check_in_ads_playing, check_in_ads_type_1, check_in_ads_watch
+from gameplay.ads.check import check_ads_finish, check_catch_awards, check_finish_ads, check_in_ads_award_confirm, check_in_ads_modal, check_in_ads_playing, check_in_ads_type_1, check_in_ads_watch
 from gameplay.ads.constants import State
 
 
@@ -86,14 +86,31 @@ class Ads():
                     u2_device.device.click(in_ads_modal[0], in_ads_modal[1])
                     time.sleep(3)
                 in_ads_watch = check_in_ads_watch(self.screenshot)
-                if in_ads_watch is not None:
+                if in_ads_watch is not None and pre_state != State.AdsWatchEnd:
                     app_data.update_ui("当前在广告播放页面")
+                    i = 0
                     while check_in_ads_playing(self.screenshot):
                         self.shot()
+                        i += 1
                         app_data.update_ui("广告播放中")
                         state = State.AdsPlaying
                         time.sleep(wait_time)
-                    app_data.update_ui("广告播放结束")
+                    if i == 0:
+                        for i in range(30):
+                            self.shot()
+                            if check_finish_ads(self.screenshot):
+                                app_data.update_ui("广告播放结束")
+                                break
+                            if check_in_ads_modal(self.screenshot):
+                                app_data.update_ui("没有成功播放广告")
+                                break
+                            if (app_data.thread_stoped()):
+                                return False
+                            state = State.AdsPlaying
+                            app_data.update_ui(f"匹配不播放标识,等待{30 - i}秒")
+                    else:
+                        app_data.update_ui("广告播放结束")
+                    time.sleep(2)
                     in_ads_watch = check_in_ads_watch(self.screenshot)
                     if in_ads_watch is not None:
                         app_data.update_ui(f"点击关闭广告0坐标{in_ads_watch}")
@@ -105,6 +122,7 @@ class Ads():
                         u2_device.device.click(default_crood[0], default_crood[1])
                     state = State.AdsWatchEnd
                     time.sleep(wait_time)
+                self.shot()
                 btn_award_crood = check_in_ads_award_confirm(self.screenshot)
                 if btn_award_crood is not None:
                     app_data.update_ui("广告奖励确认")
@@ -120,6 +138,12 @@ class Ads():
                     state = State.AdsType1
                     app_data.update_ui(f"点击关闭广告类型1{btn_type_1_crood}")
                     u2_device.device.click(btn_type_1_crood[0], btn_type_1_crood[1])
+                    time.sleep(wait_time)
+                if catch_awards_crood := check_catch_awards(self.screenshot):
+                    app_data.update_ui("抓住奖励机会")
+                    state = State.CatchAwards
+                    app_data.update_ui(f"点击抓住奖励机会{catch_awards_crood}")
+                    u2_device.device.click(catch_awards_crood[0], catch_awards_crood[1])
                     time.sleep(wait_time)
                 if check_ads_finish(self.screenshot):
                     app_data.update_ui("所有广告已完成")
