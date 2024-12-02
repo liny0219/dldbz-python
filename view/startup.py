@@ -120,8 +120,8 @@ class App:
         elif frame == self.map_frame:
             main_button["text"] = "刷野启动"
             main_button["command"] = self.startup.on_stationary
-            ads_button = {"text": "广告启动", "command": self.startup.on_ads}
-            buttons.insert(0, ads_button)
+            # ads_button = {"text": "广告启动", "command": self.startup.on_ads}
+            # buttons.insert(0, ads_button)
 
         buttons.insert(0, main_button)
 

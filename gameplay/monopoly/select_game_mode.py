@@ -1,9 +1,10 @@
 from app_data import app_data
 from engine.u2_device import u2_device
-from gameplay.monopoly.config import config
+from gameplay.monopoly.config import config, set_config
 
 
 def select_game_mode():
+    set_config()
     init_ticket = 1
     init_lv = 0
     while config.cfg_ticket < init_ticket and not app_data.thread_stoped():
