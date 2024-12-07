@@ -246,11 +246,13 @@ class Battle:
                 switch_coord = comparator.template_compare(
                     self.cfg_switch, return_center_coord=True, screenshot=self.screenshot)
                 if switch_coord:
+                    time.sleep(self.wait_interval)
                     u2_device.device.click(switch_coord[0], switch_coord[1])
                     wait_until(self._in_select_skill, thread=app_data.thread, check_interval=0,
                                time_out_operate_func=lambda: app_data.update_ui(f"Role指令等待切换后排选中技能超时"))
                 else:
                     app_data.update_ui(f"未找到切换按钮")
+            time.sleep(self.wait_interval)
             if boost > 0:
                 skill_start = [self.skill_coord_x, self.skill_coords_y[skill]]
                 skill_end = [self.boost_coords_x[boost], self.skill_coords_y[skill]]
@@ -297,6 +299,7 @@ class Battle:
                 switch_coord = comparator.template_compare(
                     self.cfg_switch, return_center_coord=True, screenshot=self.screenshot)
                 if switch_coord:
+                    time.sleep(self.wait_interval)
                     u2_device.device.click(switch_coord[0], switch_coord[1])
                     wait_until(self._in_select_skill, thread=app_data.thread, check_interval=0,
                                time_out_operate_func=lambda: app_data.update_ui(f"SP指令等待切换后排选中技能超时"))
