@@ -26,7 +26,9 @@ class Battle:
         self.boost_coords_x = [600, 787, 854, 921]   # boost终点x坐标
         self.confirm_coord = [702, 348]   # 额外点击
         self.sp_coords = [525, 68]      # sp坐标
+        self.sp_coords_skill = [512, 157]      # sp坐标
         self.sp_confirm_coords = [702, 348]  # sp确认坐标
+        self.sp_confirm_coords1 = [702, 396]  # sp确认坐标
         self.finish_hook = None
         self.in_round_ctx = False
         self.screenshot = None
@@ -308,8 +310,13 @@ class Battle:
             app_data.update_ui(f"正在选中必杀!")
             u2_device.device.click(self.sp_coords[0], self.sp_coords[1])
             time.sleep(self.wait_interval)
+            app_data.update_ui(f"选中极限技")
+            u2_device.device.click(self.sp_coords_skill[0], self.sp_coords_skill[1])
+            time.sleep(0.8)
+            time.sleep(self.wait_interval)
             u2_device.device.click(self.sp_confirm_coords[0], self.sp_confirm_coords[1])
-            app_data.update_ui(f"选中必杀技")
+            u2_device.device.click(self.sp_confirm_coords1[0], self.sp_confirm_coords1[1])
+            app_data.update_ui(f"确认选中必杀技")
             time.sleep(self.wait_interval)
         except Exception as e:
             app_data.update_ui(f"执行必杀技能异常{e}")
