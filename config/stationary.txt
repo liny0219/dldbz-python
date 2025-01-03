@@ -1,5 +1,5 @@
 {
-    "run_enabled": true,
+    "run_enabled": false,
     "cat_run": true,
     "max_battle_count": "1",
     "max_run_count": "1",

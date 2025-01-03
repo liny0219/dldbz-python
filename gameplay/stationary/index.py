@@ -136,6 +136,7 @@ class Stationary:
                             battle.btn_quit_battle()
                             self.update_ui(f"遇到猫，逃跑")
                             time.sleep(battle_wait_time)
+                            is_auto_battle = False
                             continue
                         if run_enabled and is_run and is_round and is_cat_lv == 0:
                             battle.btn_quit_battle()

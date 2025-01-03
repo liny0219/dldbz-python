@@ -94,6 +94,10 @@ class StartupLogic:
         self.update_ui("正在关闭程序，请稍等...")
         if self.app_data.thread:
             self.app_data.thread.stop()
+        if self.app_data.monopoly_deamon_thread:
+            self.app_data.monopoly_deamon_thread.stop()
+        if self.app_data.recollection_deamon_thread:
+            self.app_data.recollection_deamon_thread.stop()
         self.on_stop()
         self.app.quit()
         self.app.destroy()
