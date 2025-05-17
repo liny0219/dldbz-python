@@ -87,7 +87,7 @@ class App:
         Label(about_frame, text="©2024", font=self.default_font).pack(pady=10)
 
         notebook.add(self.monopoly_frame, text='游戏盘')
-        notebook.add(self.recollection_frame, text='追忆之书')
+        # notebook.add(self.recollection_frame, text='追忆之书')
         notebook.add(self.map_frame, text='大地图')
         notebook.add(self.settings_frame, text='设置')  # 添加到这里
         notebook.add(about_frame, text='关于')

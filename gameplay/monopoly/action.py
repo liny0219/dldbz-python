@@ -1,3 +1,4 @@
+import time
 from engine.u2_device import u2_device
 
 
@@ -6,7 +7,9 @@ def btn_center_confirm():
 
 
 def btn_menu_monopoly():
-    u2_device.device.click(455, 459)
+    u2_device.device.click(356, 460)
+    time.sleep(1)
+    u2_device.device.click(196, 453)
 
 
 def btn_setting_monopoly():
